@@ -1,0 +1,96 @@
+<?php
+// $Id: feeds.install,v 1.3 2009/09/21 14:55:47 alexb Exp $
+/**
+ * @file
+ */
+
+/**
+ * Implementation of hook_schema().
+ */
+function feeds_schema() {
+  $schema['feeds_config'] = array(
+    'description' => 'Configuration of feeds objects.',
+    'export' => array(
+      'key' => 'id',
+      'identifier' => 'feed_object',
+      'default hook' => 'feeds',  // Function hook name.
+      'api' => array(
+        'owner' => 'data',
+        'api' => 'feeds_default',  // Base name for api include files.
+        'minimum_version' => 1,
+        'current_version' => 1,
+      ),
+    ),
+    'fields' => array(
+      'id' => array(
+        'type' => 'varchar',
+        'length' => '255',
+        'not null' => TRUE,
+        'default' => '',
+        'description' => 'Id of the fields object.',
+      ),
+      'class' => array(
+        'type' => 'varchar',
+        'length' => '255',
+        'not null' => TRUE,
+        'default' => '',
+        'description' => 'Class name of the feeds object.',
+      ),
+      'config' => array(
+        'type' => 'text',
+        'not null' => FALSE,
+        'description' => 'Configuration of the feeds object.',
+        'serialize' => TRUE,
+      ),
+    ),
+    'indexes' => array(
+        'id' => array('id'),
+        'class' => array('class'),
+      ),
+  );
+  $schema['feeds_source'] = array(
+    'description' => 'Source definitions for feeds.',
+    'fields' => array(
+      'id' => array(
+        'type' => 'varchar',
+        'length' => '255',
+        'not null' => TRUE,
+        'default' => '',
+        'description' => 'Id of the feed configuration.',
+      ),
+      'nid' => array(
+        'type' => 'int',
+        'not null' => FALSE,
+        'unsigned' => TRUE,
+        'description' => 'Node nid if this particular source is attached to a node.',
+      ),
+      'source' => array(
+        'type' => 'text',
+        'not null' => FALSE,
+        'description' => 'Definition of the source.',
+        'serialize' => TRUE,
+      ),
+    ),
+    'indexes' => array(
+        'id' => array('id'),
+        'nid' => array('nid'),
+      ),
+  );
+  return $schema;
+}
+
+/**
+ * Implementation of hook_install().
+ */
+function feeds_install() {
+  // Create tables.
+  drupal_install_schema('feeds');
+}
+
+/**
+ * Implementation of hook_uninstall().
+ */
+function feeds_uninstall() {
+  // Remove tables.
+  drupal_uninstall_schema('feeds');
+}

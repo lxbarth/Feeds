@@ -1,0 +1,172 @@
+<?php
+// $Id: feeds.module,v 1.7 2009/09/21 14:55:47 alexb Exp $
+/**
+ * @file
+ * Feeds module.
+ */
+
+/**
+ * Implementation of hook_cron().
+ */
+function feeds_cron() {
+  feeds_include('queue');
+  feeds_queue_refresh();
+}
+
+/**
+ * Implementation of hook_perm().
+ */
+function feeds_perm() {
+  return array('use feeds', 'administer feeds');
+}
+
+/**
+ * Implementation of hook_form_alter().
+ */
+function feeds_form_alter(&$form, $form_state, $form_id) {
+  if ($form['#id'] == 'node-form') {
+    $feeds = feeds_load_all();
+    foreach ($feeds as $feed) {
+      $config = $feed->getConfig();
+      if ($config['content_type'] == $form['type']['#value']) {
+        $form['feeds'] = array(
+          '#type' => 'fieldset',
+          '#title' => t('Feed'),
+        );
+        $form['feeds'] += $feed->fetcher->sourceForm($form_state);
+      }
+    }
+  }
+}
+
+/**
+ * Implementation of hook_ctools_plugin_api().
+ * 
+ * @todo: switch hook_feeds_plugin() over to hook_ctools_plugin_api().
+ */
+function feeds_ctools_plugin_api($owner, $api) {
+  if ($owner == 'feeds' && $api == 'plugins') {
+    return array(
+      'version' => 1,
+      '');
+  }
+}
+
+/**
+ * Implementation of hook_feeds_plugin().
+ */
+function feeds_feeds_plugin() {
+  return array(
+    'FeedsHttpFetcher' => array(
+      'name' => t('HTTP fetcher'),
+      'file' => drupal_get_path('module', 'feeds') .'/plugins/FeedsHttpFetcher.inc',
+      'parent' => 'FeedsFetcher',
+    ),
+    'FeedsFileFetcher' => array(
+      'name' => t('File fetcher'),
+      'file' =>  drupal_get_path('module', 'feeds') .'/plugins/FeedsFileFetcher.inc',
+      'parent' => 'FeedsFetcher',
+    ),
+    'FeedsCSVParser' => array(
+      'name' => t('CSV parser'),
+      'file' => drupal_get_path('module', 'feeds') .'/plugins/FeedsCSVParser.inc',
+      'parent' => 'FeedsParser',
+    ),
+    'FeedsSyndicationParser' => array(
+      'name' => t('Common syndication parser'),
+      'file' => drupal_get_path('module', 'feeds') .'/plugins/FeedsSyndicationParser.inc',
+      'parent' => 'FeedsParser',
+    ),
+    'FeedsNodeProcessor' => array(
+      'name' => t('Node processor'),
+      'file' => drupal_get_path('module', 'feeds') .'/plugins/FeedsNodeProcessor.inc',
+      'parent' => 'FeedsProcessor',
+    ),
+  );
+}
+
+/**
+ * Get all available plugins.
+ * 
+ * @todo: more powerful tracing of parents.
+ */
+function feeds_get_plugins() {
+  feeds_include('feed');
+
+  $result = array();
+  $plugins = module_invoke_all('feeds_plugin');
+  foreach ($plugins as $plugin => $info) {
+    if ($info['parent'] == 'FeedsFetcher') { // @todo: walk tree.
+      $result['fetcher'][$plugin] = $info['name'] ? $info['name'] : $plugin;
+    }
+    elseif ($info['parent'] == 'FeedsParser') {
+      $result['parser'][$plugin] = $info['name'] ? $info['name'] : $plugin;
+    }
+    elseif ($info['parent'] == 'FeedsProcessor') {
+      $result['processor'][$plugin] = $info['name'] ? $info['name'] : $plugin;
+    }
+  }
+  return $result;
+}
+
+/**
+ * Load a plugin's file.
+ */
+function feeds_require_plugin($plugin) {
+  static $required;
+  $plugins = module_invoke_all('feeds_plugin');
+  if ($plugins[$plugin]['file'] && empty($required[$plugin])) {
+    require($plugins[$plugin]['file']);
+    $required[$plugin] = TRUE;
+  }
+}
+
+/**
+ * Menu loader. Loads a feeds configuration.
+ */
+function feeds_load($id) {
+  return feeds_get_feed($id);
+}
+
+/**
+ * Load all feeds.
+ */
+function feeds_load_all() {
+  ctools_include('export');
+  $configs = ctools_export_load_object('feeds_config', 'conditions', array('class' => 'Feed'));
+  foreach ($configs as $config) {
+    $feeds[$config->id] = feeds_get_feed($config->id);
+  }
+  return $feeds;
+}
+
+/**
+ * Singleton function.
+ */
+function feeds_get_feed($id) {
+  static $instantiated;
+  feeds_include('feed');
+  if (!isset($instantiated[$id])) {
+    $instantiated[$id] = new Feed($id);
+  }
+  return $instantiated[$id];
+}
+
+/**
+ * Delete a feed.
+ */
+function feeds_delete($id) {
+  db_query('DELETE FROM {feeds_config} WHERE id = "%s"', $id);
+}
+
+/**
+ * Includes a feeds module include file.
+ */
+function feeds_include($file) {
+  static $included = array();
+  if (!isset($included[$file])) {
+    require_once './' . drupal_get_path('module', 'feeds') . "/includes/$file.inc";
+  }
+
+  $included[$file] = TRUE;
+}
