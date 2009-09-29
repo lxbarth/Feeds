@@ -262,21 +262,21 @@ function theme_feeds_ui_build_plugin_form($form) {
   // Show current fetcher.
   $fetcher = $form['#plugins']['fetcher'][$form['#config']['fetcher']];
   $body = theme('feeds_ui_container', $fetcher['name'], $fetcher['description']);
-  $plugins_body = theme('feeds_ui_container', t('Fetcher'), $body, array(), 'fetcher');
+  $plugins_body = theme('feeds_ui_container', t('Fetcher'), $body, array(l(t('Change'), '')), 'fetcher');
 
   // Show current parser.
   $parser = $form['#plugins']['parser'][$form['#config']['parser']];
   $body = theme('feeds_ui_container', $parser['name'], $parser['description']);
-  $plugins_body .= theme('feeds_ui_container', t('Parser'), $body, array(), 'fetcher');
+  $plugins_body .= theme('feeds_ui_container', t('Parser'), $body, array(l(t('Change'), '')), 'parser');
 
   // Show current processors.
   $processors = array();
   $body = '';
   foreach ($form['#config']['processors'] as $processor) {
     $processor = $form['#plugins']['processor'][$processor];
-    $body .= theme('feeds_ui_container', $processor['name'], $processor['description']);
+    $body .= theme('feeds_ui_container', $processor['name'], $processor['description'], array(l(t('Remove'), '')));
   }
-  $plugins_body .= theme('feeds_ui_container', t('Processors'), $body, array(l(t('Remove'), '')), 'processors');
+  $plugins_body .= theme('feeds_ui_container', t('Processors'), $body, array(l(t('Add'), '')), 'processors');
 
   $output .= theme('feeds_ui_container', t('Plugins'), $plugins_body, array(), 'plugins');
   $output .= '</div>'; // '<div class="left-bar">'
@@ -290,22 +290,23 @@ function theme_feeds_ui_build_plugin_form($form) {
   foreach ($form['#plugins']['fetcher'] as $fetcher) {
     $body .= theme('feeds_ui_container', $fetcher['name'], $fetcher['description'], array(l(t('Select'), '')));
   }
-  $output .= theme('feeds_ui_container', t('Select a fetcher'), $body);
+  $output .= theme('feeds_ui_container', t('Select a fetcher'), $body, array(), 'select-box');
   $body = '';
   foreach ($form['#plugins']['parser'] as $parser) {
     $body .= theme('feeds_ui_container', $parser['name'], $parser['description'], array(l(t('Select'), '')));
   }
-  $output .= theme('feeds_ui_container', t('Select a parser'), $body);
+  $output .= theme('feeds_ui_container', t('Select a parser'), $body, array(), 'select-box');
   $body = '';
   foreach ($form['#plugins']['processor'] as $processor) {
     $body .= theme('feeds_ui_container', $processor['name'], $processor['description'], array(l(t('Add'), '')));
   }
-  $output .= theme('feeds_ui_container', t('Add a processor'), $body);
+  $output .= theme('feeds_ui_container', t('Add a processor'), $body, array(), 'select-box');
 
   // Wrap all plugin settings in containers.
-  foreach (element_children($form['plugin_settings']) as $setting) {
-    $body = drupal_render($form['plugin_settings'][$setting]);
-    $output .= theme('feeds_ui_container', t('!plugin settings', array('!plugin' => $form['plugin_settings'][$setting]['#title'])), $body);
+  foreach (element_children($form['plugin_settings']) as $key) {
+    $title = t('!plugin settings', array('!plugin' => $form['plugin_settings'][$key]['#title']));
+    $body = drupal_render($form['plugin_settings'][$key]);
+    $output .= theme('feeds_ui_container', $title, $body, array(), 'settings', $key);
   }
   $output .= drupal_render($form);
 
@@ -333,9 +334,10 @@ function theme_feeds_ui_feeds_plugin($plugins, $class, $op = '') {
  * Render a simple container. A container can have a title, a description and 
  * one or more actions.
  */
-function theme_feeds_ui_container($title, $body, $actions = array(), $class = '') {
+function theme_feeds_ui_container($title, $body, $actions = array(), $class = 'plain', $id = '') {
   $class = empty($class) ? '': " $class";
-  $output = '<div class="feeds-container'. $class .'">';
+  $id = empty($id) ? '': ' id="'. $id .'"';
+  $output = '<div class="feeds-container'. $class .'"'. $id .'>';
   if (count($actions)) {
     $output .= theme('item_list', $actions, NULL, 'ul', array('class' => 'container-actions'));
   }

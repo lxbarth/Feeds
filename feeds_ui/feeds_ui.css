@@ -13,22 +13,16 @@ div.configuration {
     float: left;
     margin-left: 250px;
     }
-div.feeds-box {
+div.feeds-container.plain {
   background-color: #f4f4f4;
   padding: 5px;
   margin: 10px 0;
   }
-  div.feeds-box dl {
-    margin: 0;
-    }
-  div.feeds-box dd {
-    margin: 0;
-    }
-  div.feeds-box dt {
+  div.feeds-container.plain h4 {
+    font-size: 1.1em;
     font-weight: bold;
     font-family: Arial;
     }
-  div.feeds-box dt span.plugin-op {
-    font-weight: normal;
+  ul.container-actions {
     float: right;
     }
