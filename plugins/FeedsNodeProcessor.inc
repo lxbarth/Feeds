@@ -24,4 +24,22 @@ class FeedsNodeProcessor extends FeedsProcessor {
       'guid' => TRUE,
     );
   }
+
+  public function getDefaultConfig() {
+    $types = node_get_types('names');
+    return array('content_type' => key($types));
+  }
+
+  public function configForm(&$form_state) {
+    $types = node_get_types('names');
+    $form = array();
+    $form['content_type'] = array(
+      '#type' => 'select',
+      '#title' => t('Content type'),
+      '#description' => t('Choose node type to create from this feed.'),
+      '#options' => $types,
+      '#default_value' => $this->config['content_type'],
+    );
+    return $form;
+  }
 }

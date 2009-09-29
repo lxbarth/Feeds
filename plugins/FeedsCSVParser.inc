@@ -16,4 +16,19 @@ class FeedsCSVParser extends FeedsParser {
   public function getMappingSources() {
     return array();
   }
+
+  public function getDefaultConfig() {
+    return array('delimiter' => ',');
+  }
+
+  public function configForm(&$form_state) {
+    $form = array();
+    $form['delimiter'] = array(
+      '#type' => 'textfield',
+      '#title' => t('Delimiter'),
+      '#description' => t('Field delimeter. E. g. , or ;'),
+      '#default_value' => $this->config['delimiter'],
+    );
+    return $form;
+  }
 }

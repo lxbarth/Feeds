@@ -41,69 +41,111 @@ function feeds_form_alter(&$form, $form_state, $form_id) {
 
 /**
  * Implementation of hook_ctools_plugin_api().
- * 
- * @todo: switch hook_feeds_plugin() over to hook_ctools_plugin_api().
  */
 function feeds_ctools_plugin_api($owner, $api) {
   if ($owner == 'feeds' && $api == 'plugins') {
-    return array(
-      'version' => 1,
-      '');
+    return array('version' => 1);
   }
 }
 
 /**
- * Implementation of hook_feeds_plugin().
+ * Implementation of hook_feeds_plugins().
  */
-function feeds_feeds_plugin() {
-  return array(
-    'FeedsHttpFetcher' => array(
-      'name' => t('HTTP fetcher'),
-      'file' => drupal_get_path('module', 'feeds') .'/plugins/FeedsHttpFetcher.inc',
-      'parent' => 'FeedsFetcher',
-    ),
-    'FeedsFileFetcher' => array(
-      'name' => t('File fetcher'),
-      'file' =>  drupal_get_path('module', 'feeds') .'/plugins/FeedsFileFetcher.inc',
-      'parent' => 'FeedsFetcher',
-    ),
-    'FeedsCSVParser' => array(
-      'name' => t('CSV parser'),
-      'file' => drupal_get_path('module', 'feeds') .'/plugins/FeedsCSVParser.inc',
-      'parent' => 'FeedsParser',
-    ),
-    'FeedsSyndicationParser' => array(
-      'name' => t('Common syndication parser'),
-      'file' => drupal_get_path('module', 'feeds') .'/plugins/FeedsSyndicationParser.inc',
-      'parent' => 'FeedsParser',
-    ),
-    'FeedsNodeProcessor' => array(
-      'name' => t('Node processor'),
-      'file' => drupal_get_path('module', 'feeds') .'/plugins/FeedsNodeProcessor.inc',
-      'parent' => 'FeedsProcessor',
+function feeds_feeds_plugins() {
+  $path = drupal_get_path('module', 'feeds') .'/plugins';
+
+  $info = array();
+  $info['FeedsFetcher'] = array(
+    'handler' => array(
+      'parent' => '',
+      'class' => 'FeedsFetcher',
+      'file' => 'FeedsFetcher.inc',
+      'path' => $path,
     ),
   );
+  $info['FeedsParser'] = array(
+    'handler' => array(
+      'class' => 'FeedsParser',
+      'file' => 'FeedsParser.inc',
+      'path' => $path,
+    ),
+  );
+  $info['FeedsProcessor'] = array(
+    'handler' => array(
+      'class' => 'FeedsProcessor',
+      'file' => 'FeedsProcessor.inc',
+      'path' => $path,
+    ),
+  );
+  $info['FeedsHttpFetcher'] = array(
+    'handler' => array(
+      'parent' => 'FeedsFetcher',
+      'class' => 'FeedsHttpFetcher',
+      'file' => 'FeedsHttpFetcher.inc',
+      'path' => $path,
+    ),
+  );
+  $info['FeedsFileFetcher'] = array(
+    'handler' => array(
+      'parent' => 'FeedsFetcher',
+      'class' => 'FeedsFileFetcher',
+      'file' => 'FeedsFileFetcher.inc',
+      'path' => $path,
+    ),
+  );
+  $info['FeedsCSVParser'] = array(
+    'handler' => array(
+      'parent' => 'FeedsParser',
+      'class' => 'FeedsCSVParser',
+      'file' => 'FeedsCSVParser.inc',
+      'path' => $path,
+    ),
+  );
+  $info['FeedsSyndicationParser'] = array(
+    'handler' => array(
+      'parent' => 'FeedsParser',
+      'class' => 'FeedsSyndicationParser',
+      'file' => 'FeedsSyndicationParser.inc',
+      'path' => $path,
+    ),
+  );
+  $info['FeedsNodeProcessor'] = array(
+    'handler' => array(
+      'parent' => 'FeedsProcessor',
+      'class' => 'FeedsNodeProcessor',
+      'file' => 'FeedsNodeProcessor.inc',
+      'path' => $path,
+    ),
+  );
+  return $info;
 }
 
 /**
  * Get all available plugins.
- * 
- * @todo: more powerful tracing of parents.
+ */
+function feeds_plugin_info() {
+  ctools_include('plugins');
+  $result = ctools_plugin_api_info('feeds', 'plugins', 0, 1);
+  dsm($result);
+}
+
+/**
+ * Get all available plugins.
  */
 function feeds_get_plugins() {
-  feeds_include('feed');
+  feeds_plugin_info();
 
   $result = array();
   $plugins = module_invoke_all('feeds_plugin');
   foreach ($plugins as $plugin => $info) {
     if ($info['parent'] == 'FeedsFetcher') { // @todo: walk tree.
-      $result['fetcher'][$plugin] = $info['name'] ? $info['name'] : $plugin;
+      $result['fetcher'][$plugin] = $info;
     }
     elseif ($info['parent'] == 'FeedsParser') {
-      $result['parser'][$plugin] = $info['name'] ? $info['name'] : $plugin;
+      $result['parser'][$plugin] = $info;
     }
     elseif ($info['parent'] == 'FeedsProcessor') {
-      $result['processor'][$plugin] = $info['name'] ? $info['name'] : $plugin;
+      $result['processor'][$plugin] = $info;
     }
   }
   return $result;

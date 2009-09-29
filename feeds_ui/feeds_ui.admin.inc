@@ -136,11 +136,25 @@ function feeds_ui_build_edit_form_submit($form, &$form_state) {
 function feeds_ui_build_plugin_form(&$form_state, $feed) {
   $form = array();
   $form['#feed'] = $feed;
-  $form['plugins'] = array(
-    '#type' => 'fieldset',
-    '#title' => t('Plugins'),
-  );
-  $form['plugins'] += $feed->pluginForm($form_state);
+  $form['#config'] = $feed->getConfig();
+  $form['#plugins'] = feeds_get_plugins();
+
+  // Fetch plugin forms.
+  $form['plugin_settings'] = array();
+  foreach (feeds_get_plugins() as $p) {
+    foreach ($p as $class => $info) {
+      feeds_require_plugin($class);
+      $plugin = new $class($feed->getId()); // @todo: use singleton
+      if ($config_form = $plugin->configForm(&$form_state)) {
+        $form['plugin_settings'][$class] = array(
+          '#type' => 'fieldset',
+          '#title' => $info['name'],
+        );
+        $form['plugin_settings'][$class] += $config_form;
+      }
+    }
+  }
+
   $form['submit'] = array(
     '#type' => 'submit',
     '#value' => t('Save'),
@@ -149,18 +163,11 @@ function feeds_ui_build_plugin_form(&$form_state, $feed) {
 }
 
 /**
- * Validation handler for feeds_ui_build_edit_form().
- */
-function feeds_ui_build_plugin_form_validate($form, &$form_state) {
-  $form['#feed']->pluginFormValidate($form, &$form_state);
-}
-
-/**
  * Submit handler for feeds_ui_build_edit_form().
  */
 function feeds_ui_build_plugin_form_submit($form, &$form_state) {
-  $form['#feed']->pluginFormSubmit($form, &$form_state);
-  drupal_set_message(t('Saved configuration'));
+  $form['#feed']->addConfig($form_state['values']);
+  $form['#feed']->save();
 }
 
 /**
@@ -240,6 +247,85 @@ function feeds_ui_build_delete_form(&$form_state, $feed) {
  */
 function feeds_ui_build_delete_form_submit($form, &$form_state) {
   feeds_delete($form['#feed']->getId());
+}
+
+/**
+ * Theme feeds_ui_build_plugin_form().
+ */
+function theme_feeds_ui_build_plugin_form($form) {
+  drupal_add_css(drupal_get_path('module', 'feeds_ui') .'/feeds_ui.css');
+  drupal_add_js(drupal_get_path('module', 'feeds_ui') .'/feeds_ui.js');
+
+  $output = '<div class="feeds-settings">';
+  // Build left bar.
+  $output .= '<div class="left-bar">';
+  $output .= '<div class="block plugins">';
+
+  $output .= '<h4 class="block-title">'. t('Plugins') .'</h4>';
+
+  // Show current fetcher.
+  $fetcher = $form['#plugins']['fetcher'][$form['#config']['fetcher']];
+  $output .= t('Fetcher');
+  $output .= theme('feeds_ui_feeds_plugin', array($fetcher), 'fetcher');
+
+  // Show current parser.
+  $parser = $form['#plugins']['parser'][$form['#config']['parser']];
+  $output .= t('Parser');
+  $output .= theme('feeds_ui_feeds_plugin', array($parser), 'parser');
+
+  // Show current processors.
+  $processors = array();
+  foreach ($form['#config']['processors'] as $processor) {
+    $processors[] = $form['#plugins']['processor'][$processor];
+  }
+  $output .= t('Processors');
+  $output .= theme('feeds_ui_feeds_plugin', $processors, 'processors',  l(t('Remove'), ''));
+
+  $output .= '</div>'; // '<div class="block plugins">'
+  $output .= '</div>'; // '<div class="left-bar">'
+
+  // Build configuration space.
+  $output .= '<div class="configuration">';
+  $output .= '<div class="configuration-squeeze">';
+
+  // Show all available fetchers, parsers, processors.
+  $output .= '<h4 class="block-title">'. t('Select a fetcher') .'</h4>';
+  $output .= theme('feeds_ui_feeds_plugin', $form['#plugins']['fetcher'], 'fetcher', l(t('Select'), ''));
+  $output .= '<h4 class="block-title">'. t('Select a parser') .'</h4>';
+  $output .= theme('feeds_ui_feeds_plugin', $form['#plugins']['parser'], 'parser', l(t('Select'), ''));
+  $output .= '<h4 class="block-title">'. t('Add a processor') .'</h4>';
+  $output .= theme('feeds_ui_feeds_plugin', $form['#plugins']['processor'], 'processor', l(t('Add'), ''));
+  
+  $output .= drupal_render($form);
+
+  $output .= '</div>'; // '<div class="configuration-squeeze">'
+  $output .= '</div>'; // '<div class="configuration">'
+  $output .= '</div>'; // ''<div class="feeds-settings">';
+
+
+  return $output;
+}
+
+/**
+ * Render a plugin with title and description.
+ */
+function theme_feeds_ui_feeds_plugin($plugins, $class, $op = '') {
+  $output = '<div class="feeds-box '. $class .'">';
+  foreach ($plugins as $plugin) {
+    $output .= '<dl>';
+    $output .= '<dt>';
+    $output .= $plugin['name'];
+    if ($op) {
+      $output .= '<span class="plugin-op">'. $op .'</span>';
+    }
+    $output .= '</dt>';
+    $output .= '<dd>';
+    $output .= $plugin['description'];
+    $output .= '</dd>';
+    $output .= '</dl>';
+  }
+  $output .= '</div>';
+  return $output;
 }
 
 /**
