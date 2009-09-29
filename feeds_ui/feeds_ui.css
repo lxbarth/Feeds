@@ -1,0 +1,34 @@
+/* $Id$ */
+
+div.left-bar {
+  float: left;
+  position: relative;
+  width: 240px;
+  }
+div.configuration {
+  float: left;
+  margin-left: -240px;
+  }
+  div.configuration-squeeze {
+    float: left;
+    margin-left: 250px;
+    }
+div.feeds-box {
+  background-color: #f4f4f4;
+  padding: 5px;
+  margin: 10px 0;
+  }
+  div.feeds-box dl {
+    margin: 0;
+    }
+  div.feeds-box dd {
+    margin: 0;
+    }
+  div.feeds-box dt {
+    font-weight: bold;
+    font-family: Arial;
+    }
+  div.feeds-box dt span.plugin-op {
+    font-weight: normal;
+    float: right;
+    }

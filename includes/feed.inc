@@ -17,15 +17,15 @@ class Feed extends FeedsConfigurable {
   public function __construct($id, $config = NULL) {
     parent::__construct($id, $config);
 
-    feeds_require_plugin($this->config['fetcher']);
-    $this->fetcher = new $this->config['fetcher']($id);
+    $class = feeds_load_plugin_class($this->config['fetcher']);
+    $this->fetcher = new $class($id);
 
-    feeds_require_plugin($this->config['parser']);
-    $this->parser = new $this->config['parser']($id);
+    $class = feeds_load_plugin_class($this->config['parser']);
+    $this->parser = new $class($id);
 
     foreach ($this->config['processors'] as $processor) {
-      feeds_require_plugin($processor);
-      $this->processors[$processor] = new $processor($id);
+      $class = feeds_load_plugin_class($processor);
+      $this->processors[$processor] = new $class($id);
     }
   }
 
@@ -88,9 +88,9 @@ class Feed extends FeedsConfigurable {
    */
   public function setFetcher($fetcher) {
     unset($this->fetcher);
-    feeds_require_plugin($fetcher);
+    $class = feeds_load_plugin_class($fetcher);
     $this->config['fetcher'] = $fetcher;
-    $this->fetcher = new $fetcher($this->id);
+    $this->fetcher = new $class($this->id);
   }
 
   /**
@@ -101,10 +101,10 @@ class Feed extends FeedsConfigurable {
    */
   public function setParser($parser) {
     unset($this->parser);
-    feeds_require_plugin($parser);
+    $class = feeds_load_plugin_class($parser);
     $this->config['parser'] = $parser;
     $this->save();
-    $this->parser = new $parser($this->id);
+    $this->parser = new $class($this->id);
   }
 
   /**
@@ -119,8 +119,8 @@ class Feed extends FeedsConfigurable {
     $this->config['processors'] = $processors;
     $this->save();
     foreach ($processors as $processor) {
-      feeds_require_plugin($processor);
-      $this->processors[] = new $processor($this->id);
+      $class = feeds_load_plugin_class($processor);
+      $this->processors[] = new $class($this->id);
     }
   }
 }

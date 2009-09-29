@@ -142,8 +142,8 @@ function feeds_ui_build_plugin_form(&$form_state, $feed) {
   // Fetch plugin forms.
   $form['plugin_settings'] = array();
   foreach (feeds_get_plugins() as $p) {
-    foreach ($p as $class => $info) {
-      feeds_require_plugin($class);
+    foreach ($p as $key => $info) {
+      $class = feeds_load_plugin_class($key);
       $plugin = new $class($feed->getId()); // @todo: use singleton
       if ($config_form = $plugin->configForm(&$form_state)) {
         $form['plugin_settings'][$class] = array(

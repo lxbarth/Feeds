@@ -50,20 +50,24 @@ function feeds_ctools_plugin_api($owner, $api) {
 
 /**
  * Implementation of hook_feeds_plugins().
+ * 
+ * @todo: Document API. Uses CTools plugin handling, extra keys:
+ * 'description', 'hidden'
  */
 function feeds_feeds_plugins() {
   $path = drupal_get_path('module', 'feeds') .'/plugins';
 
   $info = array();
   $info['FeedsFetcher'] = array(
+    'hidden' => TRUE,
     'handler' => array(
-      'parent' => '',
       'class' => 'FeedsFetcher',
       'file' => 'FeedsFetcher.inc',
       'path' => $path,
     ),
   );
   $info['FeedsParser'] = array(
+    'hidden' => TRUE,
     'handler' => array(
       'class' => 'FeedsParser',
       'file' => 'FeedsParser.inc',
@@ -71,6 +75,7 @@ function feeds_feeds_plugins() {
     ),
   );
   $info['FeedsProcessor'] = array(
+    'hidden' => TRUE,
     'handler' => array(
       'class' => 'FeedsProcessor',
       'file' => 'FeedsProcessor.inc',
@@ -78,22 +83,28 @@ function feeds_feeds_plugins() {
     ),
   );
   $info['FeedsHttpFetcher'] = array(
+    'name' => 'HTTP Fetcher',
+    'description' => 'Download content from a URL.',
     'handler' => array(
-      'parent' => 'FeedsFetcher',
+      'parent' => 'FeedsFetcher', // This is the key name, not the class name.
       'class' => 'FeedsHttpFetcher',
       'file' => 'FeedsHttpFetcher.inc',
       'path' => $path,
     ),
   );
   $info['FeedsFileFetcher'] = array(
+    'name' => 'File fetcher',
+    'description' => 'Upload content from a local file.',
     'handler' => array(
-      'parent' => 'FeedsFetcher',
+      'parent' => 'FeedsHttpFetcher',
       'class' => 'FeedsFileFetcher',
       'file' => 'FeedsFileFetcher.inc',
       'path' => $path,
     ),
   );
   $info['FeedsCSVParser'] = array(
+    'name' => 'CSV parser',
+    'description' => 'Parse data in Comma Separated Value format.',
     'handler' => array(
       'parent' => 'FeedsParser',
       'class' => 'FeedsCSVParser',
@@ -102,6 +113,8 @@ function feeds_feeds_plugins() {
     ),
   );
   $info['FeedsSyndicationParser'] = array(
+    'name' => 'Common syndication parser',
+    'description' => 'Parse XML feeds in RSS 1, RSS 2 or Atom format.',
     'handler' => array(
       'parent' => 'FeedsParser',
       'class' => 'FeedsSyndicationParser',
@@ -110,6 +123,8 @@ function feeds_feeds_plugins() {
     ),
   );
   $info['FeedsNodeProcessor'] = array(
+    'name' => 'Node processor',
+    'description' => 'Create nodes from parsed content.',
     'handler' => array(
       'parent' => 'FeedsProcessor',
       'class' => 'FeedsNodeProcessor',
@@ -121,46 +136,45 @@ function feeds_feeds_plugins() {
 }
 
 /**
- * Get all available plugins.
- */
-function feeds_plugin_info() {
-  ctools_include('plugins');
-  $result = ctools_plugin_api_info('feeds', 'plugins', 0, 1);
-  dsm($result);
-}
-
-/**
- * Get all available plugins.
+ * Utility function. Get all available plugins categorized
+ * by whether they are a fetcher, a parser or a processor.
+ * 
+ * Does not list hidden plugins.
  */
 function feeds_get_plugins() {
-  feeds_plugin_info();
+  ctools_include('plugins');
+  $plugins = ctools_get_plugins('feeds', 'plugins');
 
   $result = array();
-  $plugins = module_invoke_all('feeds_plugin');
-  foreach ($plugins as $plugin => $info) {
-    if ($info['parent'] == 'FeedsFetcher') { // @todo: walk tree.
-      $result['fetcher'][$plugin] = $info;
+  foreach ($plugins as $key => $info) {
+    if ($info['hidden'] == TRUE) {
+      continue;
     }
-    elseif ($info['parent'] == 'FeedsParser') {
-      $result['parser'][$plugin] = $info;
+    if (_feeds_is_derived_from($key, 'FeedsFetcher')) {
+      $result['fetcher'][$key] = $info;
     }
-    elseif ($info['parent'] == 'FeedsProcessor') {
-      $result['processor'][$plugin] = $info;
+    elseif (_feeds_is_derived_from($key, 'FeedsParser')) {
+      $result['parser'][$key] = $info;
+    }
+    elseif (_feeds_is_derived_from($key, 'FeedsProcessor')) {
+      $result['processor'][$key] = $info;
     }
   }
   return $result;
 }
 
 /**
- * Load a plugin's file.
+ * Load a plugin's class file.
+ * 
+ * @param $plugin
+ *   The key of the plugin.
+ * 
+ * @return 
+ *   String that identifies the class name associated with this plugin.
+ *   The class name is the one specified in the plugins $info['handler'] property.
  */
-function feeds_require_plugin($plugin) {
-  static $required;
-  $plugins = module_invoke_all('feeds_plugin');
-  if ($plugins[$plugin]['file'] && empty($required[$plugin])) {
-    require($plugins[$plugin]['file']);
-    $required[$plugin] = TRUE;
-  }
+function feeds_load_plugin_class($plugin) {
+  return ctools_plugin_load_class('feeds', 'plugins', $plugin, 'handler');
 }
 
 /**
@@ -211,4 +225,23 @@ function feeds_include($file) {
   }
 
   $included[$file] = TRUE;
+}
+
+/**
+ * Determines whether given plugin is derived from given base plugin.
+ */
+function _feeds_is_derived_from($plugin, $base_plugin) {
+  ctools_include('plugins');
+  $plugins = ctools_get_plugins('feeds', 'plugins');
+  $info = $plugins[$plugin];
+
+  if (empty($info['handler']['parent'])) {
+    return FALSE;
+  }
+  elseif ($info['handler']['parent'] == $base_plugin) {
+    return TRUE;
+  }
+  else {
+    return _feeds_is_derived_from($info['handler']['parent'], $base_plugin);
+  }
 }
