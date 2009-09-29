@@ -146,11 +146,8 @@ function feeds_ui_build_plugin_form(&$form_state, $feed) {
       $class = feeds_load_plugin_class($key);
       $plugin = new $class($feed->getId()); // @todo: use singleton
       if ($config_form = $plugin->configForm(&$form_state)) {
-        $form['plugin_settings'][$class] = array(
-          '#type' => 'fieldset',
-          '#title' => $info['name'],
-        );
-        $form['plugin_settings'][$class] += $config_form;
+        $form['plugin_settings'][$class] = $config_form;
+        $form['plugin_settings'][$class]['#title'] = $info['name'];
       }
     }
   }
@@ -256,32 +253,32 @@ function theme_feeds_ui_build_plugin_form($form) {
   drupal_add_css(drupal_get_path('module', 'feeds_ui') .'/feeds_ui.css');
   drupal_add_js(drupal_get_path('module', 'feeds_ui') .'/feeds_ui.js');
 
+  // Outer wrapper.
   $output = '<div class="feeds-settings">';
+
   // Build left bar.
   $output .= '<div class="left-bar">';
-  $output .= '<div class="block plugins">';
-
-  $output .= '<h4 class="block-title">'. t('Plugins') .'</h4>';
 
   // Show current fetcher.
   $fetcher = $form['#plugins']['fetcher'][$form['#config']['fetcher']];
-  $output .= t('Fetcher');
-  $output .= theme('feeds_ui_feeds_plugin', array($fetcher), 'fetcher');
+  $body = theme('feeds_ui_container', $fetcher['name'], $fetcher['description']);
+  $plugins_body = theme('feeds_ui_container', t('Fetcher'), $body, array(), 'fetcher');
 
   // Show current parser.
   $parser = $form['#plugins']['parser'][$form['#config']['parser']];
-  $output .= t('Parser');
-  $output .= theme('feeds_ui_feeds_plugin', array($parser), 'parser');
+  $body = theme('feeds_ui_container', $parser['name'], $parser['description']);
+  $plugins_body .= theme('feeds_ui_container', t('Parser'), $body, array(), 'fetcher');
 
   // Show current processors.
   $processors = array();
+  $body = '';
   foreach ($form['#config']['processors'] as $processor) {
-    $processors[] = $form['#plugins']['processor'][$processor];
+    $processor = $form['#plugins']['processor'][$processor];
+    $body .= theme('feeds_ui_container', $processor['name'], $processor['description']);
   }
-  $output .= t('Processors');
-  $output .= theme('feeds_ui_feeds_plugin', $processors, 'processors',  l(t('Remove'), ''));
+  $plugins_body .= theme('feeds_ui_container', t('Processors'), $body, array(l(t('Remove'), '')), 'processors');
 
-  $output .= '</div>'; // '<div class="block plugins">'
+  $output .= theme('feeds_ui_container', t('Plugins'), $plugins_body, array(), 'plugins');
   $output .= '</div>'; // '<div class="left-bar">'
 
   // Build configuration space.
@@ -289,13 +286,27 @@ function theme_feeds_ui_build_plugin_form($form) {
   $output .= '<div class="configuration-squeeze">';
 
   // Show all available fetchers, parsers, processors.
-  $output .= '<h4 class="block-title">'. t('Select a fetcher') .'</h4>';
-  $output .= theme('feeds_ui_feeds_plugin', $form['#plugins']['fetcher'], 'fetcher', l(t('Select'), ''));
-  $output .= '<h4 class="block-title">'. t('Select a parser') .'</h4>';
-  $output .= theme('feeds_ui_feeds_plugin', $form['#plugins']['parser'], 'parser', l(t('Select'), ''));
-  $output .= '<h4 class="block-title">'. t('Add a processor') .'</h4>';
-  $output .= theme('feeds_ui_feeds_plugin', $form['#plugins']['processor'], 'processor', l(t('Add'), ''));
-  
+  $body = '';
+  foreach ($form['#plugins']['fetcher'] as $fetcher) {
+    $body .= theme('feeds_ui_container', $fetcher['name'], $fetcher['description'], array(l(t('Select'), '')));
+  }
+  $output .= theme('feeds_ui_container', t('Select a fetcher'), $body);
+  $body = '';
+  foreach ($form['#plugins']['parser'] as $parser) {
+    $body .= theme('feeds_ui_container', $parser['name'], $parser['description'], array(l(t('Select'), '')));
+  }
+  $output .= theme('feeds_ui_container', t('Select a parser'), $body);
+  $body = '';
+  foreach ($form['#plugins']['processor'] as $processor) {
+    $body .= theme('feeds_ui_container', $processor['name'], $processor['description'], array(l(t('Add'), '')));
+  }
+  $output .= theme('feeds_ui_container', t('Add a processor'), $body);
+
+  // Wrap all plugin settings in containers.
+  foreach (element_children($form['plugin_settings']) as $setting) {
+    $body = drupal_render($form['plugin_settings'][$setting]);
+    $output .= theme('feeds_ui_container', t('!plugin settings', array('!plugin' => $form['plugin_settings'][$setting]['#title'])), $body);
+  }
   $output .= drupal_render($form);
 
   $output .= '</div>'; // '<div class="configuration-squeeze">'
@@ -312,18 +323,28 @@ function theme_feeds_ui_build_plugin_form($form) {
 function theme_feeds_ui_feeds_plugin($plugins, $class, $op = '') {
   $output = '<div class="feeds-box '. $class .'">';
   foreach ($plugins as $plugin) {
-    $output .= '<dl>';
-    $output .= '<dt>';
-    $output .= $plugin['name'];
-    if ($op) {
-      $output .= '<span class="plugin-op">'. $op .'</span>';
-    }
-    $output .= '</dt>';
-    $output .= '<dd>';
-    $output .= $plugin['description'];
-    $output .= '</dd>';
-    $output .= '</dl>';
+    
   }
+  $output .= '</div>';
+  return $output;
+}
+
+/**
+ * Render a simple container. A container can have a title, a description and 
+ * one or more actions.
+ */
+function theme_feeds_ui_container($title, $body, $actions = array(), $class = '') {
+  $class = empty($class) ? '': " $class";
+  $output = '<div class="feeds-container'. $class .'">';
+  if (count($actions)) {
+    $output .= theme('item_list', $actions, NULL, 'ul', array('class' => 'container-actions'));
+  }
+  $output .= '<h4 class="feeds-container-title">';
+  $output .= $title;
+  $output .= '</h4>';
+  $output .= '<div class="feeds-container-description">';
+  $output .= $body;
+  $output .= '</div>';
   $output .= '</div>';
   return $output;
 }
