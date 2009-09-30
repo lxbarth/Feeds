@@ -377,18 +377,6 @@ function theme_feeds_ui_build_plugin_form($form) {
 }
 
 /**
- * Render a plugin with title and description.
- */
-function theme_feeds_ui_feeds_plugin($plugins, $class, $op = '') {
-  $output = '<div class="feeds-box '. $class .'">';
-  foreach ($plugins as $plugin) {
-    
-  }
-  $output .= '</div>';
-  return $output;
-}
-
-/**
  * Render a simple container. A container can have a title, a description and 
  * one or more actions.
  */

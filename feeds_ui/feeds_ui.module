@@ -118,7 +118,6 @@ function feeds_ui_theme() {
       'arguments' => array('form'),
       'file' => 'feeds_ui.admin.inc',
     ),
-    'feeds_ui_feeds_plugin' => array(),
     'feeds_ui_container' => array(),
   );
 }
