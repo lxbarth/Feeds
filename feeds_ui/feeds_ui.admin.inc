@@ -191,7 +191,6 @@ function feeds_ui_build_plugin_configure($token, $id, $op, $param) {
     return;
   }
 
-  dsm(func_get_args());
   drupal_goto('admin/build/feeds/edit/'. $id .'/plugins');
 }
 
