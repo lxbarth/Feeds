@@ -24,6 +24,8 @@ function feeds_perm() {
  * Implementation of hook_forms().
  */
 function feeds_forms() {
+  // Declare form callbacks for all known classes derived from FeedsConfigurable.
+  // For more background, see feeds_get_config_form().
   $forms = array();
   $forms['Feed_feeds_config_form']['callback'] = 'feeds_config_form';
   $plugins = feeds_get_plugins();
