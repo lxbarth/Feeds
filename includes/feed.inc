@@ -344,6 +344,8 @@ function feeds_get_config_form($configurable) {
 function feeds_config_form(&$form_state, $configurable) {
   $form = $configurable->configForm($form_state);
   $form['#configurable'] = $configurable;
+  $form['#validate'] = array('feeds_config_form_validate');
+  $form['#submit'] = array('feeds_config_form_submit');
   $form['submit'] = array(
     '#type' => 'submit',
     '#value' => t('Save'),
