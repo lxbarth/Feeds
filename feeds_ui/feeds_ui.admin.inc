@@ -153,9 +153,13 @@ function feeds_ui_build_edit_page($feed, $active = 'help', $plugin_key = '') {
       }
       elseif ($class = feeds_load_plugin_class($plugin_key)) {
         $plugin = new $class($feed->getId());
-        $active_container['title'] = $plugins[$plugin_key]['name'];
+        $active_container['title'] = t('Settings for !plugin', array('!plugin' => $plugins[$plugin_key]['name']));
         $active_container['body'] = feeds_get_config_form($plugin);
       }
+      break;
+    case 'mapping':
+      $active_container['title'] = t('Mapping for !processor', array('!processor' => $plugins[$plugin_key]['name']));
+      $active_container['body'] = drupal_get_form('feeds_ui_build_mapping_form', $feed, $plugin_key);
       break;
   }
 
@@ -219,7 +223,7 @@ function feeds_ui_build_edit_page($feed, $active = 'help', $plugin_key = '') {
     if (feeds_get_config_form($feed->processors[$processor])) {
       $actions[] = l(t('Settings'), $path .'settings/'. $processor);
     }
-    $actions[] = l(t('Mapping'), '');
+    $actions[] = l(t('Mapping'), $path .'mapping/'. $processor);
 
     $info['body'][] = array(
       'title' => $plugins[$processor]['name'],
@@ -282,36 +286,36 @@ function feeds_ui_build_edit_configure($token, $feed, $op, $plugin) {
 /**
  * Edit mapping.
  */
-function feeds_ui_build_mapping_form(&$form_state, $feed) {
+function feeds_ui_build_mapping_form(&$form_state, $feed, $processor) {
   $form = array();
   $form['#feed'] = $feed;
 
   // Build a mapping form for each processor configured.
   $sources = $feed->parser->getMappingSources();
-  foreach ($feed->processors as $class => $processor) {
-    // @todo: move actual form building into processors?
-    $mappings = $processor->getMappings();
-    $targets = $processor->getMappingTargets();
-    $form['processors'][$class] = array(
-      '#type' => 'fieldset',
-      '#title' => $class, // @todo: human readable title.
-      '#tree' => TRUE,
-    );
-    $form['processors'][$class]['#mappings'] = $mappings;
-    $form['processors'][$class]['#targets'] = $targets;
-    $form['processors'][$class]['source'] = array(
-      '#type' => 'select',
-      '#options' => array('' => t('Select a source')) + drupal_map_assoc($sources),
-    );
-    $form['processors'][$class]['target'] = array(
-      '#type' => 'select',
-      '#options' => array('' => t('Select a target')) + drupal_map_assoc(array_keys($targets)),
-    );
-    $form['processors'][$class]['add'] = array(
-      '#type' => 'submit',
-      '#value' => t('Add'),
-    );
-  }
+  $processor = $feed->processors[$processor];
+
+  // @todo: move actual form building into processors?
+  $mappings = $processor->getMappings();
+  $targets = $processor->getMappingTargets();
+  $form['processors'][$class] = array(
+    '#type' => 'fieldset',
+    '#title' => $class, // @todo: human readable title.
+    '#tree' => TRUE,
+  );
+  $form['processors'][$class]['#mappings'] = $mappings;
+  $form['processors'][$class]['#targets'] = $targets;
+  $form['processors'][$class]['source'] = array(
+    '#type' => 'select',
+    '#options' => array('' => t('Select a source')) + drupal_map_assoc($sources),
+  );
+  $form['processors'][$class]['target'] = array(
+    '#type' => 'select',
+    '#options' => array('' => t('Select a target')) + drupal_map_assoc(array_keys($targets)),
+  );
+  $form['processors'][$class]['add'] = array(
+    '#type' => 'submit',
+    '#value' => t('Add'),
+  );
   return $form;
 }
 
