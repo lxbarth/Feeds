@@ -108,7 +108,6 @@ class Feed extends FeedsConfigurable {
       unset($this->fetcher);
       $this->config['fetcher'] = $fetcher;
       $this->fetcher = new $class($this->id);
-      $this->save(); // @todo: move out saving.
     }
   }
 
@@ -123,7 +122,6 @@ class Feed extends FeedsConfigurable {
       unset($this->parser);
       $this->config['parser'] = $parser;
       $this->parser = new $class($this->id);
-      $this->save(); // @todo: move out saving.
     }
   }
 
@@ -139,8 +137,7 @@ class Feed extends FeedsConfigurable {
       unset($processor);
     }
     $this->processors = array();
-    $this->config['processors'] = $processors;
-    $this->save(); // @todo: move out saving.
+    $this->config['processors'] = drupal_map_assoc($processors);
     foreach ($processors as $processor) {
       $class = feeds_load_plugin_class($processor);
       $this->processors[$processor] = new $class($this->id);
@@ -158,7 +155,6 @@ class Feed extends FeedsConfigurable {
       if ($class = feeds_load_plugin_class($processor)) {
         $this->processors[$processor] = new $class($this->id);
         $this->config['processors'][$processor] = $processor;
-        $this->save(); // @todo: move out saving.
       }
     }
   }
@@ -173,7 +169,6 @@ class Feed extends FeedsConfigurable {
     if (isset($this->processors[$processor])) {
       unset($this->processors[$processor]);
       unset($this->config['processors'][$processor]);
-      $this->save(); // @todo: move out saving.
     }
   }
 }
@@ -208,6 +203,8 @@ class FeedsConfigurable {
 
   /**
    * Save configuration.
+   * 
+   * @todo: automatically override for cases in which we are saving to default configuration.
    */
   public function save() {
     $save = new stdClass();
@@ -313,6 +310,8 @@ class FeedsConfigurable {
    */
   public function configFormSubmit($form, &$form_state) {
     $this->addConfig($form_state['values']);
+    // Save here. Manipulation through form assumes that the FeedsConfigurable
+    // object is persistent (DB or code).
     $this->save();
   }
 }
