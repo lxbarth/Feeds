@@ -135,8 +135,10 @@ function feeds_ui_build_edit_form_submit($form, &$form_state) {
 function feeds_ui_build_plugin_form(&$form_state, $feed) {
   $form = array();
   $form['#feed'] = $feed;
+
   $plugins = feeds_get_plugins();
   $config = $feed->getConfig();
+  $path = '/admin/build/feeds/configure/'. drupal_get_token($feed->getId()) .'/'. $feed->getId() .'/';
 
   // Build config info.
   $form['#config'] = array();
@@ -144,7 +146,7 @@ function feeds_ui_build_plugin_form(&$form_state, $feed) {
   $form['#config']['parser'] = $plugins['parser'][$config['parser']];
   foreach ($config['processors'] as $processor) {
     $form['#config']['processors'][$processor] = $plugins['processor'][$processor];
-    $form['#config']['processors'][$processor]['actions'] = array(l(t('Remove'), ''));
+    $form['#config']['processors'][$processor]['actions'] = array(l(t('Remove'), $path .'remove-processor/'. $processor));
     
   }
 
@@ -183,8 +185,14 @@ function feeds_ui_build_plugin_form(&$form_state, $feed) {
 /**
  * Callback handler for configuration changes on plugin form.
  */
-function feeds_ui_build_plugin_configure($op, $id, $param) {
-  drupal_valid_token($token, $id);
+function feeds_ui_build_plugin_configure($token, $id, $op, $param) {
+  if (!drupal_valid_token($token, $id)) {
+    drupal_access_denied();
+    return;
+  }
+
+  dsm(func_get_args());
+  drupal_goto('admin/build/feeds/edit/'. $id .'/plugins');
 }
 
 /**
