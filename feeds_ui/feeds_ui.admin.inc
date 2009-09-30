@@ -129,34 +129,62 @@ function feeds_ui_build_edit_form_submit($form, &$form_state) {
   drupal_set_message(t('Saved configuration'));
 }
 
-
 /**
  * Edit plugin configuration.
  */
 function feeds_ui_build_plugin_form(&$form_state, $feed) {
   $form = array();
   $form['#feed'] = $feed;
-  $form['#config'] = $feed->getConfig();
-  $form['#plugins'] = feeds_get_plugins();
+  $plugins = feeds_get_plugins();
+  $config = $feed->getConfig();
 
-  // Fetch plugin forms.
-  $form['plugin_settings'] = array();
-  foreach (feeds_get_plugins() as $p) {
+  // Build config info.
+  $form['#config'] = array();
+  $form['#config']['fetcher'] = $plugins['fetcher'][$config['fetcher']];
+  $form['#config']['parser'] = $plugins['parser'][$config['parser']];
+  foreach ($config['processors'] as $processor) {
+    $form['#config']['processors'][$processor] = $plugins['processor'][$processor];
+    $form['#config']['processors'][$processor]['actions'] = array(l(t('Remove'), ''));
+    
+  }
+
+  // Fetch plugin information and form.
+  $form['#plugins'] = array();
+  foreach ($plugins as $type => $p) {
     foreach ($p as $key => $info) {
+      // Attach basic info.
+      $form['#plugins'][$type][$key] = $info;
+      if ($type == 'processor') {
+        $form['#plugins'][$type][$key]['actions'] = array(l(t('Add'), ''));
+      }
+      else {
+        $form['#plugins'][$type][$key]['actions'] = array(l(t('Select'), ''));
+      }
+
+      // See if there is a settings form.
       $class = feeds_load_plugin_class($key);
       $plugin = new $class($feed->getId()); // @todo: use singleton
       if ($config_form = $plugin->configForm(&$form_state)) {
-        $form['plugin_settings'][$class] = $config_form;
-        $form['plugin_settings'][$class]['#title'] = $info['name'];
+        $form['plugin_settings'][$type][$key] = $config_form;
+        $form['plugin_settings'][$type][$key]['#name'] = $info['name'];
       }
     }
   }
+
+  drupal_get_token($id);
 
   $form['submit'] = array(
     '#type' => 'submit',
     '#value' => t('Save'),
   );
   return $form;
+}
+
+/**
+ * Callback handler for configuration changes on plugin form.
+ */
+function feeds_ui_build_plugin_configure($op, $id, $param) {
+  drupal_valid_token($token, $id);
 }
 
 /**
@@ -260,12 +288,12 @@ function theme_feeds_ui_build_plugin_form($form) {
   $output .= '<div class="left-bar">';
 
   // Show current fetcher.
-  $fetcher = $form['#plugins']['fetcher'][$form['#config']['fetcher']];
+  $fetcher = $form['#config']['fetcher'];
   $body = theme('feeds_ui_container', $fetcher['name'], $fetcher['description']);
   $plugins_body = theme('feeds_ui_container', t('Fetcher'), $body, array(l(t('Change'), '')), 'fetcher');
 
   // Show current parser.
-  $parser = $form['#plugins']['parser'][$form['#config']['parser']];
+  $parser = $form['#config']['parser'];
   $body = theme('feeds_ui_container', $parser['name'], $parser['description']);
   $plugins_body .= theme('feeds_ui_container', t('Parser'), $body, array(l(t('Change'), '')), 'parser');
 
@@ -273,8 +301,7 @@ function theme_feeds_ui_build_plugin_form($form) {
   $processors = array();
   $body = '';
   foreach ($form['#config']['processors'] as $processor) {
-    $processor = $form['#plugins']['processor'][$processor];
-    $body .= theme('feeds_ui_container', $processor['name'], $processor['description'], array(l(t('Remove'), '')));
+    $body .= theme('feeds_ui_container', $processor['name'], $processor['description'], $processor['actions']);
   }
   $plugins_body .= theme('feeds_ui_container', t('Processors'), $body, array(l(t('Add'), '')), 'processors');
 
@@ -288,25 +315,27 @@ function theme_feeds_ui_build_plugin_form($form) {
   // Show all available fetchers, parsers, processors.
   $body = '';
   foreach ($form['#plugins']['fetcher'] as $fetcher) {
-    $body .= theme('feeds_ui_container', $fetcher['name'], $fetcher['description'], array(l(t('Select'), '')));
+    $body .= theme('feeds_ui_container', $fetcher['name'], $fetcher['description'], $fetcher['actions']);
   }
   $output .= theme('feeds_ui_container', t('Select a fetcher'), $body, array(), 'select-box');
   $body = '';
   foreach ($form['#plugins']['parser'] as $parser) {
-    $body .= theme('feeds_ui_container', $parser['name'], $parser['description'], array(l(t('Select'), '')));
+    $body .= theme('feeds_ui_container', $parser['name'], $parser['description'], $parser['actions']);
   }
   $output .= theme('feeds_ui_container', t('Select a parser'), $body, array(), 'select-box');
   $body = '';
   foreach ($form['#plugins']['processor'] as $processor) {
-    $body .= theme('feeds_ui_container', $processor['name'], $processor['description'], array(l(t('Add'), '')));
+    $body .= theme('feeds_ui_container', $processor['name'], $processor['description'], $processor['actions']);
   }
   $output .= theme('feeds_ui_container', t('Add a processor'), $body, array(), 'select-box');
 
   // Wrap all plugin settings in containers.
-  foreach (element_children($form['plugin_settings']) as $key) {
-    $title = t('!plugin settings', array('!plugin' => $form['plugin_settings'][$key]['#title']));
-    $body = drupal_render($form['plugin_settings'][$key]);
-    $output .= theme('feeds_ui_container', $title, $body, array(), 'settings', $key);
+  foreach (element_children($form['plugin_settings']) as $type) {
+    foreach (element_children($form['plugin_settings'][$type]) as $key) {
+      $title = t('!plugin settings', array('!plugin' => $form['plugin_settings'][$type][$key]['#name']));
+      $body = drupal_render($form['plugin_settings'][$type][$key]);
+      $output .= theme('feeds_ui_container', $title, $body, array(), 'settings', $key);
+    }
   }
   $output .= drupal_render($form);
 

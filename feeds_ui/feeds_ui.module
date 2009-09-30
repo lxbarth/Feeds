@@ -95,6 +95,11 @@ function feeds_ui_menu() {
     'file' => 'feeds_ui.admin.inc',
     'type' => MENU_CALLBACK,
   );
+  $items['admin/build/feeds/configure/%'] = array(
+    'page callback' => 'feeds_ui_build_plugin_configure',
+    'file' => 'feeds_ui.admin.inc',
+    'type' => MENU_CALLBACK,
+  );
   return $items;
 }
 
