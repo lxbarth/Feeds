@@ -132,6 +132,16 @@ function feeds_feeds_plugins() {
       'path' => $path,
     ),
   );
+  $info['FeedsDataProcessor'] = array(
+    'name' => 'Data processor',
+    'description' => 'Create data table records from parsed content.',
+    'handler' => array(
+      'parent' => 'FeedsProcessor',
+      'class' => 'FeedsDataProcessor',
+      'file' => 'FeedsDataProcessor.inc',
+      'path' => $path,
+    ),
+  );
   return $info;
 }
 
