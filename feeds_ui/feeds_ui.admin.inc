@@ -115,74 +115,139 @@ function feeds_ui_build_create_form_submit($form, &$form_state) {
 /**
  * Edit feed configuration.
  */
-function feeds_ui_build_edit_page($feed) {
-  $vars = array();
+function feeds_ui_build_edit_page($feed, $active = 'help', $plugin_key = '') {
 
-  // Help.
-  $vars['#help'] = feeds_ui_edit_help();
+  // Get plugins and configuration.
+  $plugins = feeds_get_plugins();
+  $config = $feed->getConfig();  
+  // Base path for selecting/adding/removing, tokenized.
+  $edit_path = '/admin/build/feeds/configure/'. drupal_get_token($feed->getId()) .'/'. $feed->getId() .'/';
+  // Base path for changing the active container.
+  $path = 'admin/build/feeds/edit/'. $feed->getId() .'/';
 
-  // Basic settings.
-  $vars['basic_settings'] = feeds_get_config_form($feed);
-
-  $plugins = feeds_get_plugins_by_type();
-  $config = $feed->getConfig();
-  $path = '/admin/build/feeds/configure/'. drupal_get_token($feed->getId()) .'/'. $feed->getId() .'/';
-
-  // Fetch plugin information and form.
-  $vars['#plugins'] = array();
-  foreach ($plugins as $type => $p) {
-    foreach ($p as $key => $info) {
-      // Attach basic info.
-      $vars['#plugins'][$type][$key] = $info;
-
-      // Define actions.
-      unset($action);
-      if ($type == 'processor') {
-        if (!in_array($key, $config['processors'])) {
-          $vars['#plugins'][$type][$key]['actions'] = array(l(t('Add'), $path .'add-processor/'. $key));
-        }
+  $active_container = array(
+    'class' => 'active-container',
+  );
+  switch ($active) {
+    case 'help':
+      $active_container['title'] = t('Help');
+      $active_container['body'] = feeds_ui_edit_help();
+      break;
+    case 'fetcher':
+      $active_container['title'] = t('Select a fetcher');
+      $active_container['body'] = _feeds_ui_list_plugins_by_type('fetcher', array($config['fetcher']), $edit_path);
+      break;
+    case 'parser':
+      $active_container['title'] = t('Select a parser');
+      $active_container['body'] = _feeds_ui_list_plugins_by_type('parser', array($config['parser']), $edit_path);
+      break;
+    case 'processor':
+      $active_container['title'] = t('Add a processor');
+      $active_container['body'] = _feeds_ui_list_plugins_by_type('processor', $config['processors'], $edit_path);
+      break;
+    case 'settings':
+      // @todo: Use central factory and simplify this.
+      if ($plugin_key == 'Feed') {
+        $active_container['title'] = t('Basic settings');
+        $active_container['body'] = feeds_get_config_form($feed);
       }
-      else {
-        if ($config[$type] != $key) {
-          $vars['#plugins'][$type][$key]['actions'] = array(l(t('Select'), $path .'select-'. $type .'/'. $key));
-        }
+      elseif ($class = feeds_load_plugin_class($plugin_key)) {
+        $plugin = new $class($feed->getId());
+        $active_container['title'] = $plugins[$plugin_key]['name'];
+        $active_container['body'] = feeds_get_config_form($plugin);
       }
-
-      // See if there is a settings form.
-      $class = feeds_load_plugin_class($key);
-      $plugin = new $class($feed->getId()); // @todo: use singleton
-      if ($config_form = feeds_get_config_form($plugin)) {
-        $vars['plugin_settings'][$type][$key]['form'] = $config_form;
-        $vars['plugin_settings'][$type][$key]['name'] = $info['name'];
-      }
-    }
+      break;
   }
 
   // Build config info.
-  $vars['#config'] = array();
-  $vars['#config']['fetcher'] = $plugins['fetcher'][$config['fetcher']];
-  if (isset($vars['plugin_settings']['fetcher'][$config['fetcher']])) {
-    $vars['#config']['fetcher']['actions'] = array(l(t('Settings'), ''));
-  }
+  $config_info = $info = array();
+  $info['class'] = 'config-set';
 
-  $vars['#config']['parser'] = $plugins['parser'][$config['parser']];
-  if (isset($vars['plugin_settings']['parser'][$config['parser']])) {
-    $vars['#config']['parser']['actions'] = array(l(t('Settings'), ''));
-  }
+  // Basic information.
+  $info['title'] = t('Basic settings');
+  $info['body'] = array(
+    array(
+      'body' => '@todo: summary',
+      'actions' => array(l(t('Settings'), $path .'settings/Feed')),
+    ),
+  );
+  $config_info[] = $info;
 
+  // Fetcher.
+  $fetcher = $plugins[$config['fetcher']];
+  $actions = array();
+  if (feeds_get_config_form($feed->fetcher)) {
+    $actions = array(l(t('Settings'), $path .'settings/'. $config['fetcher']));
+  }
+  $info['title'] = t('Fetcher');
+  $info['body'] = array(
+    array(
+      'title' => $fetcher['name'],
+      'body' => $fetcher['description'],
+      'actions' => $actions,
+    ),
+  );
+  $info['actions'] = array(l(t('Change'), $path .'fetcher'));
+  $config_info[] = $info;
+
+  // Parser.
+  $parser = $plugins[$config['parser']];
+  $actions = array();
+  if (feeds_get_config_form($feed->parser)) {
+    $actions = array(l(t('Settings'), $path .'settings/'. $config['parser']));
+  }
+  $info['title'] = t('Parser');
+  $info['body'] = array(
+    array(
+      'title' => $parser['name'],
+      'body' => $parser['description'],
+      'actions' => $actions,
+    )
+  );
+  $info['actions'] = array(l(t('Change'), $path .'parser'));
+  $config_info[] = $info;
+
+  // Processor.
+  $info['title'] = t('Processor');
+  $info['body'] = array();
+  $info['actions'] = array(l(t('Add'), $path .'processor'));
   foreach ($config['processors'] as $processor) {
-    $vars['#config']['processors'][$processor] = $plugins['processor'][$processor];
     $actions = array();
     if (count($config['processors']) > 1) {
-      $actions[] = l(t('Remove'), $path .'remove-processor/'. $processor);
+      $actions[] = l(t('Remove'), $edit_path .'remove-processor/'. $processor);
     }
-    if (isset($vars['plugin_settings']['processor'][$processor])) {
-      $actions[] = l(t('Settings'), '');
+    if (feeds_get_config_form($feed->processors[$processor])) {
+      $actions[] = l(t('Settings'), $path .'settings/'. $processor);
     }
     $actions[] = l(t('Mapping'), '');
-    $vars['#config']['processors'][$processor]['actions'] = $actions;
+
+    $info['body'][] = array(
+      'title' => $plugins[$processor]['name'],
+      'body' => $plugins[$processor]['description'],
+      'actions' => $actions,
+    );
   }
-  return theme('feeds_ui_build_edit_page', $vars);
+  $config_info[] = $info;
+
+  return theme('feeds_ui_build_edit_page', $config_info, $active_container);
+}
+
+/**
+ * Helper for building a list of plugins of a specific type.
+ */
+function _feeds_ui_list_plugins_by_type($type, $selected, $edit_path) {
+  $plugins = feeds_get_plugins_by_type();
+  $plugins = $plugins[$type];
+
+  $containers = array();
+  foreach ($plugins as $key => $plugin) {
+    $containers[] = array(
+      'title' => $plugin['name'],
+      'body' => $plugin['description'],
+      'actions' => in_array($key, $selected) ? array() : array(l(t('Select'), $edit_path .'select-'. $type .'/'. $key)),
+    );
+  }
+  return $containers;
 }
 
 /**
@@ -202,7 +267,7 @@ function feeds_ui_build_edit_configure($token, $feed, $op, $plugin) {
       $feed->setParser($plugin);
       $feed->save();
       break;
-    case 'add-processor':
+    case 'select-processor':
       $feed->addProcessor($plugin);
       $feed->save();
       break;
@@ -211,7 +276,7 @@ function feeds_ui_build_edit_configure($token, $feed, $op, $plugin) {
       $feed->save();
       break;
   }
-  drupal_goto('admin/build/feeds/edit/'. $feed->getId() .'/plugins');
+  drupal_goto('admin/build/feeds/edit/'. $feed->getId());
 }
 
 /**
@@ -303,7 +368,7 @@ function feeds_ui_edit_help() {
 /**
  * Theme feeds_ui_build_edit_page().
  */
-function theme_feeds_ui_build_edit_page($vars) {
+function theme_feeds_ui_build_edit_page($config_info, $active_container) {
   drupal_add_css(drupal_get_path('module', 'feeds_ui') .'/feeds_ui.css');
   drupal_add_js(drupal_get_path('module', 'feeds_ui') .'/feeds_ui.js');
 
@@ -312,70 +377,19 @@ function theme_feeds_ui_build_edit_page($vars) {
 
   // Build left bar.
   $output .= '<div class="left-bar">';
-
-  // Basic settings.
-  $body = theme('feeds_ui_container', '', '@todo: summary');
-  $output .= theme('feeds_ui_container', t('Basic settings'), $body, array(l(t('Change'), '')), 'fetcher');
-
-  // Show current fetcher.
-  $fetcher = $vars['#config']['fetcher'];
-  $body = theme('feeds_ui_container', $fetcher['name'], $fetcher['description'], $fetcher['actions']);
-  $output .= theme('feeds_ui_container', t('Fetcher'), $body, array(l(t('Change'), '')), 'fetcher');
-
-  // Show current parser.
-  $parser = $vars['#config']['parser'];
-  $body = theme('feeds_ui_container', $parser['name'], $parser['description'], $parser['actions']);
-  $output .= theme('feeds_ui_container', t('Parser'), $body, array(l(t('Change'), '')), 'parser');
-
-  // Show current processors.
-  $processors = array();
-  $body = '';
-  foreach ($vars['#config']['processors'] as $processor) {
-    $body .= theme('feeds_ui_container', $processor['name'], $processor['description'], $processor['actions']);
+  foreach ($config_info as $info) {
+    $output .= theme('feeds_ui_container', $info);
   }
-  $output .= theme('feeds_ui_container', t('Processors'), $body, array(l(t('Add'), '')), 'processors');
-
   $output .= '</div>'; // '<div class="left-bar">'
 
   // Build configuration space.
   $output .= '<div class="configuration">';
   $output .= '<div class="configuration-squeeze">';
-
-  // Show help text.
-  $output .= theme('feeds_ui_container', t('Help'), $vars['#help'], array(), 'help');
-
-  // Show basic settings.
-  $output .= theme('feeds_ui_container', t('Basic settings'), $vars['basic_settings'], array(), 'settings');
-  
-  // Show all available fetchers, parsers, processors.
-  $body = '';
-  foreach ($vars['#plugins']['fetcher'] as $fetcher) {
-    $body .= theme('feeds_ui_container', $fetcher['name'], $fetcher['description'], $fetcher['actions']);
-  }
-  $output .= theme('feeds_ui_container', t('Select a fetcher'), $body, array(), 'select-box');
-  $body = '';
-  foreach ($vars['#plugins']['parser'] as $parser) {
-    $body .= theme('feeds_ui_container', $parser['name'], $parser['description'], $parser['actions']);
-  }
-  $output .= theme('feeds_ui_container', t('Select a parser'), $body, array(), 'select-box');
-  $body = '';
-  foreach ($vars['#plugins']['processor'] as $processor) {
-    $body .= theme('feeds_ui_container', $processor['name'], $processor['description'], $processor['actions']);
-  }
-  $output .= theme('feeds_ui_container', t('Add a processor'), $body, array(), 'select-box');
-
-  // Wrap all plugin settings in containers.
-  foreach ($vars['plugin_settings'] as $type => $plugins) {
-    foreach ($plugins as $key => $settings) {
-      $title = t('!plugin settings', array('!plugin' => $settings['name']));
-      $output .= theme('feeds_ui_container', $title, $settings['form'], array(), 'settings', $key);
-    }
-  }
-
+  $output .= theme('feeds_ui_container', $active_container);
   $output .= '</div>'; // '<div class="configuration-squeeze">'
   $output .= '</div>'; // '<div class="configuration">'
-  $output .= '</div>'; // ''<div class="feeds-settings">';
 
+  $output .= '</div>'; // ''<div class="feeds-settings">';
 
   return $output;
 }
@@ -383,20 +397,45 @@ function theme_feeds_ui_build_edit_page($vars) {
 /**
  * Render a simple container. A container can have a title, a description and 
  * one or more actions.
+ * 
+ * @param $container 
+ *   An array that describes the container. All elements are optional:
+ *   array(
+ *     'title' => 'the title',
+ *     'body' => 'the body of the container, may also be an ARRAY of more containers.',
+ *     'class' => 'the class of the container.',
+ *     'id' => 'the id of the container',
+ *   );
  */
-function theme_feeds_ui_container($title, $body, $actions = array(), $class = 'plain', $id = '') {
-  $class = empty($class) ? '': " $class";
-  $id = empty($id) ? '': ' id="'. $id .'"';
+function theme_feeds_ui_container($container) {
+
+  $class = empty($container['class']) ? ' plain': " {$container['class']}";
+  $id = empty($container['id']) ? '': ' id="'. $container['id'] .'"';
   $output = '<div class="feeds-container'. $class .'"'. $id .'>';
-  if (count($actions)) {
-    $output .= theme('item_list', $actions, NULL, 'ul', array('class' => 'container-actions'));
+
+  if (count($container['actions'])) {
+    $output .= theme('item_list', $container['actions'], NULL, 'ul', array('class' => 'container-actions'));
   }
-  $output .= '<h4 class="feeds-container-title">';
-  $output .= $title;
-  $output .= '</h4>';
-  $output .= '<div class="feeds-container-description">';
-  $output .= $body;
-  $output .= '</div>';
+
+  if (!empty($container['title'])) {
+    $output .= '<h4 class="feeds-container-title">';
+    $output .= $container['title'];
+    $output .= '</h4>';
+  }
+
+  if (!empty($container['body'])) {
+    $output .= '<div class="feeds-container-body">';
+    if (is_array($container['body'])) {
+      foreach ($container['body'] as $c) {
+        $output .= theme('feeds_ui_container', $c);
+      }
+    }
+    else {
+      $output .= $container['body'];
+    }
+    $output .= '</div>';
+  }
+
   $output .= '</div>';
   return $output;
 }
