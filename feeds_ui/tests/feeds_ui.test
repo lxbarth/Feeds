@@ -1,0 +1,45 @@
+<?php
+// $Id$
+/**
+ * @file
+ * Tests for Feeds Admin UI module.
+ */
+
+/**
+ * Test basic Data API functionality.
+ */
+class FeedsUITestCase extends DrupalWebTestCase {
+
+  /**
+   * Describe this test.
+   */
+  public function getInfo() {
+    return array(
+      'name' => t('Feeds UI'),
+      'description' => t('Tests Feeds UI module\'s GUI.'),
+      'group' => t('Feeds'),
+    );
+  }
+
+  /**
+   * Set up test.
+   */
+  public function setUp() {
+    parent::setUp('feeds', 'feeds_ui', 'ctools');
+
+    $this->drupalLogin(
+      $this->drupalCreateUser(
+        array(
+          'administer feeds',
+        )
+      )
+    );
+  }
+
+  /**
+   * CRUD tests on UI.
+   */
+  public function testCRUDFeed() {
+    
+  }
+}

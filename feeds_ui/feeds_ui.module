@@ -111,5 +111,5 @@ function feeds_ui_theme() {
  * Title callback.
  */
 function feed_ui_title($feed) {
-  return t('Edit !feed', array('!feed' => $feed->getId()));
+  return t('Edit !feed', array('!feed' => $feed->getName()));
 }
