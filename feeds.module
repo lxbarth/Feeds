@@ -21,6 +21,19 @@ function feeds_perm() {
 }
 
 /**
+ * Implementation of hook_forms().
+ */
+function feeds_forms() {
+  $forms = array();
+  $forms['Feed_feeds_config_form']['callback'] = 'feeds_config_form';
+  $plugins = feeds_get_plugins();
+  foreach ($plugins as $plugin) {
+    $forms[$plugin['handler']['class'] .'_feeds_config_form']['callback'] = 'feeds_config_form';
+  }
+  return $forms;
+}
+
+/**
  * Implementation of hook_form_alter().
  */
 function feeds_form_alter(&$form, $form_state, $form_id) {
@@ -146,10 +159,11 @@ function feeds_feeds_plugins() {
 }
 
 /**
- * Utility function. Get all available plugins categorized
- * by whether they are a fetcher, a parser or a processor.
+ * Get all available plugins. Does not list hidden plugins.
  * 
- * Does not list hidden plugins.
+ * @return 
+ *   An array where the keys are the plugin keys and the values
+ *   are the plugin info arrays as defined in hook_feeds_plugins().
  */
 function feeds_get_plugins() {
   ctools_include('plugins');
@@ -160,6 +174,22 @@ function feeds_get_plugins() {
     if ($info['hidden'] == TRUE) {
       continue;
     }
+    $result[$key] = $info;
+  }
+  return $result;  
+}
+
+/**
+ * Get all available plugins categorized by whether they are a 
+ * fetcher, a parser or a processor plugin.
+ * 
+ * Does not list hidden plugins.
+ */
+function feeds_get_plugins_by_type() {
+  $plugins = feeds_get_plugins();
+
+  $result = array();
+  foreach ($plugins as $key => $info) {
     if (_feeds_is_derived_from($key, 'FeedsFetcher')) {
       $result['fetcher'][$key] = $info;
     }

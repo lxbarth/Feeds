@@ -53,8 +53,8 @@ function feeds_ui_menu() {
   $items['admin/build/feeds/edit/%feeds'] = array(
     'title callback' => 'feed_ui_title',
     'title arguments' => array(4),
-    'page callback' => 'drupal_get_form',
-    'page arguments' => array('feeds_ui_build_edit_form', 4),
+    'page callback' => 'feeds_ui_build_edit_page',
+    'page arguments' => array(4),
     'access arguments' => array('administer feeds'),
     'file' => 'feeds_ui.admin.inc',
     'type' => MENU_CALLBACK,
@@ -107,11 +107,12 @@ function feeds_ui_theme() {
       'arguments' => array('form'),
       'file' => 'feeds_ui.admin.inc',
     ),
-    'feeds_ui_build_edit_form' => array(
-      'arguments' => array('form'),
+    'feeds_ui_build_edit_page' => array(
       'file' => 'feeds_ui.admin.inc',
     ),
-    'feeds_ui_container' => array(),
+    'feeds_ui_container' => array(
+      'file' => 'feeds_ui.admin.inc',
+    ),
   );
 }
 

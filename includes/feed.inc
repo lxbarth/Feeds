@@ -314,3 +314,53 @@ class FeedsConfigurable {
     $this->save();
   }
 }
+
+/**
+ * Config form wrapper. Use to render the configuration form of
+ * a FeedsConfigurable object.
+ * 
+ * @param 
+ *   FeedsConfigurable object.
+ * 
+ * @return
+ *   Rendered config form, if available. Empty string otherwise.
+ */
+function feeds_get_config_form($configurable) {
+  if ($configurable->configForm($form_state)) {
+    return drupal_get_form(get_class($configurable) .'_feeds_config_form', $configurable);
+  }
+  return '';
+}
+
+/**
+ * Config form callback. Don't call directly, but use 
+ * feeds_get_config_form($configurable) instead.
+ * 
+ * @param 
+ *   FormAPI $form_state.
+ * @param 
+ *   FeedsConfigurable object.
+ */
+function feeds_config_form(&$form_state, $configurable) {
+  $form = $configurable->configForm($form_state);
+  $form['#configurable'] = $configurable;
+  $form['submit'] = array(
+    '#type' => 'submit',
+    '#value' => t('Save'),
+  );
+  return $form;
+}
+
+/**
+ * Validation handler for feeds_config_form().
+ */
+function feeds_config_form_validate($form, &$form_state) {
+  $form['#configurable']->configFormValidate($form, &$form_state);
+}
+
+/**
+ * Submit handler for feeds_config_form().
+ */
+function feeds_config_form_submit($form, &$form_state) {
+  $form['#configurable']->configFormSubmit($form, &$form_state);
+}

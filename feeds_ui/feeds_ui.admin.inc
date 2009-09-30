@@ -105,96 +105,74 @@ function feeds_ui_build_create_form_submit($form, &$form_state) {
 /**
  * Edit feed configuration.
  */
-function feeds_ui_build_edit_form(&$form_state, $feed) {
-  $form = array();
-  $form['#feed'] = $feed;
-  $submit = array(
-    '#type' => 'submit',
-    '#value' => t('Save'),
-  );
+function feeds_ui_build_edit_page($feed) {
+  $vars = array();
 
   // Help.
-  $form['#help'] = feeds_ui_edit_help();
+  $vars['#help'] = feeds_ui_edit_help();
 
   // Basic settings.
-  $form['basic'] = $feed->configForm($form_state);
-  $form['basic']['submit'] = $submit;
+  $vars['basic_settings'] = feeds_get_config_form($feed);
 
-  $plugins = feeds_get_plugins();
+  $plugins = feeds_get_plugins_by_type();
   $config = $feed->getConfig();
   $path = '/admin/build/feeds/configure/'. drupal_get_token($feed->getId()) .'/'. $feed->getId() .'/';
 
   // Fetch plugin information and form.
-  $form['#plugins'] = array();
+  $vars['#plugins'] = array();
   foreach ($plugins as $type => $p) {
     foreach ($p as $key => $info) {
       // Attach basic info.
-      $form['#plugins'][$type][$key] = $info;
+      $vars['#plugins'][$type][$key] = $info;
 
       // Define actions.
       unset($action);
       if ($type == 'processor') {
         if (!in_array($key, $config['processors'])) {
-          $form['#plugins'][$type][$key]['actions'] = array(l(t('Add'), $path .'add-processor/'. $key));
+          $vars['#plugins'][$type][$key]['actions'] = array(l(t('Add'), $path .'add-processor/'. $key));
         }
       }
       else {
         if ($config[$type] != $key) {
-          $form['#plugins'][$type][$key]['actions'] = array(l(t('Select'), $path .'select-'. $type .'/'. $key));
+          $vars['#plugins'][$type][$key]['actions'] = array(l(t('Select'), $path .'select-'. $type .'/'. $key));
         }
       }
 
       // See if there is a settings form.
       $class = feeds_load_plugin_class($key);
       $plugin = new $class($feed->getId()); // @todo: use singleton
-      if ($config_form = $plugin->configForm(&$form_state)) {
-        $form['plugin_settings'][$type][$key] = $config_form;
-        $form['plugin_settings'][$type][$key]['submit'] = $submit;
-        $form['plugin_settings'][$type][$key]['#name'] = $info['name'];
+      if ($config_form = feeds_get_config_form($plugin)) {
+        $vars['plugin_settings'][$type][$key]['form'] = $config_form;
+        $vars['plugin_settings'][$type][$key]['name'] = $info['name'];
       }
     }
   }
 
   // Build config info.
-  $form['#config'] = array();
-  $form['#config']['fetcher'] = $plugins['fetcher'][$config['fetcher']];
-  if (isset($form['plugin_settings']['fetcher'][$config['fetcher']])) {
-    $form['#config']['fetcher']['actions'] = array(l(t('Settings'), ''));
+  $vars['#config'] = array();
+  $vars['#config']['fetcher'] = $plugins['fetcher'][$config['fetcher']];
+  if (isset($vars['plugin_settings']['fetcher'][$config['fetcher']])) {
+    $vars['#config']['fetcher']['actions'] = array(l(t('Settings'), ''));
   }
 
-  $form['#config']['parser'] = $plugins['parser'][$config['parser']];
-  if (isset($form['plugin_settings']['parser'][$config['parser']])) {
-    $form['#config']['parser']['actions'] = array(l(t('Settings'), ''));
+  $vars['#config']['parser'] = $plugins['parser'][$config['parser']];
+  if (isset($vars['plugin_settings']['parser'][$config['parser']])) {
+    $vars['#config']['parser']['actions'] = array(l(t('Settings'), ''));
   }
 
   foreach ($config['processors'] as $processor) {
-    $form['#config']['processors'][$processor] = $plugins['processor'][$processor];
+    $vars['#config']['processors'][$processor] = $plugins['processor'][$processor];
     $actions = array();
     if (count($config['processors']) > 1) {
       $actions[] = l(t('Remove'), $path .'remove-processor/'. $processor);
     }
-    if (isset($form['plugin_settings']['processor'][$processor])) {
+    if (isset($vars['plugin_settings']['processor'][$processor])) {
       $actions[] = l(t('Settings'), '');
     }
     $actions[] = l(t('Mapping'), '');
-    $form['#config']['processors'][$processor]['actions'] = $actions;
+    $vars['#config']['processors'][$processor]['actions'] = $actions;
   }
-  return $form;
-}
-
-/**
- * Validation handler for feeds_ui_build_edit_form().
- */
-function feeds_ui_build_edit_form_validate($form, &$form_state) {
-  $form['#feed']->configFormValidate($form, &$form_state);
-}
-
-/**
- * Submit handler for feeds_ui_build_edit_form().
- */
-function feeds_ui_build_edit_form_submit($form, &$form_state) {
-  $form['#feed']->configFormSubmit($form, &$form_state);
-  drupal_set_message(t('Saved configuration'));
+  return theme('feeds_ui_build_edit_page', $vars);
 }
 
 /**
@@ -309,9 +287,9 @@ function feeds_ui_edit_help() {
 }
 
 /**
- * Theme feeds_ui_build_edit_form().
+ * Theme feeds_ui_build_edit_page().
  */
-function theme_feeds_ui_build_edit_form($form) {
+function theme_feeds_ui_build_edit_page($vars) {
   drupal_add_css(drupal_get_path('module', 'feeds_ui') .'/feeds_ui.css');
   drupal_add_js(drupal_get_path('module', 'feeds_ui') .'/feeds_ui.js');
 
@@ -326,19 +304,19 @@ function theme_feeds_ui_build_edit_form($form) {
   $output .= theme('feeds_ui_container', t('Basic settings'), $body, array(l(t('Change'), '')), 'fetcher');
 
   // Show current fetcher.
-  $fetcher = $form['#config']['fetcher'];
+  $fetcher = $vars['#config']['fetcher'];
   $body = theme('feeds_ui_container', $fetcher['name'], $fetcher['description'], $fetcher['actions']);
   $output .= theme('feeds_ui_container', t('Fetcher'), $body, array(l(t('Change'), '')), 'fetcher');
 
   // Show current parser.
-  $parser = $form['#config']['parser'];
+  $parser = $vars['#config']['parser'];
   $body = theme('feeds_ui_container', $parser['name'], $parser['description'], $parser['actions']);
   $output .= theme('feeds_ui_container', t('Parser'), $body, array(l(t('Change'), '')), 'parser');
 
   // Show current processors.
   $processors = array();
   $body = '';
-  foreach ($form['#config']['processors'] as $processor) {
+  foreach ($vars['#config']['processors'] as $processor) {
     $body .= theme('feeds_ui_container', $processor['name'], $processor['description'], $processor['actions']);
   }
   $output .= theme('feeds_ui_container', t('Processors'), $body, array(l(t('Add'), '')), 'processors');
@@ -350,37 +328,35 @@ function theme_feeds_ui_build_edit_form($form) {
   $output .= '<div class="configuration-squeeze">';
 
   // Show help text.
-  $output .= theme('feeds_ui_container', t('Help'), $form['#help'], array(), 'help');
+  $output .= theme('feeds_ui_container', t('Help'), $vars['#help'], array(), 'help');
 
-  // Render basic settings.
-  $output .= theme('feeds_ui_container', t('Basic settings'), drupal_render($form['basic']), array(), 'settings');
+  // Show basic settings.
+  $output .= theme('feeds_ui_container', t('Basic settings'), $vars['basic_settings'], array(), 'settings');
   
   // Show all available fetchers, parsers, processors.
   $body = '';
-  foreach ($form['#plugins']['fetcher'] as $fetcher) {
+  foreach ($vars['#plugins']['fetcher'] as $fetcher) {
     $body .= theme('feeds_ui_container', $fetcher['name'], $fetcher['description'], $fetcher['actions']);
   }
   $output .= theme('feeds_ui_container', t('Select a fetcher'), $body, array(), 'select-box');
   $body = '';
-  foreach ($form['#plugins']['parser'] as $parser) {
+  foreach ($vars['#plugins']['parser'] as $parser) {
     $body .= theme('feeds_ui_container', $parser['name'], $parser['description'], $parser['actions']);
   }
   $output .= theme('feeds_ui_container', t('Select a parser'), $body, array(), 'select-box');
   $body = '';
-  foreach ($form['#plugins']['processor'] as $processor) {
+  foreach ($vars['#plugins']['processor'] as $processor) {
     $body .= theme('feeds_ui_container', $processor['name'], $processor['description'], $processor['actions']);
   }
   $output .= theme('feeds_ui_container', t('Add a processor'), $body, array(), 'select-box');
 
   // Wrap all plugin settings in containers.
-  foreach (element_children($form['plugin_settings']) as $type) {
-    foreach (element_children($form['plugin_settings'][$type]) as $key) {
-      $title = t('!plugin settings', array('!plugin' => $form['plugin_settings'][$type][$key]['#name']));
-      $body = drupal_render($form['plugin_settings'][$type][$key]);
-      $output .= theme('feeds_ui_container', $title, $body, array(), 'settings', $key);
+  foreach ($vars['plugin_settings'] as $type => $plugins) {
+    foreach ($plugins as $key => $settings) {
+      $title = t('!plugin settings', array('!plugin' => $settings['name']));
+      $output .= theme('feeds_ui_container', $title, $settings['form'], array(), 'settings', $key);
     }
   }
-  $output .= drupal_render($form);
 
   $output .= '</div>'; // '<div class="configuration-squeeze">'
   $output .= '</div>'; // '<div class="configuration">'
