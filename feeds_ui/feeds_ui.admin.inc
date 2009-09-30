@@ -29,8 +29,16 @@ function feeds_ui_build_overview() {
   $rows = array();
   if ($feeds = feeds_load_all()) {
     foreach ($feeds as $feed) {
+      $config = $feed->getConfig();
+      if (empty($config['content_type'])) {
+        $type = '[none]';
+      }
+      else {
+        $type = l(node_get_types('name', $config['content_type']), 'node/add/'. $config['content_type']);
+      }
       $rows[] = array(
         $feed->getName(),
+        $type,
         l(t('Edit'), 'admin/build/feeds/edit/'. $feed->getId()) .' | '. 
         l(t('Delete'), 'admin/build/feeds/delete/'. $feed->getId()),
       );
@@ -39,9 +47,11 @@ function feeds_ui_build_overview() {
   $rows[] = array(
     l(t('New configuration'), 'admin/build/feeds/create'),
     '&nbsp;',
+    '&nbsp;',
   );
   $header = array(
-    t('Configurations'),
+    t('Configuration'),
+    t('Attached to'),
     t('Operations'),
   );
   return theme('table', $header, $rows);
