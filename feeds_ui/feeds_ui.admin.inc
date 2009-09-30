@@ -194,6 +194,14 @@ function feeds_ui_build_plugin_form(&$form_state, $feed) {
 }
 
 /**
+ * Submit handler for feeds_ui_build_edit_form().
+ */
+function feeds_ui_build_plugin_form_submit($form, &$form_state) {
+  $form['#feed']->addConfig($form_state['values']);
+  $form['#feed']->save();
+}
+
+/**
  * Callback handler for configuration changes on plugin form.
  */
 function feeds_ui_build_plugin_configure($token, $feed, $op, $plugin) {
@@ -216,14 +224,6 @@ function feeds_ui_build_plugin_configure($token, $feed, $op, $plugin) {
       break;
   }
   drupal_goto('admin/build/feeds/edit/'. $feed->getId() .'/plugins');
-}
-
-/**
- * Submit handler for feeds_ui_build_edit_form().
- */
-function feeds_ui_build_plugin_form_submit($form, &$form_state) {
-  $form['#feed']->addConfig($form_state['values']);
-  $form['#feed']->save();
 }
 
 /**
