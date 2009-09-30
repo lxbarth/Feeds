@@ -40,6 +40,64 @@ class FeedsUITestCase extends DrupalWebTestCase {
    * CRUD tests on UI.
    */
   public function testCRUDFeed() {
-    
+
+    // Create new feed configuration.
+    $this->drupalGet('admin/build/feeds');
+    $this->clickLink('New configuration');
+    $edit = array(
+      'name' => 'Test feed',
+      'id' => 'test_feed',
+    );
+    $this->drupalPost('admin/build/feeds/create', $edit, 'Create');
+
+    // Assert UI elements.
+    $this->assertText('Your feed has been created with default settings.');
+    $this->assertText('Basic settings');
+    $this->assertText('Fetcher');
+    $this->assertText('HTTP Fetcher');
+    $this->assertText('Parser');
+    $this->assertText('Common syndication parser');
+    $this->assertText('Processor');
+    $this->assertText('Node processor');
+    $this->assertText('Help');
+    $this->assertRaw('admin/build/feeds/edit/test_feed/settings/Feed');
+    $this->assertRaw('admin/build/feeds/edit/test_feed/settings/FeedsNodeProcessor');
+    $this->assertRaw('admin/build/feeds/edit/test_feed/fetcher');
+    $this->assertRaw('admin/build/feeds/edit/test_feed/parser');
+    $this->assertRaw('admin/build/feeds/edit/test_feed/processor');
+
+    // Assert presence of default plugins.
+    $this->assertPlugins('test_feed', 'FeedsHttpFetcher', 'FeedsSyndicationParser', array('FeedsNodeProcessor'));
+
+    // Select some other plugins.
+    $this->clickLink('Change', 0);
+    $this->assertText('Select a fetcher');
+    $this->clickLink('Select');
+
+    $this->clickLink('Change', 1);
+    $this->assertText('Select a parser');
+    $this->clickLink('Select');
+
+    $this->clickLink('Add');
+    $this->assertText('Add a processor');
+    $this->clickLink('Select');
+
+    // Assert changed configuration.
+    $this->assertPlugins('test_feed', 'FeedsFileFetcher', 'FeedsCSVParser', array('FeedsNodeProcessor', 'FeedsDataProcessor'));
+  }
+
+  /**
+   * Assert a feeds configuration's plugins.
+   */
+  public function assertPlugins($id, $fetcher, $parser, $processors) {
+    // Assert actual configuration.
+    $result = db_query('SELECT * FROM {feeds_config} WHERE id = "%s"', $id);
+    $config = array();
+    while ($row = db_fetch_object($result)) {
+      $config[$row->class] = unserialize($row->config);
+    }
+    $this->assertEqual($config['Feed']['fetcher'], $fetcher, 'Correct fetcher');
+    $this->assertEqual($config['Feed']['parser'], $parser, 'Correct parser');
+    $this->assertEqual($config['Feed']['processors'], drupal_map_assoc($processors), 'Correct processors');
   }
 }
