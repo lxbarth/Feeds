@@ -146,8 +146,10 @@ function feeds_ui_build_plugin_form(&$form_state, $feed) {
   $form['#config']['parser'] = $plugins['parser'][$config['parser']];
   foreach ($config['processors'] as $processor) {
     $form['#config']['processors'][$processor] = $plugins['processor'][$processor];
-    $form['#config']['processors'][$processor]['actions'] = array(l(t('Remove'), $path .'remove-processor/'. $processor));
-    
+    if (count($config['processors']) > 1) {
+      $action = l(t('Remove'), $path .'remove-processor/'. $processor);
+    }
+    $form['#config']['processors'][$processor]['actions'] = array($action);
   }
 
   // Fetch plugin information and form.
@@ -156,11 +158,18 @@ function feeds_ui_build_plugin_form(&$form_state, $feed) {
     foreach ($p as $key => $info) {
       // Attach basic info.
       $form['#plugins'][$type][$key] = $info;
+
+      // Define actions.
+      unset($action);
       if ($type == 'processor') {
-        $form['#plugins'][$type][$key]['actions'] = array(l(t('Add'), ''));
+        if (!in_array($key, $config['processors'])) {
+          $form['#plugins'][$type][$key]['actions'] = array($action = l(t('Add'), $path .'add-processor/'. $key));
+        }
       }
       else {
-        $form['#plugins'][$type][$key]['actions'] = array(l(t('Select'), ''));
+        if ($config[$type] != $key) {
+          $form['#plugins'][$type][$key]['actions'] = array(l(t('Select'), $path .'select-'. $type .'/'. $key));
+        }
       }
 
       // See if there is a settings form.
@@ -185,13 +194,26 @@ function feeds_ui_build_plugin_form(&$form_state, $feed) {
 /**
  * Callback handler for configuration changes on plugin form.
  */
-function feeds_ui_build_plugin_configure($token, $id, $op, $param) {
-  if (!drupal_valid_token($token, $id)) {
+function feeds_ui_build_plugin_configure($token, $feed, $op, $plugin) {
+  if (!drupal_valid_token($token, $feed->getId())) {
     drupal_access_denied();
     return;
   }
-
-  drupal_goto('admin/build/feeds/edit/'. $id .'/plugins');
+  switch ($op) {
+    case 'select-fetcher':
+      $feed->setFetcher($plugin);
+      break;
+    case 'select-parser':
+      $feed->setParser($plugin);
+      break;
+    case 'add-processor':
+      $feed->addProcessor($plugin);
+      break;
+    case 'remove-processor':
+      $feed->removeProcessor($plugin);
+      break;
+  }
+  drupal_goto('admin/build/feeds/edit/'. $feed->getId() .'/plugins');
 }
 
 /**

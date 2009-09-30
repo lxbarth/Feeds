@@ -36,7 +36,7 @@ class Feed extends FeedsConfigurable {
     return array(
       'fetcher' => 'FeedsHttpFetcher',
       'parser' => 'FeedsSyndicationParser',
-      'processors' => array('FeedsNodeProcessor'),
+      'processors' => array('FeedsNodeProcessor' => 'FeedsNodeProcessor'),
       'content_type' => '',
       'update' => 0,
       'refresh_period' => FEEDAPI_CRON_NEVER_REFRESH,
@@ -84,43 +84,79 @@ class Feed extends FeedsConfigurable {
    * Set active fetcher. Does not save fetcher to configuration.
    *
    * @param $fetcher
-   *   String that is the class name of the fetcher.
+   *   String that is the plugin id of a fetcher.
    */
   public function setFetcher($fetcher) {
-    unset($this->fetcher);
-    $class = feeds_load_plugin_class($fetcher);
-    $this->config['fetcher'] = $fetcher;
-    $this->fetcher = new $class($this->id);
+    if ($class = feeds_load_plugin_class($fetcher)) {
+      unset($this->fetcher);
+      $this->config['fetcher'] = $fetcher;
+      $this->fetcher = new $class($this->id);
+      $this->save(); // @todo: move out saving.
+    }
   }
 
   /**
    * Set active parser. Does not save parser to configuration.
    *
    * @param $parser
-   *   String that is the class name of the parser.
+   *   String that is the plugin id of a parser.
    */
   public function setParser($parser) {
-    unset($this->parser);
-    $class = feeds_load_plugin_class($parser);
-    $this->config['parser'] = $parser;
-    $this->save();
-    $this->parser = new $class($this->id);
+    if ($class = feeds_load_plugin_class($parser)) {
+      unset($this->parser);
+      $this->config['parser'] = $parser;
+      $this->parser = new $class($this->id);
+      $this->save(); // @todo: move out saving.
+    }
   }
 
   /**
    * Set active processors.
    *
    * @param $processors
-   *  Array of strings that are the processors of this feed.
+   *  Array of strings that are plugin ids of processors.
    */
   public function setProcessors($processors) {
-    unset($this->processors);
+    foreach ($this->processors as $processor) {
+      // @todo: verify that this actually distroys the objects.
+      unset($processor);
+    }
     $this->processors = array();
     $this->config['processors'] = $processors;
-    $this->save();
+    $this->save(); // @todo: move out saving.
     foreach ($processors as $processor) {
       $class = feeds_load_plugin_class($processor);
-      $this->processors[] = new $class($this->id);
+      $this->processors[$processor] = new $class($this->id);
+    }
+  }
+
+  /**
+   * Add a processor.
+   * 
+   * @param $processor
+   *   String that is the plugin id of a processor.
+   */
+  public function addProcessor($processor) {
+    if (!isset($this->processors[$processor])) {
+      if ($class = feeds_load_plugin_class($processor)) {
+        $this->processors[$processor] = new $class($this->id);
+        $this->config['processors'][$processor] = $processor;
+        $this->save(); // @todo: move out saving.
+      }
+    }
+  }
+
+  /**
+   * Remove a processor.
+   * 
+   * @param $processor
+   *   String that is the plugin id of a processor.
+   */
+  public function removeProcessor($processor) {
+    if (isset($this->processors[$processor])) {
+      unset($this->processors[$processor]);
+      unset($this->config['processors'][$processor]);
+      $this->save(); // @todo: move out saving.
     }
   }
 }
