@@ -34,6 +34,7 @@ class Feed extends FeedsConfigurable {
    */
   public function getDefaultConfig() {
     return array(
+      'name' => '',
       'fetcher' => 'FeedsHttpFetcher',
       'parser' => 'FeedsSyndicationParser',
       'processors' => array('FeedsNodeProcessor' => 'FeedsNodeProcessor'),
@@ -48,6 +49,13 @@ class Feed extends FeedsConfigurable {
    */
   public function configForm(&$form_state) {
     $form = array();
+    $form['name'] = array(
+      '#type' => 'textfield',
+      '#title' => t('Name'),
+      '#description' => t('The name of this configuration.'),
+      '#default_value' => $this->config['name'],
+      '#required' => TRUE,
+    );
     $form['content_type'] = array(
       '#type' => 'select',
       '#title' => t('Attach to content type'),
@@ -67,6 +75,13 @@ class Feed extends FeedsConfigurable {
       '#default_value' => $this->config['refresh_period'],
     );
     return $form;
+  }
+
+  /**
+   * Convenience function. Return this feed configuration's natural name.
+   */
+  public function getName() {
+    return $this->config['name'];
   }
 
   /**
@@ -215,7 +230,7 @@ class FeedsConfigurable {
   }
 
   /**
-   * Retrieve this configurable's Id.
+   * Return this configurable's Id.
    * 
    * By convention, a number of configurable objects are associated to each 
    * other by their common id.

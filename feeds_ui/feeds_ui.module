@@ -37,12 +37,13 @@ function feeds_ui_menu() {
   );
   $items['admin/build/feeds'] = array(
     'title' => 'Feeds',
+    'description' => 'Configure feeds to import or aggregate RSS and Atom feeds, import CSV files or more.',
     'page callback' => 'feeds_ui_build_overview',
     'access arguments' => array('administer feeds'),
     'file' => 'feeds_ui.admin.inc',
   );
   $items['admin/build/feeds/create'] = array(
-    'title' => t('Create configuration'),
+    'title' => t('Create feed configuration'),
     'page callback' => 'drupal_get_form',
     'page arguments' => array('feeds_ui_build_create_form'),
     'access arguments' => array('administer feeds'),
@@ -80,7 +81,7 @@ function feeds_ui_menu() {
     'type' => MENU_CALLBACK,
   );
   $items['admin/build/feeds/delete/%feeds'] = array(
-    'title' => t('Create configuration'),
+    'title' => t('Delete configuration'),
     'page callback' => 'drupal_get_form',
     'page arguments' => array('feeds_ui_build_delete_form', 4),
     'access arguments' => array('administer feeds'),

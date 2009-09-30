@@ -30,7 +30,7 @@ function feeds_ui_build_overview() {
   if ($feeds = feeds_load_all()) {
     foreach ($feeds as $feed) {
       $rows[] = array(
-        $feed->getId(),
+        $feed->getName(),
         l(t('Edit'), 'admin/build/feeds/edit/'. $feed->getId()) .' | '. 
         l(t('Delete'), 'admin/build/feeds/delete/'. $feed->getId()),
       );
@@ -55,7 +55,6 @@ function feeds_ui_build_overview() {
 function feeds_ui_build_create_form(&$form_state) {
   drupal_add_js(drupal_get_path('module', 'feeds_ui') .'/feeds_ui.js');
   $form = array();
-  $form['#redirect'] = 'admin/build/feeds';
   $form['name'] = array(
     '#type' => 'textfield',
     '#title' => t('Name'),
@@ -93,12 +92,18 @@ function feeds_ui_build_create_form_validate($form, &$form_state) {
  * Submit handler for feeds_build_create_form().
  */
 function feeds_ui_build_create_form_submit($form, &$form_state) {
+  // Create feed.
   $feed = feeds_get_feed($form_state['values']['id']);
+  $feed->addConfig($form_state['values']);
   $feed->save();
+
+  // Set a message and redirect to settings form.
+  drupal_set_message(t('Your feed has been created with default settings. If they do not fit your use case you can change them here.'));
+  $form_state['redirect'] = 'admin/build/feeds/edit/'. $feed->getId();
 }
 
 /**
- * Edit plugin configuration.
+ * Edit feed configuration.
  */
 function feeds_ui_build_edit_form(&$form_state, $feed) {
   $form = array();
