@@ -135,6 +135,14 @@ function feeds_ui_build_edit_form_submit($form, &$form_state) {
 function feeds_ui_build_plugin_form(&$form_state, $feed) {
   $form = array();
   $form['#feed'] = $feed;
+  $submit = array(
+    '#type' => 'submit',
+    '#value' => t('Save'),
+  );
+
+  // Basic settings.
+  $form['basic'] = $feed->configForm($form_state);
+  $form['basic']['submit'] = $submit;
 
   $plugins = feeds_get_plugins();
   $config = $feed->getConfig();
@@ -177,17 +185,11 @@ function feeds_ui_build_plugin_form(&$form_state, $feed) {
       $plugin = new $class($feed->getId()); // @todo: use singleton
       if ($config_form = $plugin->configForm(&$form_state)) {
         $form['plugin_settings'][$type][$key] = $config_form;
+        $form['plugin_settings'][$type][$key]['submit'] = $submit;
         $form['plugin_settings'][$type][$key]['#name'] = $info['name'];
       }
     }
   }
-
-  drupal_get_token($id);
-
-  $form['submit'] = array(
-    '#type' => 'submit',
-    '#value' => t('Save'),
-  );
   return $form;
 }
 
@@ -316,15 +318,19 @@ function theme_feeds_ui_build_plugin_form($form) {
   // Build left bar.
   $output .= '<div class="left-bar">';
 
+  // Basic settings.
+  $body = theme('feeds_ui_container', '', '@todo: summary');
+  $output .= theme('feeds_ui_container', t('Basic settings'), $body, array(l(t('Change'), '')), 'fetcher');
+
   // Show current fetcher.
   $fetcher = $form['#config']['fetcher'];
   $body = theme('feeds_ui_container', $fetcher['name'], $fetcher['description']);
-  $plugins_body = theme('feeds_ui_container', t('Fetcher'), $body, array(l(t('Change'), '')), 'fetcher');
+  $output .= theme('feeds_ui_container', t('Fetcher'), $body, array(l(t('Change'), '')), 'fetcher');
 
   // Show current parser.
   $parser = $form['#config']['parser'];
   $body = theme('feeds_ui_container', $parser['name'], $parser['description']);
-  $plugins_body .= theme('feeds_ui_container', t('Parser'), $body, array(l(t('Change'), '')), 'parser');
+  $output .= theme('feeds_ui_container', t('Parser'), $body, array(l(t('Change'), '')), 'parser');
 
   // Show current processors.
   $processors = array();
@@ -332,15 +338,17 @@ function theme_feeds_ui_build_plugin_form($form) {
   foreach ($form['#config']['processors'] as $processor) {
     $body .= theme('feeds_ui_container', $processor['name'], $processor['description'], $processor['actions']);
   }
-  $plugins_body .= theme('feeds_ui_container', t('Processors'), $body, array(l(t('Add'), '')), 'processors');
+  $output .= theme('feeds_ui_container', t('Processors'), $body, array(l(t('Add'), '')), 'processors');
 
-  $output .= theme('feeds_ui_container', t('Plugins'), $plugins_body, array(), 'plugins');
   $output .= '</div>'; // '<div class="left-bar">'
 
   // Build configuration space.
   $output .= '<div class="configuration">';
   $output .= '<div class="configuration-squeeze">';
 
+  // 
+  $output .= theme('feeds_ui_container', t('Basic settings'), drupal_render($form['basic']), array(), 'settings');
+  
   // Show all available fetchers, parsers, processors.
   $body = '';
   foreach ($form['#plugins']['fetcher'] as $fetcher) {
