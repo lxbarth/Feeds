@@ -121,6 +121,7 @@ function feeds_ui_build_edit_page($feed, $active = 'help', $plugin_key = '') {
   $plugins = feeds_get_plugins();
   $config = $feed->getConfig();  
   // Base path for selecting/adding/removing, tokenized.
+  // @todo: replace this by mini-forms. Web accelerators break this.
   $edit_path = '/admin/build/feeds/configure/'. drupal_get_token($feed->getId()) .'/'. $feed->getId() .'/';
   // Base path for changing the active container.
   $path = 'admin/build/feeds/edit/'. $feed->getId() .'/';
