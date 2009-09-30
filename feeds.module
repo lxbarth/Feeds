@@ -68,6 +68,8 @@ function feeds_ctools_plugin_api($owner, $api) {
  * 
  * @todo: Document API. Uses CTools plugin handling, extra keys:
  * 'description', 'hidden'
+ * 
+ * @todo: Also declare and load Feed and FeedsConfigurable class with this API?
  */
 function feeds_feeds_plugins() {
   $path = drupal_get_path('module', 'feeds') .'/plugins';

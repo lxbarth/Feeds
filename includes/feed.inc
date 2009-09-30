@@ -86,6 +86,8 @@ class Feed extends FeedsConfigurable {
 
   /**
    * Import feed by using configured fetchers, parsers, processors.
+   * 
+   * @todo: Break out into a facade-style FeedsImport class?
    */
   public function import() {
     $raw = $this->fetcher->fetch($this->source);
