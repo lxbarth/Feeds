@@ -108,6 +108,9 @@ function feeds_ui_build_edit_form(&$form_state, $feed) {
     '#value' => t('Save'),
   );
 
+  // Help.
+  $form['#help'] = feeds_ui_edit_help();
+
   // Basic settings.
   $form['basic'] = $feed->configForm($form_state);
   $form['basic']['submit'] = $submit;
@@ -281,6 +284,13 @@ function feeds_ui_build_delete_form_submit($form, &$form_state) {
 }
 
 /**
+ * Contextual help for build/edit page.
+ */
+function feeds_ui_edit_help() {
+  return 'Every feed must have at least one fetcher, parser and processor.';
+}
+
+/**
  * Theme feeds_ui_build_edit_form().
  */
 function theme_feeds_ui_build_edit_form($form) {
@@ -321,7 +331,10 @@ function theme_feeds_ui_build_edit_form($form) {
   $output .= '<div class="configuration">';
   $output .= '<div class="configuration-squeeze">';
 
-  // 
+  // Show help text.
+  $output .= theme('feeds_ui_container', t('Help'), $form['#help'], array(), 'help');
+
+  // Render basic settings.
   $output .= theme('feeds_ui_container', t('Basic settings'), drupal_render($form['basic']), array(), 'settings');
   
   // Show all available fetchers, parsers, processors.
