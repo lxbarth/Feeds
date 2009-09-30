@@ -196,15 +196,19 @@ function feeds_ui_build_edit_configure($token, $feed, $op, $plugin) {
   switch ($op) {
     case 'select-fetcher':
       $feed->setFetcher($plugin);
+      $feed->save();
       break;
     case 'select-parser':
       $feed->setParser($plugin);
+      $feed->save();
       break;
     case 'add-processor':
       $feed->addProcessor($plugin);
+      $feed->save();
       break;
     case 'remove-processor':
       $feed->removeProcessor($plugin);
+      $feed->save();
       break;
   }
   drupal_goto('admin/build/feeds/edit/'. $feed->getId() .'/plugins');
