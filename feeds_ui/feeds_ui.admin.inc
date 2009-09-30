@@ -119,18 +119,6 @@ function feeds_ui_build_edit_form(&$form_state, $feed) {
   $config = $feed->getConfig();
   $path = '/admin/build/feeds/configure/'. drupal_get_token($feed->getId()) .'/'. $feed->getId() .'/';
 
-  // Build config info.
-  $form['#config'] = array();
-  $form['#config']['fetcher'] = $plugins['fetcher'][$config['fetcher']];
-  $form['#config']['parser'] = $plugins['parser'][$config['parser']];
-  foreach ($config['processors'] as $processor) {
-    $form['#config']['processors'][$processor] = $plugins['processor'][$processor];
-    if (count($config['processors']) > 1) {
-      $action = l(t('Remove'), $path .'remove-processor/'. $processor);
-    }
-    $form['#config']['processors'][$processor]['actions'] = array($action);
-  }
-
   // Fetch plugin information and form.
   $form['#plugins'] = array();
   foreach ($plugins as $type => $p) {
@@ -142,7 +130,7 @@ function feeds_ui_build_edit_form(&$form_state, $feed) {
       unset($action);
       if ($type == 'processor') {
         if (!in_array($key, $config['processors'])) {
-          $form['#plugins'][$type][$key]['actions'] = array($action = l(t('Add'), $path .'add-processor/'. $key));
+          $form['#plugins'][$type][$key]['actions'] = array(l(t('Add'), $path .'add-processor/'. $key));
         }
       }
       else {
@@ -160,6 +148,31 @@ function feeds_ui_build_edit_form(&$form_state, $feed) {
         $form['plugin_settings'][$type][$key]['#name'] = $info['name'];
       }
     }
+  }
+
+  // Build config info.
+  $form['#config'] = array();
+  $form['#config']['fetcher'] = $plugins['fetcher'][$config['fetcher']];
+  if (isset($form['plugin_settings']['fetcher'][$config['fetcher']])) {
+    $form['#config']['fetcher']['actions'] = array(l(t('Settings'), ''));
+  }
+
+  $form['#config']['parser'] = $plugins['parser'][$config['parser']];
+  if (isset($form['plugin_settings']['parser'][$config['parser']])) {
+    $form['#config']['parser']['actions'] = array(l(t('Settings'), ''));
+  }
+
+  foreach ($config['processors'] as $processor) {
+    $form['#config']['processors'][$processor] = $plugins['processor'][$processor];
+    $actions = array();
+    if (count($config['processors']) > 1) {
+      $actions[] = l(t('Remove'), $path .'remove-processor/'. $processor);
+    }
+    if (isset($form['plugin_settings']['processor'][$processor])) {
+      $actions[] = l(t('Settings'), '');
+    }
+    $actions[] = l(t('Mapping'), '');
+    $form['#config']['processors'][$processor]['actions'] = $actions;
   }
   return $form;
 }
@@ -309,12 +322,12 @@ function theme_feeds_ui_build_edit_form($form) {
 
   // Show current fetcher.
   $fetcher = $form['#config']['fetcher'];
-  $body = theme('feeds_ui_container', $fetcher['name'], $fetcher['description']);
+  $body = theme('feeds_ui_container', $fetcher['name'], $fetcher['description'], $fetcher['actions']);
   $output .= theme('feeds_ui_container', t('Fetcher'), $body, array(l(t('Change'), '')), 'fetcher');
 
   // Show current parser.
   $parser = $form['#config']['parser'];
-  $body = theme('feeds_ui_container', $parser['name'], $parser['description']);
+  $body = theme('feeds_ui_container', $parser['name'], $parser['description'], $parser['actions']);
   $output .= theme('feeds_ui_container', t('Parser'), $body, array(l(t('Change'), '')), 'parser');
 
   // Show current processors.
