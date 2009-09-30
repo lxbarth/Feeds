@@ -194,11 +194,18 @@ function feeds_ui_build_plugin_form(&$form_state, $feed) {
 }
 
 /**
- * Submit handler for feeds_ui_build_edit_form().
+ * Validation handler for feeds_ui_build_plugin_form().
+ */
+function feeds_ui_build_plugin_form_validate($form, &$form_state) {
+  $form['#feed']->configFormValidate($form, &$form_state);
+}
+
+/**
+ * Submit handler for feeds_ui_build_plugin_form().
  */
 function feeds_ui_build_plugin_form_submit($form, &$form_state) {
-  $form['#feed']->addConfig($form_state['values']);
-  $form['#feed']->save();
+  $form['#feed']->configFormSubmit($form, &$form_state);
+  drupal_set_message(t('Saved configuration'));
 }
 
 /**
