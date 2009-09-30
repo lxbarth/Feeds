@@ -57,19 +57,11 @@ function feeds_ui_menu() {
     'access arguments' => array('administer feeds'),
     'file' => 'feeds_ui.admin.inc',
     'type' => MENU_CALLBACK,
+    'weight' => 1,
   );
   $items['admin/build/feeds/edit/%feeds/edit'] = array(
     'title' => t('Basic'),
     'type' => MENU_DEFAULT_LOCAL_TASK,
-  );
-  $items['admin/build/feeds/edit/%feeds/plugins'] = array(
-    'title' => t('Plugins'),
-    'page callback' => 'drupal_get_form',
-    'page arguments' => array('feeds_ui_build_plugin_form', 4),
-    'access arguments' => array('administer feeds'),
-    'file' => 'feeds_ui.admin.inc',
-    'type' => MENU_LOCAL_TASK,
-    'weight' => 1,
   );
   $items['admin/build/feeds/edit/%feeds/map'] = array(
     'title' => t('Mapping'),
@@ -96,7 +88,7 @@ function feeds_ui_menu() {
     'type' => MENU_CALLBACK,
   );
   $items['admin/build/feeds/configure/%/%feeds'] = array(
-    'page callback' => 'feeds_ui_build_plugin_configure',
+    'page callback' => 'feeds_ui_build_edit_configure',
     'page arguments' => array(4, 5),
     'access arguments' => array('administer feeds'),
     'file' => 'feeds_ui.admin.inc',
@@ -114,7 +106,7 @@ function feeds_ui_theme() {
       'arguments' => array('form'),
       'file' => 'feeds_ui.admin.inc',
     ),
-    'feeds_ui_build_plugin_form' => array(
+    'feeds_ui_build_edit_form' => array(
       'arguments' => array('form'),
       'file' => 'feeds_ui.admin.inc',
     ),

@@ -98,41 +98,9 @@ function feeds_ui_build_create_form_submit($form, &$form_state) {
 }
 
 /**
- * Edit an existing configuration.
- */
-function feeds_ui_build_edit_form(&$form_state, $feed) {
-  $form['#feed'] = $feed;
-  $form['settings'] = array(
-    '#type' => 'fieldset',
-    '#title' => t('Basic configuration'),
-  );
-  $form['settings'] += $feed->configForm($form_state);
-  $form['submit'] = array(
-    '#type' => 'submit',
-    '#value' => t('Save'),
-  );
-  return $form;
-}
-
-/**
- * Validation handler for feeds_ui_build_edit_form().
- */
-function feeds_ui_build_edit_form_validate($form, &$form_state) {
-  $form['#feed']->configFormValidate($form, &$form_state);
-}
-
-/**
- * Submit handler for feeds_ui_build_edit_form().
- */
-function feeds_ui_build_edit_form_submit($form, &$form_state) {
-  $form['#feed']->configFormSubmit($form, &$form_state);
-  drupal_set_message(t('Saved configuration'));
-}
-
-/**
  * Edit plugin configuration.
  */
-function feeds_ui_build_plugin_form(&$form_state, $feed) {
+function feeds_ui_build_edit_form(&$form_state, $feed) {
   $form = array();
   $form['#feed'] = $feed;
   $submit = array(
@@ -194,24 +162,24 @@ function feeds_ui_build_plugin_form(&$form_state, $feed) {
 }
 
 /**
- * Validation handler for feeds_ui_build_plugin_form().
+ * Validation handler for feeds_ui_build_edit_form().
  */
-function feeds_ui_build_plugin_form_validate($form, &$form_state) {
+function feeds_ui_build_edit_form_validate($form, &$form_state) {
   $form['#feed']->configFormValidate($form, &$form_state);
 }
 
 /**
- * Submit handler for feeds_ui_build_plugin_form().
+ * Submit handler for feeds_ui_build_edit_form().
  */
-function feeds_ui_build_plugin_form_submit($form, &$form_state) {
+function feeds_ui_build_edit_form_submit($form, &$form_state) {
   $form['#feed']->configFormSubmit($form, &$form_state);
   drupal_set_message(t('Saved configuration'));
 }
 
 /**
- * Callback handler for configuration changes on plugin form.
+ * Callback handler for configuration changes on edit form.
  */
-function feeds_ui_build_plugin_configure($token, $feed, $op, $plugin) {
+function feeds_ui_build_edit_configure($token, $feed, $op, $plugin) {
   if (!drupal_valid_token($token, $feed->getId())) {
     drupal_access_denied();
     return;
@@ -313,9 +281,9 @@ function feeds_ui_build_delete_form_submit($form, &$form_state) {
 }
 
 /**
- * Theme feeds_ui_build_plugin_form().
+ * Theme feeds_ui_build_edit_form().
  */
-function theme_feeds_ui_build_plugin_form($form) {
+function theme_feeds_ui_build_edit_form($form) {
   drupal_add_css(drupal_get_path('module', 'feeds_ui') .'/feeds_ui.css');
   drupal_add_js(drupal_get_path('module', 'feeds_ui') .'/feeds_ui.js');
 
