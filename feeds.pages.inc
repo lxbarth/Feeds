@@ -32,3 +32,26 @@ function feeds_page() {
   );
   return theme('table', $header, $rows);
 }
+
+/**
+ * Render a control box.
+ */
+function feeds_control_box($feed, $nid = NULL) {
+  if (user_access('administer feeds')) {
+    $rows = array();
+    $rows[] = array(
+      l(t('Reimport feed'), 'node/2/refresh'), 
+      // @todo adjust description by configuration.
+      t('Reads source information, creates items that do not exist and optionally update existing items.'),
+    );
+    $rows[] = array(
+      l(t('Delete all items'), 'node/2/delete-items'), 
+      t('Deletes all content imported by that feed.'),
+    );
+    $element = array(
+      '#title' => t('Feed options'),
+      '#value' => theme('table', array(t('Option'), t('Description')), $rows),
+    );
+    return theme('fieldset', $element);
+  }
+}

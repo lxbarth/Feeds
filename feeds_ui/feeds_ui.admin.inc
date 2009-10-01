@@ -440,7 +440,9 @@ function theme_feeds_ui_edit_page($config_info, $active_container) {
 
 /**
  * Render a simple container. A container can have a title, a description and 
- * one or more actions.
+ * one or more actions. Recursive.
+ * 
+ * @todo: Replace with theme_fieldset or a wrapper to theme_fieldset?
  * 
  * @param $container 
  *   An array that describes the container. All elements are optional:

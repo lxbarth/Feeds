@@ -74,6 +74,17 @@ function feeds_load($id) {
 }
 
 /**
+ * Implementation of hook_theme().
+ */
+function feeds_theme() {
+  return array(
+    'feeds_info' => array(
+      'file' => 'feeds.pages.inc',
+    ),
+  );
+}
+
+/**
  * Implementation of hook_ctools_plugin_api().
  */
 function feeds_ctools_plugin_api($owner, $api) {
@@ -89,6 +100,8 @@ function feeds_ctools_plugin_api($owner, $api) {
  * 'description', 'hidden'
  * 
  * @todo: Also declare and load Feed and FeedsConfigurable class with this API?
+ * 
+ * @todo: move this to feeds.plugins.inc?
  */
 function feeds_feeds_plugins() {
   $path = drupal_get_path('module', 'feeds') .'/plugins';
@@ -185,10 +198,19 @@ function feeds_feeds_plugins() {
  * Implementation of hook_nodeapi().
  */
 function feeds_nodeapi($node, $op) {
-  if ($op == 'delete') {
-    if ($feed = feeds_get_by_content_type($node->type)) {
-      $feed->fetcher->deleteSource($node->nid);
-    }
+  switch ($op) {
+    case 'view':
+      if ($feed = feeds_get_by_content_type($node->type)) {
+        module_load_include('inc', 'feeds', 'feeds.pages');
+        $node->content['feeds_info']['#value'] = feeds_control_box($feed);
+        $node->content['feeds_info']['#weight'] = -10;
+      }
+      break;
+    case 'delete':
+      if ($feed = feeds_get_by_content_type($node->type)) {
+        $feed->fetcher->deleteSource($node->nid);
+      }
+      break;
   }
 }
 
@@ -245,6 +267,7 @@ function feeds_form_validate($form, &$form_state) {
 function feeds_form_submit($form, &$form_state) {
   $feed = feeds_instance('Feed', $form['#feed_id']);
   $feed->fetcher->sourceFormSubmit($form, &$form_state);
+  $feed->import();
 }
 
 /**
