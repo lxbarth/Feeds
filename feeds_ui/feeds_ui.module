@@ -26,14 +26,14 @@ function feeds_ui_menu() {
   $items['admin/build/feeds'] = array(
     'title' => 'Feeds',
     'description' => 'Configure feeds to import or aggregate RSS and Atom feeds, import CSV files or more.',
-    'page callback' => 'feeds_ui_build_overview',
+    'page callback' => 'feeds_ui_overview_page',
     'access arguments' => array('administer feeds'),
     'file' => 'feeds_ui.admin.inc',
   );
   $items['admin/build/feeds/create'] = array(
     'title' => t('Create feed configuration'),
     'page callback' => 'drupal_get_form',
-    'page arguments' => array('feeds_ui_build_create_form'),
+    'page arguments' => array('feeds_ui_create_form'),
     'access arguments' => array('administer feeds'),
     'file' => 'feeds_ui.admin.inc',
     'type' => MENU_CALLBACK,
@@ -41,7 +41,7 @@ function feeds_ui_menu() {
   $items['admin/build/feeds/edit/%feeds'] = array(
     'title callback' => 'feed_ui_title',
     'title arguments' => array(4),
-    'page callback' => 'feeds_ui_build_edit_page',
+    'page callback' => 'feeds_ui_edit_page',
     'page arguments' => array(4),
     'access arguments' => array('administer feeds'),
     'file' => 'feeds_ui.admin.inc',
@@ -53,7 +53,7 @@ function feeds_ui_menu() {
     'type' => MENU_DEFAULT_LOCAL_TASK,
   );
   $items['admin/build/feeds/map-remove/%feeds'] = array(
-    'page callback' => 'feeds_ui_build_mapping_remove',
+    'page callback' => 'feeds_ui_mapping_remove',
     'page arguments' => array(4),
     'access arguments' => array('administer feeds'),
     'file' => 'feeds_ui.admin.inc',
@@ -62,7 +62,7 @@ function feeds_ui_menu() {
   $items['admin/build/feeds/delete/%feeds'] = array(
     'title' => t('Delete configuration'),
     'page callback' => 'drupal_get_form',
-    'page arguments' => array('feeds_ui_build_delete_form', 4),
+    'page arguments' => array('feeds_ui_delete_form', 4),
     'access arguments' => array('administer feeds'),
     'file' => 'feeds_ui.admin.inc',
     'type' => MENU_CALLBACK,
@@ -75,11 +75,11 @@ function feeds_ui_menu() {
  */
 function feeds_ui_theme() {
   return array(
-    'feeds_ui_build_mapping_form' => array(
+    'feeds_ui_mapping_form' => array(
       'arguments' => array('form'),
       'file' => 'feeds_ui.admin.inc',
     ),
-    'feeds_ui_build_edit_page' => array(
+    'feeds_ui_edit_page' => array(
       'file' => 'feeds_ui.admin.inc',
     ),
     'feeds_ui_container' => array(

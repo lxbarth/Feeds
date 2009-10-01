@@ -7,7 +7,7 @@
 /**
  * Build overview of available configurations.
  */
-function feeds_ui_build_overview() {
+function feeds_ui_overview_page() {
   $rows = array();
   if ($feeds = feeds_load_all()) {
     foreach ($feeds as $feed) {
@@ -43,7 +43,7 @@ function feeds_ui_build_overview() {
  * 
  * @todo: make this a multi-step once all forms are stabilized.
  */
-function feeds_ui_build_create_form(&$form_state) {
+function feeds_ui_create_form(&$form_state) {
   drupal_add_js(drupal_get_path('module', 'feeds_ui') .'/feeds_ui.js');
   $form = array();
   $form['name'] = array(
@@ -70,7 +70,7 @@ function feeds_ui_build_create_form(&$form_state) {
 /**
  * Validation handler for feeds_build_create_form().
  */
-function feeds_ui_build_create_form_validate($form, &$form_state) {
+function feeds_ui_create_form_validate($form, &$form_state) {
   ctools_include('export');
   $feed = feeds_instance('Feed', $form_state['values']['id']);
   if (ctools_export_load_object('feeds_config', 'conditions', array('id' => $form_state['values']['id'], 'class' => 'Feed'))) {
@@ -82,7 +82,7 @@ function feeds_ui_build_create_form_validate($form, &$form_state) {
 /**
  * Submit handler for feeds_build_create_form().
  */
-function feeds_ui_build_create_form_submit($form, &$form_state) {
+function feeds_ui_create_form_submit($form, &$form_state) {
   // Create feed.
   $feed = feeds_instance('Feed', $form_state['values']['id']);
   $feed->addConfig($form_state['values']);
@@ -97,7 +97,7 @@ function feeds_ui_build_create_form_submit($form, &$form_state) {
 /**
  * Edit feed configuration.
  */
-function feeds_ui_build_edit_page($feed, $active = 'help', $plugin_key = '') {
+function feeds_ui_edit_page($feed, $active = 'help', $plugin_key = '') {
 
   // Get plugins and configuration.
   $plugins = feeds_get_plugins();
@@ -139,7 +139,7 @@ function feeds_ui_build_edit_page($feed, $active = 'help', $plugin_key = '') {
       break;
     case 'mapping':
       $active_container['title'] = t('Mapping for !processor', array('!processor' => $plugins[$plugin_key]['name']));
-      $active_container['body'] = drupal_get_form('feeds_ui_build_mapping_form', $feed, $plugin_key);
+      $active_container['body'] = drupal_get_form('feeds_ui_mapping_form', $feed, $plugin_key);
       break;
   }
 
@@ -210,7 +210,7 @@ function feeds_ui_build_edit_page($feed, $active = 'help', $plugin_key = '') {
   }
   $config_info[] = $info;
 
-  return theme('feeds_ui_build_edit_page', $config_info, $active_container);
+  return theme('feeds_ui_edit_page', $config_info, $active_container);
 }
 
 /**
@@ -326,7 +326,7 @@ function feeds_ui_select_form_submit($form, &$form_state) {
 /**
  * Edit mapping.
  */
-function feeds_ui_build_mapping_form(&$form_state, $feed, $processor) {
+function feeds_ui_mapping_form(&$form_state, $feed, $processor) {
   $form = array();
   $form['#feed'] = $feed;
 
@@ -360,9 +360,9 @@ function feeds_ui_build_mapping_form(&$form_state, $feed, $processor) {
 }
 
 /**
- * Submit handler for feeds_ui_build_mapping_form().
+ * Submit handler for feeds_ui_mapping_form().
  */
-function feeds_ui_build_mapping_form_submit($form, &$form_state) {
+function feeds_ui_mapping_form_submit($form, &$form_state) {
   foreach ($form['#feed']->processors as $class => $processor) {
     $processor->addMapping($form_state['values'][$class]['source'], $form_state['values'][$class]['target']);
   }
@@ -371,7 +371,7 @@ function feeds_ui_build_mapping_form_submit($form, &$form_state) {
 /**
  * Remove a mapping.
  */
-function feeds_ui_build_mapping_remove($feed, $processor, $target, $token) {
+function feeds_ui_mapping_remove($feed, $processor, $target, $token) {
   if (drupal_valid_token($token, $target)) {
     $mapping = $feed->processors[$processor]->removeMapping($target);
   }
@@ -384,7 +384,7 @@ function feeds_ui_build_mapping_remove($feed, $processor, $target, $token) {
 /**
  * Delete form.
  */
-function feeds_ui_build_delete_form(&$form_state, $feed) {
+function feeds_ui_delete_form(&$form_state, $feed) {
   $form['#redirect'] = 'admin/build/feeds';
   $form['#feed'] = $feed;
   return confirm_form($form,
@@ -396,9 +396,9 @@ function feeds_ui_build_delete_form(&$form_state, $feed) {
 }
 
 /**
- * Submit handler for feeds_ui_build_delete_form().
+ * Submit handler for feeds_ui_delete_form().
  */
-function feeds_ui_build_delete_form_submit($form, &$form_state) {
+function feeds_ui_delete_form_submit($form, &$form_state) {
   feeds_delete($form['#feed']->id);
 }
 
@@ -410,9 +410,9 @@ function feeds_ui_edit_help() {
 }
 
 /**
- * Theme feeds_ui_build_edit_page().
+ * Theme feeds_ui_edit_page().
  */
-function theme_feeds_ui_build_edit_page($config_info, $active_container) {
+function theme_feeds_ui_edit_page($config_info, $active_container) {
   drupal_add_css(drupal_get_path('module', 'feeds_ui') .'/feeds_ui.css');
   drupal_add_js(drupal_get_path('module', 'feeds_ui') .'/feeds_ui.js');
 
@@ -485,9 +485,9 @@ function theme_feeds_ui_container($container) {
 }
 
 /**
- * Theme function for feeds_ui_build_mapping_form().
+ * Theme function for feeds_ui_mapping_form().
  */
-function theme_feeds_ui_build_mapping_form($form) {
+function theme_feeds_ui_mapping_form($form) {
   $output = '';
   $header = array(
     t('Source'),

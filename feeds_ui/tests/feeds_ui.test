@@ -38,9 +38,9 @@ class FeedsUITestCase extends DrupalWebTestCase {
 
   /**
    * UI functionality tests on 
-   * feeds_ui_build_overview(),
-   * feeds_ui_build_create_form(),
-   * feeds_ui_build_edit_page().
+   * feeds_ui_overview(),
+   * feeds_ui_create_form(),
+   * feeds_ui_edit_page().
    */
   public function testEditFeedConfiguration() {
 
