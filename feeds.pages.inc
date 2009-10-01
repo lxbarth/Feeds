@@ -11,11 +11,26 @@
 function feeds_form(&$form_state, $feed_id) {
   $feed = feeds_instance('Feed', $feed_id);
   $form = $feed->fetcher->sourceForm($form_state);
+  $form['#feed'] = $feed;
   $form['submit'] = array(
     '#type' => 'submit',
     '#value' => t('Import'),
   );
   return $form;
+}
+
+/**
+ * Validation handler for feeds_form_submit().
+ */
+function feeds_form_validate($form, &$form_state) {
+  $form['#feed']->fetcher->sourceFormValidate($form, &$form_state);
+}
+
+/**
+ * Submit handler for feeds_form_submit().
+ */
+function feeds_form_submit($form, &$form_state) {
+  $form['#feed']->fetcher->sourceFormSubmit($form, &$form_state);
 }
 
 /**

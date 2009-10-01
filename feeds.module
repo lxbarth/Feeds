@@ -2,7 +2,7 @@
 // $Id: feeds.module,v 1.7 2009/09/21 14:55:47 alexb Exp $
 /**
  * @file
- * Feeds module.
+ * Feeds - basic API functions and hook implementations.
  */
 
 /**

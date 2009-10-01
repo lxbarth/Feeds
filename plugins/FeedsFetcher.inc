@@ -24,6 +24,33 @@ abstract class FeedsFetcher extends FeedsConfigurable {
   }
 
   /**
+   * Validation handler for sourceForm().
+   */
+  public function sourceFormValidate($form, &$form_state) {
+  }
+
+  /**
+   * Submit  handler for sourceForm().
+   * 
+   * Delete existing source definitions and write new one.
+   */
+  public function sourceFormSubmit($form, &$form_state) {
+    // Nid is being set by feeds_form_alter() if form is being presented on a node form.
+    if (empty($form_state['values']['nid'])) {
+      db_query('DELETE FROM {feeds_source} WHERE id = "%s"');
+    }
+    else {
+      db_query('DELETE FROM {feeds_source} WHERE id = "%s" AND nid = %d', $this->id, $form['values']['nid']);
+    }
+    $object = array(
+      'id' => $this->id,
+      'nid' => $form_state['values']['nid'], 
+      'source' => $form_state['values']['source'],
+    );
+    drupal_write_record('feeds_source', $object);
+  }
+
+  /**
    * Fetch content from a source and return it.
    * 
    * Stub method. Every class that extends FeedsFetcher must implement this method.
@@ -33,5 +60,5 @@ abstract class FeedsFetcher extends FeedsConfigurable {
    * 
    * @todo: Define format of return value?
    */
-  public abstract function fetch($source);
+  public abstract function fetch($nid = NULL);
 }

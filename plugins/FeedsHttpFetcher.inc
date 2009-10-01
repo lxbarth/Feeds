@@ -23,7 +23,7 @@ class FeedsHttpFetcher extends FeedsFetcher {
    * @return 
    *   A string from the requested location if successful, or FALSE if not.
    */
-  public function fetch($resource) {
+  public function fetch($nid = NULL) {
     if ($resource->type == 'http') {
       $result = drupal_http_request($resource->identifier);
       $count = 0;

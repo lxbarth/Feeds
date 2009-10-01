@@ -27,7 +27,7 @@ class FeedsFileFetcher extends FeedsFetcher {
   /**
    * Fetch a local resource.
    */
-  public function fetch($source) {
+  public function fetch($nid = NULL) {
     // @todo
   }
 }
