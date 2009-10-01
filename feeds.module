@@ -225,7 +225,7 @@ function feeds_load_plugin_class($plugin) {
  * Menu loader. Loads a feeds configuration.
  */
 function feeds_load($id) {
-  return feeds_get_feed($id);
+  return feeds_instance('Feed', $id);
 }
 
 /**
@@ -235,21 +235,37 @@ function feeds_load_all() {
   ctools_include('export');
   $configs = ctools_export_load_object('feeds_config', 'conditions', array('class' => 'Feed'));
   foreach ($configs as $config) {
-    $feeds[$config->id] = feeds_get_feed($config->id);
+    $feeds[$config->id] = feeds_instance('Feed', $config->id);
   }
   return $feeds;
 }
 
 /**
- * Singleton function.
+ * Get an instance of a given class for a given id.
+ * 
+ * @param $class
+ *   A string that is the name of the class to instantiate.
+ * @param $id
+ *   A string that is the id of the object.
  */
-function feeds_get_feed($id) {
-  static $instantiated;
+function feeds_instance($class, $id) {
   feeds_include('feed');
-  if (!isset($instantiated[$id])) {
-    $instantiated[$id] = new Feed($id);
+  return FeedsConfigurable::instance($class, $id);
+}
+
+/**
+ * Get an instance of a class for a given plugin and id.
+ * 
+ * @param $class
+ *   A string that is the key of the plugin to load.
+ * @param $id
+ *   A string that is the id of the object.
+ */
+function feeds_plugin_instance($plugin, $id) {
+  if ($class = feeds_load_plugin_class($plugin)) {
+    return feeds_instance($class, $id);
   }
-  return $instantiated[$id];
+  return NULL;
 }
 
 /**

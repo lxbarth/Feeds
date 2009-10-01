@@ -17,15 +17,12 @@ class Feed extends FeedsConfigurable {
   public function __construct($id, $config = NULL) {
     parent::__construct($id, $config);
 
-    $class = feeds_load_plugin_class($this->config['fetcher']);
-    $this->fetcher = new $class($id);
+    $this->fetcher = feeds_plugin_instance($this->config['fetcher'], $id);
 
-    $class = feeds_load_plugin_class($this->config['parser']);
-    $this->parser = new $class($id);
+    $this->parser = feeds_plugin_instance($this->config['parser'], $id);
 
     foreach ($this->config['processors'] as $processor) {
-      $class = feeds_load_plugin_class($processor);
-      $this->processors[$processor] = new $class($id);
+      $this->processors[$processor] = feeds_plugin_instance($processor, $id);
     }
   }
 
@@ -181,6 +178,19 @@ class FeedsConfigurable {
   protected $id;
 
   /**
+   * Instantiate a FeedsConfigurable object.
+   * 
+   * Don't use directly, use feeds_instance() instead.
+   */
+  public static function instance($class, $id) {
+    static $instances = array();
+    if (!isset($instances[$class][$id])) {
+      $instances[$class][$id] = new $class($id);
+    }
+    return $instances[$class][$id];
+  }
+
+  /**
    * Constructor.
    *
    * @param $id
@@ -188,7 +198,7 @@ class FeedsConfigurable {
    * @param $config
    *   Configuration of this object. If not available, will attempt to load from database.
    */
-  public function __construct($id, $config = NULL) {
+  protected function __construct($id, $config = NULL) {
     $this->id = $id;
     if (empty($config)) {
       if (!$this->load()) {

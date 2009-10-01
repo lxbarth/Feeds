@@ -91,7 +91,7 @@ function feeds_ui_build_create_form(&$form_state) {
  */
 function feeds_ui_build_create_form_validate($form, &$form_state) {
   ctools_include('export');
-  $feed = feeds_get_feed($form_state['values']['id']);
+  $feed = feeds_instance('Feed', $form_state['values']['id']);
   if (ctools_export_load_object('feeds_config', 'conditions', array('id' => $form_state['values']['id'], 'class' => 'Feed'))) {
     form_set_error('id', t('Id is taken.'));
   }
@@ -103,7 +103,7 @@ function feeds_ui_build_create_form_validate($form, &$form_state) {
  */
 function feeds_ui_build_create_form_submit($form, &$form_state) {
   // Create feed.
-  $feed = feeds_get_feed($form_state['values']['id']);
+  $feed = feeds_instance('Feed', $form_state['values']['id']);
   $feed->addConfig($form_state['values']);
   $feed->save();
 
@@ -153,7 +153,7 @@ function feeds_ui_build_edit_page($feed, $active = 'help', $plugin_key = '') {
         $active_container['body'] = feeds_get_config_form($feed);
       }
       elseif ($class = feeds_load_plugin_class($plugin_key)) {
-        $plugin = new $class($feed->getId());
+        $plugin = feeds_instance($class, $feed->getId());
         $active_container['title'] = t('Settings for !plugin', array('!plugin' => $plugins[$plugin_key]['name']));
         $active_container['body'] = feeds_get_config_form($plugin);
       }
