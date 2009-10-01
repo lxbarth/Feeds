@@ -25,12 +25,14 @@ function feeds_perm() {
  */
 function feeds_forms() {
   // Declare form callbacks for all known classes derived from FeedsConfigurable.
-  // For more background, see feeds_get_config_form().
   $forms = array();
   $forms['Feed_feeds_config_form']['callback'] = 'feeds_config_form';
   $plugins = feeds_get_plugins();
   foreach ($plugins as $plugin) {
+    // See feeds_get_config_form().
     $forms[$plugin['handler']['class'] .'_feeds_config_form']['callback'] = 'feeds_config_form';
+    // See feeds_ui_get_select_form().
+    $forms[$plugin['handler']['class'] .'_feeds_ui_select_form']['callback'] = 'feeds_ui_select_form';
   }
   return $forms;
 }
@@ -193,13 +195,13 @@ function feeds_get_plugins_by_type() {
 
   $result = array();
   foreach ($plugins as $key => $info) {
-    if (_feeds_is_derived_from($key, 'FeedsFetcher')) {
+    if (feeds_plugin_child($key, 'FeedsFetcher')) {
       $result['fetcher'][$key] = $info;
     }
-    elseif (_feeds_is_derived_from($key, 'FeedsParser')) {
+    elseif (feeds_plugin_child($key, 'FeedsParser')) {
       $result['parser'][$key] = $info;
     }
-    elseif (_feeds_is_derived_from($key, 'FeedsProcessor')) {
+    elseif (feeds_plugin_child($key, 'FeedsProcessor')) {
       $result['processor'][$key] = $info;
     }
   }
@@ -288,8 +290,17 @@ function feeds_include($file) {
 
 /**
  * Determines whether given plugin is derived from given base plugin.
+ * 
+ * @param $plugin
+ *   String that identifies a Feeds plugin key.
+ * @param $parent_plugin
+ *   String that identifies a Feeds plugin key to be tested against.
+ * 
+ * @return 
+ *   TRUE if $parent_plugin is directly *or indirectly* a parent of $plugin,
+ *   FALSE otherwise. 
  */
-function _feeds_is_derived_from($plugin, $base_plugin) {
+function feeds_plugin_child($plugin, $parent_plugin) {
   ctools_include('plugins');
   $plugins = ctools_get_plugins('feeds', 'plugins');
   $info = $plugins[$plugin];
@@ -297,10 +308,10 @@ function _feeds_is_derived_from($plugin, $base_plugin) {
   if (empty($info['handler']['parent'])) {
     return FALSE;
   }
-  elseif ($info['handler']['parent'] == $base_plugin) {
+  elseif ($info['handler']['parent'] == $parent_plugin) {
     return TRUE;
   }
   else {
-    return _feeds_is_derived_from($info['handler']['parent'], $base_plugin);
+    return feeds_plugin_child($info['handler']['parent'], $parent_plugin);
   }
 }

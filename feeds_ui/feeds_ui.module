@@ -79,13 +79,6 @@ function feeds_ui_menu() {
     'file' => 'feeds_ui.admin.inc',
     'type' => MENU_CALLBACK,
   );
-  $items['admin/build/feeds/configure/%/%feeds'] = array(
-    'page callback' => 'feeds_ui_build_edit_configure',
-    'page arguments' => array(4, 5),
-    'access arguments' => array('administer feeds'),
-    'file' => 'feeds_ui.admin.inc',
-    'type' => MENU_CALLBACK,
-  );
   return $items;
 }
 

@@ -120,9 +120,6 @@ function feeds_ui_build_edit_page($feed, $active = 'help', $plugin_key = '') {
   // Get plugins and configuration.
   $plugins = feeds_get_plugins();
   $config = $feed->config;  
-  // Base path for selecting/adding/removing, tokenized.
-  // @todo: replace this by mini-forms. Web accelerators break this.
-  $edit_path = '/admin/build/feeds/configure/'. drupal_get_token($feed->id) .'/'. $feed->id .'/';
   // Base path for changing the active container.
   $path = 'admin/build/feeds/edit/'. $feed->id .'/';
 
@@ -136,15 +133,15 @@ function feeds_ui_build_edit_page($feed, $active = 'help', $plugin_key = '') {
       break;
     case 'fetcher':
       $active_container['title'] = t('Select a fetcher');
-      $active_container['body'] = _feeds_ui_list_plugins_by_type('fetcher', array($config['fetcher']), $edit_path);
+      $active_container['body'] = _feeds_ui_list_plugins_by_type($feed, 'fetcher', array($config['fetcher']));
       break;
     case 'parser':
       $active_container['title'] = t('Select a parser');
-      $active_container['body'] = _feeds_ui_list_plugins_by_type('parser', array($config['parser']), $edit_path);
+      $active_container['body'] = _feeds_ui_list_plugins_by_type($feed, 'parser', array($config['parser']));
       break;
     case 'processor':
       $active_container['title'] = t('Add a processor');
-      $active_container['body'] = _feeds_ui_list_plugins_by_type('processor', $config['processors'], $edit_path);
+      $active_container['body'] = _feeds_ui_list_plugins_by_type($feed, 'processor', $config['processors'], TRUE);
       break;
     case 'settings':
       // @todo: Use central factory and simplify this.
@@ -215,12 +212,9 @@ function feeds_ui_build_edit_page($feed, $active = 'help', $plugin_key = '') {
   // Processor.
   $info['title'] = t('Processor');
   $info['body'] = array();
-  $info['actions'] = array(l(t('Add'), $path .'processor'));
+  $info['actions'] = array(l(t('Change'), $path .'processor'));
   foreach ($config['processors'] as $processor) {
     $actions = array();
-    if (count($config['processors']) > 1) {
-      $actions[] = l(t('Remove'), $edit_path .'remove-processor/'. $processor);
-    }
     if (feeds_get_config_form($feed->processors[$processor])) {
       $actions[] = l(t('Settings'), $path .'settings/'. $processor);
     }
@@ -239,49 +233,102 @@ function feeds_ui_build_edit_page($feed, $active = 'help', $plugin_key = '') {
 
 /**
  * Helper for building a list of plugins of a specific type.
+ * 
+ * @param $feed
+ *   Feed object.
+ * @param $type
+ *   Plugin type. One of 'fetcher', 'parser', 'processor'.
+ * @param $selected
+ *   The plugin(s) that are currently selected.
+ * @param $multiple
+ *   If TRUE, allow multiple choice.
  */
-function _feeds_ui_list_plugins_by_type($type, $selected, $edit_path) {
+function _feeds_ui_list_plugins_by_type($feed, $type, $selected, $multiple = FALSE) {
   $plugins = feeds_get_plugins_by_type();
   $plugins = $plugins[$type];
 
+  if ($multiple) {
+    
+  }
+  
   $containers = array();
   foreach ($plugins as $key => $plugin) {
+
+    $actions = array();
+    if (in_array($key, $selected)) {
+      if ($multiple) {
+        $actions = array(_feeds_ui_get_select_form($feed, $plugin['handler']['class'], 'remove'));
+      }
+    }
+    else {
+      $actions = array(_feeds_ui_get_select_form($feed, $plugin['handler']['class'], 'select'));
+    }
+
     $containers[] = array(
       'title' => $plugin['name'],
       'body' => $plugin['description'],
-      'actions' => in_array($key, $selected) ? array() : array(l(t('Select'), $edit_path .'select-'. $type .'/'. $key)),
+      'actions' => $actions,
     );
   }
   return $containers;
 }
 
 /**
- * Callback handler for configuration changes on edit form.
+ * Helper for getting a feeds_ui_select_form().
  */
-function feeds_ui_build_edit_configure($token, $feed, $op, $plugin) {
-  if (!drupal_valid_token($token, $feed->id)) {
-    drupal_access_denied();
-    return;
+function _feeds_ui_get_select_form($feed, $plugin_key, $action) {
+  return drupal_get_form($plugin_key .'_feeds_ui_select_form', $feed, $plugin_key, $action);
+}
+
+/**
+ * Form callback for selecting a plugin on a feed.
+ */
+function feeds_ui_select_form(&$form_state, $feed, $plugin_key, $action = 'select') {
+  $form = array();
+  $form['#feed'] = $feed;
+  $form['#plugin_key'] = $plugin_key;
+  $form['#submit'] = array('feeds_ui_select_form_submit');
+  if ($action == 'remove') {
+    $form['remove'] = array(
+      '#type' => 'submit',
+      '#value' => t('Remove'),
+    );
   }
-  switch ($op) {
-    case 'select-fetcher':
-      $feed->setFetcher($plugin);
-      $feed->save();
-      break;
-    case 'select-parser':
-      $feed->setParser($plugin);
-      $feed->save();
-      break;
-    case 'select-processor':
-      $feed->addProcessor($plugin);
-      $feed->save();
-      break;
-    case 'remove-processor':
-      $feed->removeProcessor($plugin);
-      $feed->save();
-      break;
+  else {
+    $form['select'] = array(
+      '#type' => 'submit',
+      '#value' => t('Select'),
+    );
   }
-  drupal_goto('admin/build/feeds/edit/'. $feed->id);
+  return $form;
+}
+
+/**
+ * Submit handler for feeds_ui_select_form().
+ */
+function feeds_ui_select_form_submit($form, &$form_state) {
+  $plugin_key = $form['#plugin_key'];
+  $feed = $form['#feed'];
+  if (isset($form['select'])) {
+    if (feeds_plugin_child($plugin_key, 'FeedsFetcher')) {
+      $feed->setFetcher($plugin_key);
+      $feed->save();
+    }
+    elseif (feeds_plugin_child($plugin_key, 'FeedsParser')) {
+      $feed->setParser($plugin_key);
+      $feed->save();
+    }
+    elseif (feeds_plugin_child($plugin_key, 'FeedsProcessor')) {
+      $feed->addProcessor($plugin_key);
+      $feed->save();
+    }    
+  }
+  elseif (isset($form['remove'])) {
+    if (feeds_plugin_child($plugin_key, 'FeedsProcessor')) {
+      $feed->removeProcessor($plugin_key);
+      $feed->save();
+    }
+  }
 }
 
 /**

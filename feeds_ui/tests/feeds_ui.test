@@ -78,7 +78,7 @@ class FeedsUITestCase extends DrupalWebTestCase {
     $this->assertText('Select a parser');
     $this->clickLink('Select');
 
-    $this->clickLink('Add');
+    $this->clickLink('Change');
     $this->assertText('Add a processor');
     $this->clickLink('Select');
 
