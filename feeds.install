@@ -34,7 +34,7 @@ function feeds_schema() {
         'length' => '255',
         'not null' => TRUE,
         'default' => '',
-        'description' => 'Class name of the feeds object.',
+        'description' => 'Class name of the feeds plugin.',
       ),
       'config' => array(
         'type' => 'text',
@@ -58,6 +58,13 @@ function feeds_schema() {
         'default' => '',
         'description' => 'Id of the feed configuration.',
       ),
+      'class' => array(
+        'type' => 'varchar',
+        'length' => '255',
+        'not null' => TRUE,
+        'default' => '',
+        'description' => 'Class name of the feeds plugin.',
+      ),
       'nid' => array(
         'type' => 'int',
         'not null' => FALSE,
@@ -74,6 +81,7 @@ function feeds_schema() {
     'indexes' => array(
         'id' => array('id'),
         'nid' => array('nid'),
+        'class' => array('class'),
       ),
   );
   return $schema;

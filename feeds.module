@@ -255,6 +255,7 @@ function feeds_get_plugins_by_type() {
  *   The class name is the one specified in the plugins $info['handler'] property.
  */
 function feeds_load_plugin_class($plugin) {
+  ctools_include('plugins');
   return ctools_plugin_load_class('feeds', 'plugins', $plugin, 'handler');
 }
 

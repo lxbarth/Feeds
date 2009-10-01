@@ -91,6 +91,7 @@ function feeds_ui_build_create_form_submit($form, &$form_state) {
   // Set a message and redirect to settings form.
   drupal_set_message(t('Your feed has been created with default settings. If they do not fit your use case you can change them here.'));
   $form_state['redirect'] = 'admin/build/feeds/edit/'. $feed->id;
+  menu_rebuild();
 }
 
 /**
