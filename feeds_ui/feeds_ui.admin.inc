@@ -12,7 +12,7 @@ function feeds_ui_content_overview() {
   if ($feeds = feeds_load_all()) {
     foreach ($feeds as $feed) {
       $rows[] = array(
-        $feed->getId(),
+        $feed->id,
       );
     }
   }
@@ -29,7 +29,7 @@ function feeds_ui_build_overview() {
   $rows = array();
   if ($feeds = feeds_load_all()) {
     foreach ($feeds as $feed) {
-      $config = $feed->getConfig();
+      $config = $feed->config;
       if (empty($config['content_type'])) {
         $type = '[none]';
       }
@@ -37,10 +37,10 @@ function feeds_ui_build_overview() {
         $type = l(node_get_types('name', $config['content_type']), 'node/add/'. $config['content_type']);
       }
       $rows[] = array(
-        $feed->getName(),
+        $feed->config['name'],
         $type,
-        l(t('Edit'), 'admin/build/feeds/edit/'. $feed->getId()) .' | '. 
-        l(t('Delete'), 'admin/build/feeds/delete/'. $feed->getId()),
+        l(t('Edit'), 'admin/build/feeds/edit/'. $feed->id) .' | '. 
+        l(t('Delete'), 'admin/build/feeds/delete/'. $feed->id),
       );
     }
   }
@@ -109,7 +109,7 @@ function feeds_ui_build_create_form_submit($form, &$form_state) {
 
   // Set a message and redirect to settings form.
   drupal_set_message(t('Your feed has been created with default settings. If they do not fit your use case you can change them here.'));
-  $form_state['redirect'] = 'admin/build/feeds/edit/'. $feed->getId();
+  $form_state['redirect'] = 'admin/build/feeds/edit/'. $feed->id;
 }
 
 /**
@@ -119,12 +119,12 @@ function feeds_ui_build_edit_page($feed, $active = 'help', $plugin_key = '') {
 
   // Get plugins and configuration.
   $plugins = feeds_get_plugins();
-  $config = $feed->getConfig();  
+  $config = $feed->config;  
   // Base path for selecting/adding/removing, tokenized.
   // @todo: replace this by mini-forms. Web accelerators break this.
-  $edit_path = '/admin/build/feeds/configure/'. drupal_get_token($feed->getId()) .'/'. $feed->getId() .'/';
+  $edit_path = '/admin/build/feeds/configure/'. drupal_get_token($feed->id) .'/'. $feed->id .'/';
   // Base path for changing the active container.
-  $path = 'admin/build/feeds/edit/'. $feed->getId() .'/';
+  $path = 'admin/build/feeds/edit/'. $feed->id .'/';
 
   $active_container = array(
     'class' => 'active-container',
@@ -153,7 +153,7 @@ function feeds_ui_build_edit_page($feed, $active = 'help', $plugin_key = '') {
         $active_container['body'] = feeds_get_config_form($feed);
       }
       elseif ($class = feeds_load_plugin_class($plugin_key)) {
-        $plugin = feeds_instance($class, $feed->getId());
+        $plugin = feeds_instance($class, $feed->id);
         $active_container['title'] = t('Settings for !plugin', array('!plugin' => $plugins[$plugin_key]['name']));
         $active_container['body'] = feeds_get_config_form($plugin);
       }
@@ -259,7 +259,7 @@ function _feeds_ui_list_plugins_by_type($type, $selected, $edit_path) {
  * Callback handler for configuration changes on edit form.
  */
 function feeds_ui_build_edit_configure($token, $feed, $op, $plugin) {
-  if (!drupal_valid_token($token, $feed->getId())) {
+  if (!drupal_valid_token($token, $feed->id)) {
     drupal_access_denied();
     return;
   }
@@ -281,7 +281,7 @@ function feeds_ui_build_edit_configure($token, $feed, $op, $plugin) {
       $feed->save();
       break;
   }
-  drupal_goto('admin/build/feeds/edit/'. $feed->getId());
+  drupal_goto('admin/build/feeds/edit/'. $feed->id);
 }
 
 /**
@@ -339,7 +339,7 @@ function feeds_ui_build_mapping_remove($feed, $processor, $target, $token) {
   else {
     drupal_set_message(t('Invalid token.'), 'error');
   }
-  drupal_goto('admin/build/feeds/edit/'. $feed->getId() .'/map');
+  drupal_goto('admin/build/feeds/edit/'. $feed->id .'/map');
 }
 
 /**
@@ -349,7 +349,7 @@ function feeds_ui_build_delete_form(&$form_state, $feed) {
   $form['#redirect'] = 'admin/build/feeds';
   $form['#feed'] = $feed;
   return confirm_form($form,
-    t('Would you really like to delete the configuration !id?', array('!id' => $feed->getId())),
+    t('Would you really like to delete the configuration !id?', array('!id' => $feed->id)),
     $form['#redirect'],
     t('This action cannot be undone.'),
     t('Delete')
@@ -360,7 +360,7 @@ function feeds_ui_build_delete_form(&$form_state, $feed) {
  * Submit handler for feeds_ui_build_delete_form().
  */
 function feeds_ui_build_delete_form_submit($form, &$form_state) {
-  feeds_delete($form['#feed']->getId());
+  feeds_delete($form['#feed']->id);
 }
 
 /**
@@ -465,7 +465,7 @@ function theme_feeds_ui_build_mapping_form($form) {
           $mapping['source'],
           $target,
           $mapping['unique'] ? t('Yes') : t('No'),
-          l(t('Remove'), 'admin/build/feeds/map-remove/'. $form['#feed']->getId() .'/'. $processor .'/'. $target .'/'. drupal_get_token($target)),
+          l(t('Remove'), 'admin/build/feeds/map-remove/'. $form['#feed']->id .'/'. $processor .'/'. $target .'/'. drupal_get_token($target)),
         ); 
       }
     }

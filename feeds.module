@@ -42,8 +42,7 @@ function feeds_form_alter(&$form, $form_state, $form_id) {
   if ($form['#id'] == 'node-form') {
     $feeds = feeds_load_all();
     foreach ($feeds as $feed) {
-      $config = $feed->getConfig();
-      if ($config['content_type'] == $form['type']['#value']) {
+      if ($feed->config['content_type'] == $form['type']['#value']) {
         $form['feeds'] = array(
           '#type' => 'fieldset',
           '#title' => t('Feed'),

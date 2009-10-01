@@ -9,7 +9,7 @@
  */
 class Feed extends FeedsConfigurable {
 
-  public $fetcher, $parser, $processors; 
+  protected $fetcher, $parser, $processors;
 
   /**
    * Instantiate class variables.
@@ -72,13 +72,6 @@ class Feed extends FeedsConfigurable {
       '#default_value' => $this->config['refresh_period'],
     );
     return $form;
-  }
-
-  /**
-   * Convenience function. Return this feed configuration's natural name.
-   */
-  public function getName() {
-    return $this->config['name'];
   }
 
   /**
@@ -232,15 +225,15 @@ class FeedsConfigurable {
   }
 
   /**
-   * Return this configurable's Id.
+   * Return this configurable's protected variables.
    * 
-   * @todo: use __get()
+   * Called automatically when accessing protected variables from outside.
+   * e. g. print $object->id;
    * 
-   * By convention, a number of configurable objects are associated to each 
-   * other by their common id.
+   * @see http://us2.php.net/__get
    */
-  public function getId() {
-    return $this->id;
+  public function __get($name) {
+    return $this->$name;
   }
 
   /**
@@ -252,21 +245,6 @@ class FeedsConfigurable {
    */
   public function getDefaultConfig() {
     return array();
-  }
-
-  /**
-   * Get configuration.
-   * 
-   * @todo: clean up fallback. Not clear when to use and when not to use getConfig().
-   * 
-   * @param $fallback
-   *   Set to false if method should NOT fall back to default configuration.
-   */
-  public function getConfig($fallback = TRUE) {
-    if ($fallback) {
-      return empty($this->config) ? $this->getDefaultConfig() : $this->config;
-    }
-    return $this->config;
   }
 
   /**
