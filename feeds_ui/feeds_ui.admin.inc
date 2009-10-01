@@ -275,6 +275,16 @@ function _feeds_ui_list_plugins_by_type($feed, $type, $selected, $multiple = FAL
 
 /**
  * Helper for getting a feeds_ui_select_form().
+ * 
+ * @param $feed
+ *   A Feed object.
+ * @param $plugin_key
+ *   A string that identifies a Feeds plugin.
+ * @param $action
+ *   Either 'select' or 'remove'. 
+ * 
+ * @return 
+ *   A rendered form.
  */
 function _feeds_ui_get_select_form($feed, $plugin_key, $action) {
   return drupal_get_form($plugin_key .'_feeds_ui_select_form', $feed, $plugin_key, $action);

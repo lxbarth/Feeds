@@ -37,9 +37,12 @@ class FeedsUITestCase extends DrupalWebTestCase {
   }
 
   /**
-   * CRUD tests on UI.
+   * UI functionality tests on 
+   * feeds_ui_build_overview(),
+   * feeds_ui_build_create_form(),
+   * feeds_ui_build_edit_page().
    */
-  public function testCRUDFeed() {
+  public function testEditFeedConfiguration() {
 
     // Create new feed configuration.
     $this->drupalGet('admin/build/feeds');
@@ -72,15 +75,15 @@ class FeedsUITestCase extends DrupalWebTestCase {
     // Select some other plugins.
     $this->clickLink('Change', 0);
     $this->assertText('Select a fetcher');
-    $this->clickLink('Select');
+    $this->drupalPost('admin/build/feeds/edit/test_feed/fetcher', array(), 'Select');
 
     $this->clickLink('Change', 1);
     $this->assertText('Select a parser');
-    $this->clickLink('Select');
+    $this->drupalPost('admin/build/feeds/edit/test_feed/parser', array(), 'Select');
 
-    $this->clickLink('Change');
+    $this->clickLink('Change', 2);
     $this->assertText('Add a processor');
-    $this->clickLink('Select');
+    $this->drupalPost('admin/build/feeds/edit/test_feed/processor', array(), 'Select');
 
     // Assert changed configuration.
     $this->assertPlugins('test_feed', 'FeedsFileFetcher', 'FeedsCSVParser', array('FeedsNodeProcessor', 'FeedsDataProcessor'));
