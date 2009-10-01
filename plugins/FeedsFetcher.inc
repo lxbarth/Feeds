@@ -6,19 +6,30 @@
  * 
  * Not using interfaces because we need a simple inheritence tree for determining the 
  * plugin type. See hook_feeds_plugin().
+ * 
+ * @todo: There is a potential conceptual problem:
+ * 
+ * - We assume that only a feed source can be stored per feed and ***no other per-feed 
+ *   configuration information***
+ * - This might lead to ugly hacks when other plugins in fact need a per node configuration.
+ * - Possible solution: Abstract sourceLoad() etc. and push into FeedsConfigurable, or make 
+ *   FeedsConfigurable cascadable.
  */
 abstract class FeedsFetcher extends FeedsConfigurable {
 
   /**
-   * Source form.
+   * Callback methods, exposes source form.
    */
-  public function sourceForm(&$form_state) {
+  public function sourceForm(&$form_state, $nid = NULL) {
+    if (!$source = $this->loadSource($nid)) {
+      $source = $this->config['source'];
+    }
     $form = array();
-    $form['source'] = array(
+    $form['feeds_source'] = array(
       '#type' => 'textfield',
       '#title' => t('URL'),
       '#description' => t('Enter the URL for this feed.'),
-      '#default_value' => $this->config['source'],
+      '#default_value' => $source,
     );
     return $form;
   }
@@ -31,25 +42,60 @@ abstract class FeedsFetcher extends FeedsConfigurable {
 
   /**
    * Submit  handler for sourceForm().
-   * 
-   * Delete existing source definitions and write new one.
    */
-  public function sourceFormSubmit($form, &$form_state) {
-    // Nid is being set by feeds_form_alter() if form is being presented on a node form.
-    if (empty($form_state['values']['nid'])) {
-      db_query('DELETE FROM {feeds_source} WHERE id = "%s"');
+  public function sourceFormSubmit($form, &$form_state, $nid = NULL) {
+    $this->saveSource($form_state['values']['feeds_source']);
+  }
+
+  /**
+   * Load source.
+   */
+  public function loadSource($nid = NULL) {
+    if (empty($nid)) {
+      $result = db_query('SELECT * FROM {feeds_source} WHERE id = "%s" AND class = "%s"', $this->id, get_class($this));
     }
     else {
-      db_query('DELETE FROM {feeds_source} WHERE id = "%s" AND nid = %d', $this->id, $form['values']['nid']);
+      $result = db_query('SELECT * FROM {feeds_source} WHERE id = "%s" AND class = "%s" AND nid = %d', $this->id, get_class($this), $nid);
     }
+    if ($source = db_fetch_object($result)) {
+      return unserialize($source->source);
+    }
+    return FALSE;
+  }
+
+  /**
+   * Save a source.
+   * 
+   * @param $source
+   *   Source array in the convention of this fetcher.
+   * 
+   * @param $nid
+   *   If configuration is attached to a content type, pass in the feed node's 
+   *   node id.
+   */
+  public function saveSource($source, $nid = NULL) {
+    $this->deleteSource($nid);
     $object = array(
       'id' => $this->id,
-      'nid' => $form_state['values']['nid'], 
-      'source' => $form_state['values']['source'],
+      'nid' => $nid,
+      'class' => get_class($this),
+      'source' => $source,
     );
     drupal_write_record('feeds_source', $object);
   }
 
+  /**
+   * Delete a source.
+   */
+  public function deleteSource($nid = NULL) {
+    if (empty($nid)) {
+      db_query('DELETE FROM {feeds_source} WHERE id = "%s" AND class = "%s"', $this->id, get_class($this));
+    }
+    else {
+      db_query('DELETE FROM {feeds_source} WHERE id = "%s" AND class = "%s" AND nid = %d', $this->id, get_class($this), $nid);
+    }
+  }
+  
   /**
    * Fetch content from a source and return it.
    * 

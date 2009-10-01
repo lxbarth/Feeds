@@ -74,24 +74,6 @@ function feeds_load($id) {
 }
 
 /**
- * Implementation of hook_form_alter().
- */
-function feeds_form_alter(&$form, $form_state, $form_id) {
-  if ($form['#id'] == 'node-form') {
-    $feeds = feeds_load_all();
-    foreach ($feeds as $feed) {
-      if ($feed->config['content_type'] == $form['type']['#value']) {
-        $form['feeds'] = array(
-          '#type' => 'fieldset',
-          '#title' => t('Feed'),
-        );
-        $form['feeds'] += $feed->fetcher->sourceForm($form_state);;
-      }
-    }
-  }
-}
-
-/**
  * Implementation of hook_ctools_plugin_api().
  */
 function feeds_ctools_plugin_api($owner, $api) {
@@ -200,6 +182,72 @@ function feeds_feeds_plugins() {
 }
 
 /**
+ * Implementation of hook_nodeapi().
+ */
+function feeds_nodeapi($node, $op) {
+  if ($op == 'delete') {
+    if ($feed = feeds_get_by_content_type($node->type)) {
+      $feed->fetcher->deleteSource($node->nid);
+    }
+  }
+}
+
+/**
+ * Implementation of hook_form_alter().
+ */
+function feeds_form_alter(&$form, $form_state, $form_id) {
+  if ($form['#id'] == 'node-form') {
+    if ($feed = feeds_get_by_content_type($form['type']['#value'])) {
+      $form['feeds'] = array(
+        '#type' => 'fieldset',
+        '#title' => t('Feed'),
+      );
+      $form['feeds'] += $feed->fetcher->sourceForm($form_state, $form['nid']['#value']);
+
+      // For some reason I cannot loop through feed object, pass on id.
+      $form['#feed_id'] = $feed->id;
+      $form['#submit'][] = 'feeds_form_validate';
+      $form['#submit'][] = 'feeds_form_submit';
+    }
+  }
+}
+
+/**
+ * Render a feeds import form.
+ */
+function feeds_form(&$form_state, $feed_id) {
+  $feed = feeds_instance('Feed', $feed_id);
+  $form = $feed->fetcher->sourceForm($form_state);
+  // Node form cannot pass on feed object, keep things consistent and pass on id here, too.
+  $form['#feed_id'] = $feed->id;
+  $form['submit'] = array(
+    '#type' => 'submit',
+    '#value' => t('Import'),
+  );
+  return $form;
+}
+
+/**
+ * Validation handler for feeds_form_submit().
+ * 
+ * Has to live in feeds.module, needs to be callable from node form.
+ */
+function feeds_form_validate($form, &$form_state) {
+  $feed = feeds_instance('Feed', $form['#feed_id']);
+  $feed->fetcher->sourceFormValidate($form, &$form_state);
+}
+
+/**
+ * Submit handler for feeds_form_submit().
+ * 
+ * Has to live in feeds.module, needs to be callable from node form.
+ */
+function feeds_form_submit($form, &$form_state) {
+  $feed = feeds_instance('Feed', $form['#feed_id']);
+  $feed->fetcher->sourceFormSubmit($form, &$form_state);
+}
+
+/**
  * Get all available plugins. Does not list hidden plugins.
  * 
  * @return 
@@ -298,6 +346,30 @@ function feeds_plugin_instance($plugin, $id) {
     return feeds_instance($class, $id);
   }
   return NULL;
+}
+
+/**
+ * Get a feed configuration by content type.
+ * 
+ * @param $content_type
+ *   A node type string.
+ * 
+ * @return 
+ *   A Feed object if one is available, FALSE otherwise.
+ */
+function feeds_get_by_content_type($content_type) {
+  static $feeds = array();
+
+  if (!isset($feeds[$content_type])) {
+    $feeds[$content_type] = FALSE;
+    foreach (feeds_load_all() as $feed) {
+      if ($feed->config['content_type'] == $content_type) {
+        $feeds[$content_type] = $feed;
+        break;
+      }
+    }
+  }
+  return $feeds[$content_type];
 }
 
 /**
