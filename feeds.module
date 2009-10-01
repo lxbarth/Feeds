@@ -50,7 +50,7 @@ function feeds_menu() {
         'page callback' => 'drupal_get_form',
         'page arguments' => array('feeds_form', $feed->id),
         'access arguments' => array('use feeds'),
-        'file' => 'feeds.inc',
+        'file' => 'feeds.pages.inc',
         'type' => MENU_NORMAL_ITEM,
       );
     }
@@ -60,7 +60,7 @@ function feeds_menu() {
       'title' => 'Import content',
       'page callback' => 'feeds_page',
       'access arguments' => array('use feeds'),
-      'file' => 'feeds.inc',
+      'file' => 'feeds.pages.inc',
     );
   }
   return $items;
