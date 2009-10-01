@@ -7,7 +7,7 @@
  * Not using interfaces because we need a simple inheritence tree for determining the 
  * plugin type. See hook_feeds_plugin().
  */
-class FeedsFetcher extends FeedsConfigurable {
+abstract class FeedsFetcher extends FeedsConfigurable {
 
   /**
    * Source form.
@@ -33,7 +33,5 @@ class FeedsFetcher extends FeedsConfigurable {
    * 
    * @todo: Define format of return value?
    */
-  public function fetch($source) {
-    return NULL;
-  }
+  public abstract function fetch($source);
 }

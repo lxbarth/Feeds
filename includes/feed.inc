@@ -14,8 +14,8 @@ class Feed extends FeedsConfigurable {
   /**
    * Instantiate class variables.
    */
-  public function __construct($id, $config = NULL) {
-    parent::__construct($id, $config);
+  protected function __construct($id) {
+    parent::__construct($id);
 
     $this->fetcher = feeds_plugin_instance($this->config['fetcher'], $id);
 
@@ -198,23 +198,16 @@ class FeedsConfigurable {
    * @param $config
    *   Configuration of this object. If not available, will attempt to load from database.
    */
-  protected function __construct($id, $config = NULL) {
+  protected function __construct($id) {
     $this->id = $id;
-    if (empty($config)) {
-      if (!$this->load()) {
-        // Make sure configuration is populated.
-        $this->config = $this->getDefaultConfig();
-      }
-    }
-    else {
-      $this->config = $config;
+    if (!$this->load()) {
+      // Make sure configuration is populated.
+      $this->config = $this->getDefaultConfig();
     }
   }
 
   /**
    * Save configuration.
-   * 
-   * @todo: automatically override for cases in which we are saving to default configuration.
    */
   public function save() {
     $save = new stdClass();
@@ -240,6 +233,8 @@ class FeedsConfigurable {
 
   /**
    * Return this configurable's Id.
+   * 
+   * @todo: use __get()
    * 
    * By convention, a number of configurable objects are associated to each 
    * other by their common id.

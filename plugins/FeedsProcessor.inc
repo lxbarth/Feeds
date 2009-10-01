@@ -4,18 +4,13 @@
 /**
  * Abstract class, defines interface for processors.
  */
-class FeedsProcessor extends FeedsConfigurable {
+abstract class FeedsProcessor extends FeedsConfigurable {
 
   /**
    * Process the result of the parser or previous processors.
-   * 
-   * Stub method. Extending classes must implement this method.
-   *
-   * @param $feed
-   *   Result returned by parser.
+   * Extending classes must implement this method.
    */
-  public function process($feed) {
-  }
+  public abstract function process($feed);
 
   /**
    * Declare default configuration.

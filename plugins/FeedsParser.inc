@@ -4,7 +4,7 @@
 /**
  * Abstract class, defines interface for parsers.
  */
-class FeedsParser extends FeedsConfigurable {
+abstract class FeedsParser extends FeedsConfigurable {
 
   /**
    * Parse content fetched by fetcher.
@@ -17,9 +17,7 @@ class FeedsParser extends FeedsConfigurable {
    *   A parsed array. 
    *   @todo: define this array (object?).
    */
-  public function parse($raw) {
-    return NULL;
-  }
+  public abstract function parse($raw);
 
   /**
    * Declare the possible mapping sources that this parser produces.
@@ -27,7 +25,5 @@ class FeedsParser extends FeedsConfigurable {
    * @return 
    *   An array of mapping sources.
    */
-  public function getMappingSources() {
-    return NULL;
-  }
+  public abstract function getMappingSources();
 }
