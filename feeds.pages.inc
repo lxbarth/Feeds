@@ -34,6 +34,72 @@ function feeds_page() {
 }
 
 /**
+ * Render a feeds import form on node/id/import pages.
+ */
+function feeds_import_node_form(&$form_state, $node) {
+  $feed = feeds_get_by_content_type($node->type);
+
+  $form = array();
+  $form['#feed_nid'] = $node->nid;
+  $form['#feed_id'] = $feed->id;
+  return confirm_form($form, t('Import all content from feed?'), 'node/'. $node->nid, '', t('Import'), t('Cancel'), 'confirm feeds update');
+}
+
+/**
+ * Submit handler for feeds_import_node_form().
+ */
+function feeds_import_node_form_submit($form, $form_state) {
+  $feed = feeds_instance('Feed', $form['#feed_id']);
+  $feed->import($form['#feed_nid']);
+}
+
+/**
+ * Render a feeds import form on import/[config] pages.
+ */
+function feeds_import_form(&$form_state, $feed_id) {
+  $form = array();
+  $form['#feed_id'] = $feed->id;
+
+  $feed = feeds_instance('Feed', $feed_id);
+  $form['feeds'] = array(
+    '#type' => 'fieldset',
+    '#title' => t('Feed'),
+    '#tree' => TRUE,
+  );
+  $form['feeds'] += $feed->fetcher->sourceForm($form_state, $form['nid']['#value']);
+  $form['submit'] = array(
+    '#type' => 'submit',
+    '#value' => t('Import'),
+  );
+  return $form;
+}
+
+/**
+ * Render a feeds delete form.
+ * 
+ * Used on both node pages and configuration pages. 
+ * Therefore either $feed_id or $node may be missing.
+ */
+function feeds_delete_items_form(&$form_state, $feed_id, $node = NULL) {
+  $feed = feeds_instance('Feed', $feed_id);
+  if (!empty($node)) {
+    $feed = feeds_get_by_content_type($node->type);
+    $form['#feed_nid'] = $node->nid;
+  }
+  // Form cannot pass on feed object.
+  $form['#feed_id'] = $feed->id;
+  return confirm_form($form, t('Delete all content from feed?'), 'node/'. $node->nid, '', t('Delete'), t('Cancel'), 'confirm feeds update');
+}
+
+/**
+ * Submit handler for feeds_delete_items_form().
+ */
+function feeds_delete_items_form_submit($form, &$form_state) {
+  $feed = feeds_instance('Feed', $form['#feed_id']);
+  $feed->purge($form['#feed_nid']);
+}
+
+/**
  * Render a control box.
  */
 function feeds_control_box($feed, $nid = NULL) {
@@ -42,7 +108,7 @@ function feeds_control_box($feed, $nid = NULL) {
     $rows[] = array(
       l(t('Reimport feed'), 'node/2/refresh'), 
       // @todo adjust description by configuration.
-      t('Reads source information, creates items that do not exist and optionally update existing items.'),
+      t('Reads source information, creates items that do not exist and optionally updates existing items.'),
     );
     $rows[] = array(
       l(t('Delete all items'), 'node/2/delete-items'), 

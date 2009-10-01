@@ -78,13 +78,22 @@ class Feed extends FeedsConfigurable {
    * Import feed by using configured fetchers, parsers, processors.
    * 
    * @todo: Break out into a facade-style FeedsImport class?
+   * @todo: Pass in source object, not ominous identifier $nid. 
+   *        Figure out how to reconcile source object with nid handling.
    */
-  public function import() {
-    $raw = $this->fetcher->fetch($this->source);
+  public function import($nid = NULL) {
+    $raw = $this->fetcher->fetch($this->source, $nid);
     $parsed = $this->parser->parse($raw);
     foreach ($this->processors as $processor) {
       $processor->process($parsed);
     }
+  }
+
+  /**
+   * Remove all imported items.
+   */
+  public function purge($nid = NULL) {
+    
   }
 
   /**

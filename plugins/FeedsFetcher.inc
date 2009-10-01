@@ -37,14 +37,10 @@ abstract class FeedsFetcher extends FeedsConfigurable {
   /**
    * Validation handler for sourceForm().
    */
-  public function sourceFormValidate($form, &$form_state) {
-  }
-
-  /**
-   * Submit  handler for sourceForm().
-   */
-  public function sourceFormSubmit($form, &$form_state, $nid = NULL) {
-    $this->saveSource($form_state['values']['feeds_source']);
+  public function sourceFormValidate($form, &$values) {
+    if (valid_url($values[''])) {
+      
+    }
   }
 
   /**

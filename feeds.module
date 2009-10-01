@@ -48,13 +48,46 @@ function feeds_menu() {
       $items['import/'. $feed->id] = array(
         'title' => $feed->config['name'],
         'page callback' => 'drupal_get_form',
-        'page arguments' => array('feeds_form', $feed->id),
+        'page arguments' => array('feeds_import_form', 1),
         'access arguments' => array('use feeds'),
         'file' => 'feeds.pages.inc',
-        'type' => MENU_NORMAL_ITEM,
+      );
+      $items['import/'. $feed->id .'/import'] = array(
+        'title' => 'Import',
+        'type' => MENU_DEFAULT_LOCAL_TASK,
+        'weight' => -10,
+      );
+      $items['import/'. $feed->id .'/delete-items'] = array(
+        'title' => 'Delete items',
+        'page callback' => 'drupal_get_form',
+        'page arguments' => array('feeds_delete_items_form', 1),
+        'type' => MENU_LOCAL_TASK,
+        'access arguments' => array('use feeds'),
+        'file' => 'feeds.pages.inc',
+      );
+    }
+    else {
+      $items['node/%node/import'] = array(
+        'title' => 'Import',
+        'page callback' => 'drupal_get_form',
+        'page arguments' => array('feeds_import_node_form', 1),
+        'access arguments' => array('use feeds'),
+        'file' => 'feeds.pages.inc',
+        'type' => MENU_LOCAL_TASK,
+        'weight' => 10,
+      );
+      $items['node/%node/delete-items'] = array(
+        'title' => 'Delete items',
+        'page callback' => 'drupal_get_form',
+        'page arguments' => array('feeds_delete_items_form', NULL, 1),
+        'type' => MENU_LOCAL_TASK,
+        'access arguments' => array('use feeds'),
+        'file' => 'feeds.pages.inc',
+        'weight' => 11,
       );
     }
   }
+
   if (count($items)) {
     $items['import'] = array(
       'title' => 'Import content',
@@ -199,6 +232,15 @@ function feeds_feeds_plugins() {
  */
 function feeds_nodeapi($node, $op) {
   switch ($op) {
+    case 'insert':
+    case 'update':
+      if ($feed = feeds_get_by_content_type($node->type)) {
+        $feed = feeds_instance('Feed', $form['#feed_id']);
+        // Node magically moved $form['feeds'] to $node->feeds.
+        $feed->fetcher->saveSource($node->feeds, $node->nid);
+        $feed->import();
+      }
+      break;
     case 'view':
       if ($feed = feeds_get_by_content_type($node->type)) {
         module_load_include('inc', 'feeds', 'feeds.pages');
@@ -223,50 +265,38 @@ function feeds_form_alter(&$form, $form_state, $form_id) {
       $form['feeds'] = array(
         '#type' => 'fieldset',
         '#title' => t('Feed'),
+        '#tree' => TRUE,
       );
       $form['feeds'] += $feed->fetcher->sourceForm($form_state, $form['nid']['#value']);
 
-      // For some reason I cannot loop through feed object, pass on id.
+      // For some reason I cannot pass on the feed object, pass on id.
       $form['#feed_id'] = $feed->id;
-      $form['#submit'][] = 'feeds_form_validate';
-      $form['#submit'][] = 'feeds_form_submit';
+      // Only set validation handler. Save object on 'insert'
+      $form['#validate'][] = 'feeds_import_form_validate';
     }
   }
 }
 
 /**
- * Render a feeds import form.
- */
-function feeds_form(&$form_state, $feed_id) {
-  $feed = feeds_instance('Feed', $feed_id);
-  $form = $feed->fetcher->sourceForm($form_state);
-  // Node form cannot pass on feed object, keep things consistent and pass on id here, too.
-  $form['#feed_id'] = $feed->id;
-  $form['submit'] = array(
-    '#type' => 'submit',
-    '#value' => t('Import'),
-  );
-  return $form;
-}
-
-/**
- * Validation handler for feeds_form_submit().
+ * Validation handler for node forms and feeds_import_form().
  * 
  * Has to live in feeds.module, needs to be callable from node form.
  */
-function feeds_form_validate($form, &$form_state) {
+function feeds_import_form_validate($form, &$form_state) {
   $feed = feeds_instance('Feed', $form['#feed_id']);
-  $feed->fetcher->sourceFormValidate($form, &$form_state);
+  $feed->fetcher->sourceFormValidate($form, $form_state['values']['feeds']);
 }
 
 /**
- * Submit handler for feeds_form_submit().
+ * Submit handler for feeds_import_form().
  * 
- * Has to live in feeds.module, needs to be callable from node form.
+ * Cannot be used for node form, as node form executes all submit handlers in 
+ * node_form_submit_build_node() /before/ it creates the node and a node nid 
+ * is known :(
  */
-function feeds_form_submit($form, &$form_state) {
+function feeds_import_form_submit($form, &$form_state) {
   $feed = feeds_instance('Feed', $form['#feed_id']);
-  $feed->fetcher->sourceFormSubmit($form, &$form_state);
+  $feed->fetcher->saveSource($form_state['values']);
   $feed->import();
 }
 

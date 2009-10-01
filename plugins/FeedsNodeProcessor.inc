@@ -4,10 +4,12 @@
 class FeedsNodeProcessor extends FeedsProcessor {
 
   function process($feed) {
-    foreach ($feed->items as $item) {
-      if ($this->unique($item)) {
-        $node = $this->map($item);
-        node_save($node);
+      if (isset($feed->items) && is_array($feed->items)) {
+      foreach ($feed->items as $item) {
+        if ($this->unique($item)) {
+          $node = $this->map($item);
+          node_save($node);
+        }
       }
     }
   }
