@@ -23,18 +23,6 @@ function feeds_ui_help($path, $arg) {
  */
 function feeds_ui_menu() {
   $items = array();
-  $items['admin/content/feeds'] = array(
-    'title' => 'Feeds',
-    'page callback' => 'feeds_ui_content_overview',
-    'access arguments' => array('use feeds'),
-    'file' => 'feeds_ui.admin.inc',
-  );
-  $items['admin/content/feeds/%feeds'] = array(
-    'page callback' => 'drupal_get_form',
-    'page arguments' => array('feeds_ui_content_feed', 3),
-    'access arguments' => array('use feeds'),
-    'file' => 'feeds_ui.admin.inc',
-  );
   $items['admin/build/feeds'] = array(
     'title' => 'Feeds',
     'description' => 'Configure feeds to import or aggregate RSS and Atom feeds, import CSV files or more.',

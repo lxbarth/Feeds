@@ -5,36 +5,17 @@
  */
 
 /**
- * List available feed configurations.
- */
-function feeds_ui_content_overview() {
-  $rows = array();
-  if ($feeds = feeds_load_all()) {
-    foreach ($feeds as $feed) {
-      $rows[] = array(
-        $feed->id,
-      );
-    }
-  }
-  $header = array(
-    t('Configurations'),
-  );
-  return theme('table', $header, $rows);
-}
-
-/**
  * Build overview of available configurations.
  */
 function feeds_ui_build_overview() {
   $rows = array();
   if ($feeds = feeds_load_all()) {
     foreach ($feeds as $feed) {
-      $config = $feed->config;
-      if (empty($config['content_type'])) {
+      if (empty($feed->config['content_type'])) {
         $type = '[none]';
       }
       else {
-        $type = l(node_get_types('name', $config['content_type']), 'node/add/'. $config['content_type']);
+        $type = l(node_get_types('name', $feed->config['content_type']), 'node/add/'. $feed->config['content_type']);
       }
       $rows[] = array(
         $feed->config['name'],

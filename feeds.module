@@ -38,6 +38,42 @@ function feeds_forms() {
 }
 
 /**
+ * Implementation of hook_menu().
+ */
+function feeds_menu() {
+  // Register a callback for all feed configurations that are not attached to a content type.
+  $items = array();
+  foreach (feeds_load_all() as $feed) {
+    if (empty($feed->config['content_type'])) {
+      $items['import/'. $feed->id] = array(
+        'title' => $feed->config['name'],
+        'page callback' => 'drupal_get_form',
+        'page arguments' => array('feeds_form', $feed->id),
+        'access arguments' => array('use feeds'),
+        'file' => 'feeds.inc',
+        'type' => MENU_NORMAL_ITEM,
+      );
+    }
+  }
+  if (count($items)) {
+    $items['import'] = array(
+      'title' => 'Import content',
+      'page callback' => 'feeds_page',
+      'access arguments' => array('use feeds'),
+      'file' => 'feeds.inc',
+    );
+  }
+  return $items;
+}
+
+/**
+ * Menu loader callback.
+ */
+function feeds_load($id) {
+  return feeds_instance('Feed', $id);
+}
+
+/**
  * Implementation of hook_form_alter().
  */
 function feeds_form_alter(&$form, $form_state, $form_id) {
@@ -49,7 +85,7 @@ function feeds_form_alter(&$form, $form_state, $form_id) {
           '#type' => 'fieldset',
           '#title' => t('Feed'),
         );
-        $form['feeds'] += $feed->fetcher->sourceForm($form_state);
+        $form['feeds'] += $feed->fetcher->sourceForm($form_state);;
       }
     }
   }
@@ -223,18 +259,12 @@ function feeds_load_plugin_class($plugin) {
 }
 
 /**
- * Menu loader. Loads a feeds configuration.
- */
-function feeds_load($id) {
-  return feeds_instance('Feed', $id);
-}
-
-/**
  * Load all feeds.
  */
 function feeds_load_all() {
   ctools_include('export');
   $configs = ctools_export_load_object('feeds_config', 'conditions', array('class' => 'Feed'));
+  $feeds = array();
   foreach ($configs as $config) {
     $feeds[$config->id] = feeds_instance('Feed', $config->id);
   }
