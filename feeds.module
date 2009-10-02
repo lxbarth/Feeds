@@ -266,7 +266,7 @@ function feeds_form_alter(&$form, $form_state, $form_id) {
         '#title' => t('Feed'),
         '#tree' => TRUE,
       );
-      $form['feeds'] += $feed->fetcher->sourceForm($form_state, $form['nid']['#value']);
+      $form['feeds'] += $feed->fetcher->sourceForm($form['nid']['#value']);
 
       // For some reason I cannot pass on the feed object, pass on id.
       $form['#feed_id'] = $feed->id;
@@ -295,7 +295,7 @@ function feeds_import_form_validate($form, &$form_state) {
  */
 function feeds_import_form_submit($form, &$form_state) {
   $feed = feeds_instance('Feed', $form['#feed_id']);
-  $feed->fetcher->saveSource($form_state['values']);
+  $feed->fetcher->saveSource($form_state['values']['feeds']);
   $feed->import();
 }
 

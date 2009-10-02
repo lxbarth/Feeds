@@ -19,8 +19,10 @@ abstract class FeedsFetcher extends FeedsConfigurable {
 
   /**
    * Callback methods, exposes source form.
+   * 
+   * @todo: move HTTP fetcher specific code down into HTTP fetcher.
    */
-  public function sourceForm(&$form_state, $nid = NULL) {
+  public function sourceForm($nid = NULL) {
     if (!$source = $this->loadSource($nid)) {
       $source = $this->config['source'];
     }
@@ -36,11 +38,15 @@ abstract class FeedsFetcher extends FeedsConfigurable {
 
   /**
    * Validation handler for sourceForm().
+   * 
+   * @param $form
+   *   The form to perform the validation on.
+   * @param $values
+   *   The values to perform the validation on. 
+   *   This is a subsection of the usual $form_state['values'] that
+   *   only contains the values from the form defined in sourceForm().
    */
   public function sourceFormValidate($form, &$values) {
-    if (valid_url($values[''])) {
-      
-    }
   }
 
   /**

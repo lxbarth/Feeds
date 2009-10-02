@@ -57,16 +57,18 @@ function feeds_import_node_form_submit($form, $form_state) {
  * Render a feeds import form on import/[config] pages.
  */
 function feeds_import_form(&$form_state, $feed_id) {
+  $feed = feeds_instance('Feed', $feed_id);
+
   $form = array();
   $form['#feed_id'] = $feed->id;
-
-  $feed = feeds_instance('Feed', $feed_id);
+  // @todo: Move this into fetcher?
+  $form['#attributes']['enctype'] = 'multipart/form-data';
   $form['feeds'] = array(
     '#type' => 'fieldset',
     '#title' => t('Feed'),
     '#tree' => TRUE,
   );
-  $form['feeds'] += $feed->fetcher->sourceForm($form_state, $form['nid']['#value']);
+  $form['feeds'] += $feed->fetcher->sourceForm($form['nid']['#value']);
   $form['submit'] = array(
     '#type' => 'submit',
     '#value' => t('Import'),
