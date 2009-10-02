@@ -5,6 +5,55 @@
  */
 
 /**
+ * A Feeds result class.
+ * 
+ * @see class FeedsFetcherResult
+ * @see class FeedsParserResult
+ */
+abstract class FeedsResult {
+
+  protected $type;
+  protected $value;
+  // An array of valid values for $type.
+  protected $validTypes = array();
+
+  /**
+   * Constructor: create object, validate class variables.
+   * 
+   * @param $value
+   *   The value of this result.
+   * @param $type
+   *   The type of this result. Must be one of $validTypes.
+   */
+  public function __construct($value, $type) {
+    $this->_set('type', $type);
+    $this->_set('value', $value);
+  }
+
+  /**
+   * Control access to class variables.
+   */
+  public function __get($name) {
+    return $this->$name;
+  }
+
+  /**
+   * Control access to class variables.
+   */
+  public function _set($name, $value) {
+    if ($name == 'validTypes') {
+      throw new Exception('Cannot write FeedsResult::validTypes.');
+    }
+    if ($name == 'type') {
+      if (!in_array($value, $this->validTypes)) {
+        throw new Exception('Invalid type "'. $value .'"');
+      }
+    }
+    $this->$name = $value;
+  }
+}
+
+/**
  * Importer class.
  */
 class Feed extends FeedsConfigurable {
@@ -91,8 +140,8 @@ class Feed extends FeedsConfigurable {
    *        Figure out how to reconcile source object with nid handling.
    */
   public function import($nid = NULL) {
-    $raw = $this->fetcher->fetch($nid);
-    $parsed = $this->parser->parse($raw);
+    $source = $this->fetcher->fetch($nid);
+    $parsed = $this->parser->parse($source);
     foreach ($this->processors as $processor) {
       $processor->process($parsed);
     }

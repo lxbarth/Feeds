@@ -10,7 +10,7 @@ abstract class FeedsProcessor extends FeedsConfigurable {
    * Process the result of the parser or previous processors.
    * Extending classes must implement this method.
    */
-  public abstract function process($feed);
+  public abstract function process(FeedsParserResult $parser_result);
 
   /**
    * Declare default configuration.

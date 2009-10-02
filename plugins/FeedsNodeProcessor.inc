@@ -3,14 +3,23 @@
 
 class FeedsNodeProcessor extends FeedsProcessor {
 
-  function process($feed) {
-      if (isset($feed->items) && is_array($feed->items)) {
-      foreach ($feed->items as $item) {
-        if ($this->unique($item)) {
-          $node = $this->map($item);
-          node_save($node);
-        }
+  /**
+   * Implementation of FeedsProcessor::process();
+   *
+   * @param FeedsParserResult $parser_result
+   *   The result of the parsing stage.
+   * 
+   * @return 
+   *   Nothing.
+   */
+  function process(FeedsParserResult $parser_result) {
+    if ($parser_result->type == 'simple') {
+      foreach ($parser_result->value as $value) {
+        // @todo
       }
+    }
+    elseif ($parser_result->type == 'syndication') {
+      // @todo
     }
   }
 

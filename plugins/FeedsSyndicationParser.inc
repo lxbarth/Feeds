@@ -11,7 +11,7 @@ class FeedsSyndicationParser extends FeedsParser {
   /**
    * Parses a raw string and returns a Feed object from it.
    */
-  public function parse($raw) {
+  public function parse(FeedsFetcherResult $fetcher_result) {
     
   }
 

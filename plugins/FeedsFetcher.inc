@@ -2,6 +2,17 @@
 // $Id$
 
 /**
+ * Defines the object a Fetcher returns on fetch().
+ */
+class FeedsFetcherResult extends FeedsResult {
+  // Define valid types.
+  // @todo: does text/filepath make sense?
+  // @todo: If convenient, we could expand on this concept and build content type negotiation
+  // between Fetchers and Parsers.
+  protected $validTypes = array('text/filepath', 'text/plain');
+}
+
+/**
  * Abstract class, defines interface for fetchers.
  * 
  * Not using interfaces because we need a simple inheritence tree for determining the 

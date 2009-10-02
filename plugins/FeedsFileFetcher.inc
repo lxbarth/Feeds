@@ -56,7 +56,8 @@ class FeedsFileFetcher extends FeedsFetcher {
    * @todo: support seemless expanding of archives.
    */
   public function fetch($nid = NULL) {
-    $file_path = $this->loadSource();
-    return file_get_contents($file_path);
+    // Just return path to file, contents can be read easily with file_get_contents($file_path);
+    // @todo: Create a class definition for this.
+    return new FeedsFetcherResult($this->loadSource(), 'text/filepath');
   }
 }
