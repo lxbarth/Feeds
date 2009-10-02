@@ -10,11 +10,11 @@ div.left-bar {
   padding: 10px 10px 0 0;
   }
 div.configuration {
-  padding: 10px 0 0 260px;
-  margin-left: -250px;
+  padding: 10px 0 0 250px;
+  margin-left: -240px;
   }
   div.configuration-squeeze {
-    margin-left: 260px;
+    margin-left: 250px;
     }
 div.feeds-container {
   }
