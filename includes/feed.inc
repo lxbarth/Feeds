@@ -75,6 +75,15 @@ class Feed extends FeedsConfigurable {
   }
 
   /**
+   * Override parent::configFormSubmit().
+   */
+  public function configFormSubmit($form, &$form_state) {
+    parent::configFormSubmit($form, $form_state);
+    // Clear cache, changes to content_type have an affect on menu tree.
+    menu_rebuild();
+  }
+
+  /**
    * Import feed by using configured fetchers, parsers, processors.
    * 
    * @todo: Break out into a facade-style FeedsImport class?
