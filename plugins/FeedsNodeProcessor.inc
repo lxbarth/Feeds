@@ -1,18 +1,19 @@
 <?php
 // $Id: FeedsNodeProcessor.inc,v 1.2 2009/09/19 15:52:46 alexb Exp $
+/**
+ * @file
+ * Class definition of FeedsNodeProcessor.
+ */
 
+/**
+ * Creates nodes from feed items.
+ */
 class FeedsNodeProcessor extends FeedsProcessor {
 
   /**
    * Implementation of FeedsProcessor::process();
-   *
-   * @param FeedsParserResult $parser_result
-   *   The result of the parsing stage.
-   * 
-   * @return 
-   *   Nothing.
    */
-  function process(FeedsParserResult $parser_result) {
+  function process(FeedsParserResult $parserResult, $nid = NULL) {
     if ($parser_result->type == 'simple') {
       foreach ($parser_result->value as $value) {
         // @todo
@@ -21,6 +22,13 @@ class FeedsNodeProcessor extends FeedsProcessor {
     elseif ($parser_result->type == 'syndication') {
       // @todo
     }
+  }
+
+  /**
+   * Implementation of FeedsProcessor::purge().
+   */
+  function purge($nid = NULL) {
+    
   }
 
   /**

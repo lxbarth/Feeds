@@ -26,13 +26,16 @@ abstract class FeedsParser extends FeedsConfigurable {
    * 
    * Stub method. Extending classes must implement this method.
    *
-   * @param $raw
+   * @param $fetcherResult
    *   Content returned by fetcher.
+   * @param $nid
+   *   If this configuration is attached to a content type, $nid contains the
+   *   node id of the Feed node.
    * @return
    *   A parsed array. 
    *   @todo: define this array (object?).
    */
-  public abstract function parse(FeedsFetcherResult $raw);
+  public abstract function parse(FeedsFetcherResult $fetcherResult, $nid = NULL);
 
   /**
    * Declare the possible mapping sources that this parser produces.

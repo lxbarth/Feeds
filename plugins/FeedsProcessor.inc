@@ -9,8 +9,19 @@ abstract class FeedsProcessor extends FeedsConfigurable {
   /**
    * Process the result of the parser or previous processors.
    * Extending classes must implement this method.
+   * 
+   * @param FeedsParserResult $parserResult
+   *   The result of the parsing stage.
+   * @param $nid
+   *   Node ID of a feed node, IF this configuration is attached to a node.
    */
-  public abstract function process(FeedsParserResult $parser_result);
+  public abstract function process(FeedsParserResult $parserResult, $nid = NULL);
+
+  /**
+   * Remove all stored results for this configuration OR - if $nid given -
+   * for this configuration for this feed node.
+   */
+  public abstract function purge($nid = NULL);
 
   /**
    * Declare default configuration.

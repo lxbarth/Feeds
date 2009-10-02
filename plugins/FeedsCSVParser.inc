@@ -9,11 +9,11 @@ class FeedsCSVParser extends FeedsParser {
   /**
    * Parses a raw string and returns a Feed object from it.
    */
-  public function parse(FeedsFetcherResult $fetcher_result) {
+  public function parse(FeedsFetcherResult $fetcherResult, $nid = NULL) {
     feeds_include('ParserCSV');
 
-    if ($fetcher_result->type == 'text/filepath') {
-      $iterator = new ParserCSVIterator(realpath($fetcher_result->value));
+    if ($fetcherResult->type == 'text/filepath') {
+      $iterator = new ParserCSVIterator(realpath($fetcherResult->value));
     }
     // @todo: write string buffer iterator.
     else {
@@ -35,10 +35,16 @@ class FeedsCSVParser extends FeedsParser {
     return array();
   }
 
+  /**
+   * Define default configuration.
+   */
   public function getDefaultConfig() {
     return array('delimiter' => ',');
   }
 
+  /**
+   * Build configuration form.
+   */
   public function configForm(&$form_state) {
     $form = array();
     $form['delimiter'] = array(

@@ -54,7 +54,7 @@ abstract class FeedsResult {
 }
 
 /**
- * Importer class.
+ * Configurable importer class. This is the main hub for Feeds module's functionality.
  */
 class Feed extends FeedsConfigurable {
 
@@ -109,7 +109,6 @@ class Feed extends FeedsConfigurable {
       '#options' => array('' => t('None')) + node_get_types('names'),
       '#default_value' => $this->config['content_type'],
     );
-    $form['source'] = $this->fetcher->sourceForm($form_state);
     $period = drupal_map_assoc(array(1, 900, 1800, 3600, 10800, 21600, 43200, 86400, 259200, 604800, 2419200), 'format_interval');
     $period[FEEDAPI_CRON_NEVER_REFRESH] = t('Do not refresh periodically');
     $period[1] = t('As often as possible');
@@ -135,15 +134,19 @@ class Feed extends FeedsConfigurable {
   /**
    * Import feed by using configured fetchers, parsers, processors.
    * 
+   * @param $nid
+   *   If this configuaration is attached to a feed node, $nid contains the
+   *   node id of the feed node.
+   * 
    * @todo: Break out into a facade-style FeedsImport class?
    * @todo: Pass in source object, not ominous identifier $nid. 
    *        Figure out how to reconcile source object with nid handling.
    */
   public function import($nid = NULL) {
-    $source = $this->fetcher->fetch($nid);
-    $parsed = $this->parser->parse($source);
+    $result = $this->fetcher->fetch($nid);
+    $parsed = $this->parser->parse($result, $nid);
     foreach ($this->processors as $processor) {
-      $processor->process($parsed);
+      $processor->process($result, $nid);
     }
   }
 
@@ -151,6 +154,9 @@ class Feed extends FeedsConfigurable {
    * Remove all imported items.
    */
   public function purge($nid = NULL) {
+    foreach ($this->processors as $processor) {
+      $processor->purge($nid);
+    }
   }
 
   /**
@@ -314,7 +320,9 @@ class FeedsConfigurable {
    *   values are their default values.
    */
   public function getDefaultConfig() {
-    return array();
+    $fake_form_state = array();
+    $form = $this->configForm($fake_form_state);
+    return element_children($form);
   }
 
   /**
