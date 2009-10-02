@@ -49,11 +49,14 @@ class FeedsFileFetcher extends FeedsFetcher {
       $values['feeds_source'] = $this->loadSource();
     }
   }
-  
+
   /**
    * Fetch a local resource.
+   * 
+   * @todo: support seemless expanding of archives.
    */
   public function fetch($nid = NULL) {
-    // @todo
+    $file_path = $this->loadSource();
+    return file_get_contents($file_path);
   }
 }

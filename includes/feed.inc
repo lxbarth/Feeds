@@ -91,7 +91,7 @@ class Feed extends FeedsConfigurable {
    *        Figure out how to reconcile source object with nid handling.
    */
   public function import($nid = NULL) {
-    $raw = $this->fetcher->fetch($this->source, $nid);
+    $raw = $this->fetcher->fetch($nid);
     $parsed = $this->parser->parse($raw);
     foreach ($this->processors as $processor) {
       $processor->process($parsed);
@@ -102,7 +102,6 @@ class Feed extends FeedsConfigurable {
    * Remove all imported items.
    */
   public function purge($nid = NULL) {
-    
   }
 
   /**

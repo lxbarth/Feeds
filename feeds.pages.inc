@@ -84,8 +84,10 @@ function feeds_import_form(&$form_state, $feed_id) {
  * Therefore either $feed_id or $node may be missing.
  */
 function feeds_delete_items_form(&$form_state, $feed_id, $node = NULL) {
-  $feed = feeds_instance('Feed', $feed_id);
-  if (!empty($node)) {
+  if (empty($node)) {
+    $feed = feeds_instance('Feed', $feed_id);
+  }
+  else {
     $feed = feeds_get_by_content_type($node->type);
     $form['#feed_nid'] = $node->nid;
   }
