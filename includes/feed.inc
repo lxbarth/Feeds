@@ -185,6 +185,10 @@ class FeedsConfigurable {
    * Don't use directly, use feeds_instance() instead.
    */
   public static function instance($class, $id) {
+    // This is useful at least as long as we're developing.
+    if (empty($id)) {
+      throw new Exception('Empty configuration identifier.');
+    }
     static $instances = array();
     if (!isset($instances[$class][$id])) {
       $instances[$class][$id] = new $class($id);

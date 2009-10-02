@@ -15,7 +15,7 @@ class FeedsFileFetcher extends FeedsFetcher {
    */
   public function sourceForm(&$form_state) {
     $form = array();
-    $form['source'] = array(
+    $form['feeds_source'] = array(
       '#type' => 'file',
       '#title' => t('File'),
       '#description' => t('Upload a file.'),
@@ -24,6 +24,10 @@ class FeedsFileFetcher extends FeedsFetcher {
     return $form;
   }
 
+  public function sourceFormValidate($form, &$form_state) {
+    dsm($form_state);
+  }
+  
   /**
    * Fetch a local resource.
    */

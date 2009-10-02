@@ -75,7 +75,7 @@ abstract class FeedsFetcher extends FeedsConfigurable {
       'id' => $this->id,
       'nid' => $nid,
       'class' => get_class($this),
-      'source' => $source,
+      'source' => $source['feeds_source'], // This is the same key that we defined in sourceForm().
     );
     drupal_write_record('feeds_source', $object);
   }
