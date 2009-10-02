@@ -8,6 +8,7 @@
  * Build overview of available configurations.
  */
 function feeds_ui_overview_page() {
+
   $rows = array();
   if ($feeds = feeds_load_all()) {
     foreach ($feeds as $feed) {
@@ -338,8 +339,6 @@ function feeds_ui_mapping_form(&$form_state, $feed, $processor) {
   $mappings = $processor->getMappings();
   $targets = $processor->getMappingTargets();
   $form['processors'][$class] = array(
-    '#type' => 'fieldset',
-    '#title' => $class, // @todo: human readable title.
     '#tree' => TRUE,
   );
   $form['processors'][$class]['#mappings'] = $mappings;
