@@ -63,6 +63,7 @@ function feeds_import_form(&$form_state, $feed_id) {
   $form['#feed_id'] = $feed->id;
   // @todo: Move this into fetcher?
   $form['#attributes']['enctype'] = 'multipart/form-data';
+  // @todo: let fetchers build this fieldset, allows for tweaking the title and adding description.
   $form['feeds'] = array(
     '#type' => 'fieldset',
     '#title' => t('Feed'),
