@@ -29,13 +29,6 @@ class FeedsCSVParser extends FeedsParser {
   }
 
   /**
-   * Return mapping sources.
-   */
-  public function getMappingSources() {
-    return array();
-  }
-
-  /**
    * Define default configuration.
    */
   public function getDefaultConfig() {

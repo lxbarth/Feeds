@@ -41,7 +41,10 @@ abstract class FeedsParser extends FeedsConfigurable {
    * Declare the possible mapping sources that this parser produces.
    * 
    * @return 
-   *   An array of mapping sources.
+   *   An array of mapping sources, or FALSE if the sources can be defined by typing a value
+   *   in a text field.
    */
-  public abstract function getMappingSources();
+  public function getMappingSources() {
+    return FALSE;
+  }
 }

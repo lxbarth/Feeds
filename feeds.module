@@ -31,8 +31,6 @@ function feeds_forms() {
   foreach ($plugins as $plugin) {
     // See feeds_get_config_form().
     $forms[$plugin['handler']['class'] .'_feeds_config_form']['callback'] = 'feeds_config_form';
-    // See feeds_ui_get_select_form().
-    $forms[$plugin['handler']['class'] .'_feeds_ui_select_form']['callback'] = 'feeds_ui_select_form';
   }
   return $forms;
 }

@@ -28,4 +28,9 @@ Drupal.behaviors.feeds = function() {
       $('.feed-name').keyup();
     }
   });
+
+  // Hide text in specific input fields.
+  $('.hide-text-on-focus').focus(function() {
+    $(this).val('');
+  });
 };

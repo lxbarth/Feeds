@@ -67,9 +67,7 @@ class Feed extends FeedsConfigurable {
     parent::__construct($id);
 
     $this->fetcher = feeds_plugin_instance($this->config['fetcher'], $id);
-
     $this->parser = feeds_plugin_instance($this->config['parser'], $id);
-
     foreach ($this->config['processors'] as $processor) {
       $this->processors[$processor] = feeds_plugin_instance($processor, $id);
     }
@@ -141,10 +139,13 @@ class Feed extends FeedsConfigurable {
    * @todo: Break out into a facade-style FeedsImport class?
    * @todo: Pass in source object, not ominous identifier $nid. 
    *        Figure out how to reconcile source object with nid handling.
+   *        We may need to think of per-import (= per-node) configurations in a larger context.
+   *        For instance, right now a parser or a processor can't offer any one-off configuration options
+   *        for imports. Think of delimiter settings for CSV imports.
    */
   public function import($nid = NULL) {
     $result = $this->fetcher->fetch($nid);
-    $parsed = $this->parser->parse($result, $nid);
+    $result = $this->parser->parse($result, $nid);
     foreach ($this->processors as $processor) {
       $processor->process($result, $nid);
     }

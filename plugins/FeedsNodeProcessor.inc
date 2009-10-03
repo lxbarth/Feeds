@@ -28,27 +28,49 @@ class FeedsNodeProcessor extends FeedsProcessor {
    * Implementation of FeedsProcessor::purge().
    */
   function purge($nid = NULL) {
-    
+    // @todo
   }
 
   /**
    * Return available mapping targets.
    */
   function getMappingTargets() {
-    return array(
-      'title' => FALSE, 
-      'body' => FALSE, 
-      'status' => FALSE, 
-      'url' => TRUE, 
-      'guid' => TRUE,
+    $targets = array(
+      'title' => array(),
+      'body' => array(), 
+      'status' => array(),
+      'url' => array(
+        'optional unique' => TRUE, 
+        ),
+      'guid' => array(
+        'optional unique' => TRUE, 
+        ),
+      'taxonomy' => array(
+        'options' => taxonomy_get_vocabularies(),
+        ),
     );
+    drupal_alter('feeds_node_processor_targets', $targets);
+    return $targets;
   }
 
+  /**
+   * Map.
+   */
+  function map($source_item, $target_item, $source_element, $target_element) {
+    
+  }
+
+  /**
+   * Override parent::getDefaultConfig().
+   */
   public function getDefaultConfig() {
     $types = node_get_types('names');
     return array('content_type' => key($types));
   }
 
+  /**
+   * Override parent::configForm().
+   */
   public function configForm(&$form_state) {
     $types = node_get_types('names');
     $form = array();

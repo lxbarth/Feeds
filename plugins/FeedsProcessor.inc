@@ -40,7 +40,6 @@ abstract class FeedsProcessor extends FeedsConfigurable {
         'unique' => $unique,
       );
     }
-    $this->save();
   }
 
   /**
@@ -48,19 +47,17 @@ abstract class FeedsProcessor extends FeedsConfigurable {
    */
   public function removeMapping($target) {
     unset($this->config['mappings'][$target]);
-    $this->save();
   }
 
   /**
    * Declare possible mapping targets.
-   *
+   * 
    * @return
    *   An array of mapping targets. Keys are paths to targets
    *   separated by ->, values are TRUE if target can be unique, 
    *   FALSE otherwise.
    */
   public function getMappingTargets() {
-    // @todo: invoke hook_feeds_mapper() here.
     return array();
   }
 

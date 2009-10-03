@@ -241,12 +241,13 @@ function _feeds_ui_list_plugins_by_type($feed, $type, $selected, $multiple = FAL
     if (in_array($key, $selected)) {
       if ($multiple) {
         $actions = array(_feeds_ui_get_select_form($feed, $plugin['handler']['class'], 'remove'));
+        // $actions = feeds_ui_get_form('feeds_ui_remove', $feed->id, array($plugin['handler']['class']), t('Remove'));
       }
     }
     else {
       $actions = array(_feeds_ui_get_select_form($feed, $plugin['handler']['class'], 'select'));
+      // $actions = feeds_ui_get_form('feeds_ui_select', $feed->id, array($plugin['handler']['class']), t('Select'));
     }
-
     $containers[] = array(
       'title' => $plugin['name'],
       'body' => $plugin['description'],
@@ -271,6 +272,40 @@ function _feeds_ui_list_plugins_by_type($feed, $type, $selected, $multiple = FAL
  */
 function _feeds_ui_get_select_form($feed, $plugin_key, $action) {
   return drupal_get_form($plugin_key .'_feeds_ui_select_form', $feed, $plugin_key, $action);
+}
+
+/**
+ * Dynamic form callback. 
+ * 
+ * @param $form_callback
+ *   Form callback for this form.
+ * @param ... Parameters to pass into form
+ * 
+ * feeds_ui_get_toggle_form('add_processor', $feed->id, array('FeedsNodeProcessor'), t('Select'))
+ */
+function feeds_ui_get_form($args) {
+  $form_callback = array_shift($args);
+  $form_id = array_shift($args);
+  // Registering the form id and the form callback handler exposes it to FormAPI.
+  feeds_ui_register_form($form_id, $form_callback);
+  
+  return call_user_func_aray('drupal_get_form', $args);
+}
+
+/**
+ * Build a toggle form.
+ */
+function feeds_ui_form_wrapper(&$form_state, $form_callback) {
+  $form = $form_callback(&$form_state);
+  $form['#submit'] = array('feeds_ui_form_wrapper_submit');
+  return $form;
+}
+
+/**
+ * Submit handler for feeds_ui_form_wrapper().
+ */
+function feeds_ui_form_wrapper_submit($form, &$form_state) {
+  
 }
 
 /**
@@ -328,6 +363,8 @@ function feeds_ui_select_form_submit($form, &$form_state) {
  * Edit mapping.
  */
 function feeds_ui_mapping_form(&$form_state, $feed, $processor) {
+  drupal_add_js(drupal_get_path('module', 'feeds_ui') .'/feeds_ui.js');
+
   $form = array();
   $form['#feed'] = $feed;
 
@@ -338,20 +375,28 @@ function feeds_ui_mapping_form(&$form_state, $feed, $processor) {
   // @todo: move actual form building into processors?
   $mappings = $processor->getMappings();
   $targets = $processor->getMappingTargets();
-  $form['processors'][$class] = array(
-    '#tree' => TRUE,
-  );
-  $form['processors'][$class]['#mappings'] = $mappings;
-  $form['processors'][$class]['#targets'] = $targets;
-  $form['processors'][$class]['source'] = array(
-    '#type' => 'select',
-    '#options' => array('' => t('Select a source')) + drupal_map_assoc($sources),
-  );
-  $form['processors'][$class]['target'] = array(
+
+  $form['#mappings'] = $mappings;
+  $form['#targets'] = $targets;
+  if ($sources) {
+    $form['source'] = array(
+      '#type' => 'select',
+      '#options' => array('' => t('Select a source')) + drupal_map_assoc($sources),
+    );
+  }
+  else {
+    $form['source'] = array(
+      '#type' => 'textfield',
+      '#size' => 20,
+      '#default_value' => t('Name of source field'),
+      '#attributes' => array('class' => 'hide-text-on-focus'),
+    );
+  }
+  $form['target'] = array(
     '#type' => 'select',
     '#options' => array('' => t('Select a target')) + drupal_map_assoc(array_keys($targets)),
   );
-  $form['processors'][$class]['add'] = array(
+  $form['add'] = array(
     '#type' => 'submit',
     '#value' => t('Add'),
   );
@@ -363,21 +408,9 @@ function feeds_ui_mapping_form(&$form_state, $feed, $processor) {
  */
 function feeds_ui_mapping_form_submit($form, &$form_state) {
   foreach ($form['#feed']->processors as $class => $processor) {
-    $processor->addMapping($form_state['values'][$class]['source'], $form_state['values'][$class]['target']);
+    $processor->addMapping($form_state['values']['source'], $form_state['values']['target']);
+    $processor->save();
   }
-}
-
-/**
- * Remove a mapping.
- */
-function feeds_ui_mapping_remove($feed, $processor, $target, $token) {
-  if (drupal_valid_token($token, $target)) {
-    $mapping = $feed->processors[$processor]->removeMapping($target);
-  }
-  else {
-    drupal_set_message(t('Invalid token.'), 'error');
-  }
-  drupal_goto('admin/build/feeds/edit/'. $feed->id .'/map');
 }
 
 /**
@@ -403,6 +436,8 @@ function feeds_ui_delete_form_submit($form, &$form_state) {
 
 /**
  * Contextual help for build/edit page.
+ * 
+ * @todo: Write.
  */
 function feeds_ui_edit_help() {
   return 'Every feed must have at least one fetcher, parser and processor.';
@@ -413,7 +448,6 @@ function feeds_ui_edit_help() {
  */
 function theme_feeds_ui_edit_page($config_info, $active_container) {
   drupal_add_css(drupal_get_path('module', 'feeds_ui') .'/feeds_ui.css');
-  drupal_add_js(drupal_get_path('module', 'feeds_ui') .'/feeds_ui.js');
 
   // Outer wrapper.
   $output = '<div class="feeds-settings">';
@@ -497,34 +531,33 @@ function theme_feeds_ui_mapping_form($form) {
     '&nbsp;',
   );
 
-  foreach (element_children($form['processors']) as $processor) {
-    $rows = array();
-    if (is_array($form['processors'][$processor]['#mappings'])) {
-      foreach ($form['processors'][$processor]['#mappings'] as $target => $mapping) {
-        $rows[] = array(
-          $mapping['source'],
-          $target,
-          $mapping['unique'] ? t('Yes') : t('No'),
-          l(t('Remove'), 'admin/build/feeds/map-remove/'. $form['#feed']->id .'/'. $processor .'/'. $target .'/'. drupal_get_token($target)),
-        ); 
-      }
-    }
-    if (!count($rows)) {
+  $rows = array();
+  if (is_array($form['#mappings'])) {
+    foreach ($form['#mappings'] as $target => $mapping) {
       $rows[] = array(
-        array(
-          'colspan' => 4,
-          'data' => t('No mappings defined.'),
-        ),
-      );
+        $mapping['source'],
+        $target,
+        '@todo',
+        '@todo',
+      ); 
     }
-    $rows[] = array(
-      drupal_render($form['processors'][$processor]['source']),
-      drupal_render($form['processors'][$processor]['target']),
-      '',
-      drupal_render($form['processors'][$processor]['add']),
-    );
-    $form['processors'][$processor]['#value'] = theme('table', $header, $rows);
   }
+  if (!count($rows)) {
+    $rows[] = array(
+      array(
+        'colspan' => 4,
+        'data' => t('No mappings defined.'),
+      ),
+    );
+  }
+  $rows[] = array(
+    drupal_render($form['source']),
+    drupal_render($form['target']),
+    '',
+    drupal_render($form['add']),
+  );
+  $form['#value'] = theme('table', $header, $rows);
+
   $output .= drupal_render($form);
   return $output;
 }

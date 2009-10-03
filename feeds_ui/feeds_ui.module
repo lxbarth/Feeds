@@ -52,13 +52,6 @@ function feeds_ui_menu() {
     'title' => t('Basic'),
     'type' => MENU_DEFAULT_LOCAL_TASK,
   );
-  $items['admin/build/feeds/map-remove/%feeds'] = array(
-    'page callback' => 'feeds_ui_mapping_remove',
-    'page arguments' => array(4),
-    'access arguments' => array('administer feeds'),
-    'file' => 'feeds_ui.admin.inc',
-    'type' => MENU_CALLBACK,
-  );
   $items['admin/build/feeds/delete/%feeds'] = array(
     'title' => t('Delete configuration'),
     'page callback' => 'drupal_get_form',
@@ -89,8 +82,33 @@ function feeds_ui_theme() {
 }
 
 /**
+ * Implementation of hook_forms().
+ */
+function feeds_ui_forms() {
+  // Declare form callbacks for all known classes derived from FeedsConfigurable.
+  $forms = array();
+  $plugins = feeds_get_plugins();
+  foreach ($plugins as $plugin) {
+    $forms[$plugin['handler']['class'] .'_feeds_ui_select_form']['callback'] = 'feeds_ui_select_form';
+  }
+  $forms += feeds_ui_register_form();
+  return $forms;
+}
+
+/**
  * Title callback.
  */
 function feed_ui_title($feed) {
   return t('Edit !feed', array('!feed' => $feed->config['name']));
+}
+
+/**
+ * Register a form_id/callback tuple for later exposure via hook_forms().
+ */
+function feeds_ui_register_form($form_id = NULL, $callback = NULL) {
+  static $registered = array();
+  if ($form_id && $callback) {
+    $registered[$callback]['callback'] = $form_id;
+  }
+  return $registered;
 }
