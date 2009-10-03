@@ -298,9 +298,13 @@ function feeds_ui_remove_plugin($args) {
 }
 
 /**
- * Generate a form with a random, anonymous form_id. Use like drupal_get_form()
+ * Wrapper or drupal_get_form().
+ * 
+ * Generate a form with a unique, anonymous form_id. Use like drupal_get_form()
  * but build as many same forms on one page as you'd like AND submit them 
- * independently.
+ * independently. Make sure that forms that are being built with this wrapper
+ * declare their validation and submit handlers explicitely ($form['#validate']
+ * and $form['#submit']).
  * 
  * @see drupal_get_form()
  * @see feeds_ui_register_form()
