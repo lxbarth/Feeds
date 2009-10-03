@@ -326,10 +326,11 @@ function feeds_ui_get_form($form_callback) {
 }
 
 /**
- * Toggle form: has one button that fires an action. 
+ * Form that has one button that fires an action. 
+ * 
  * Use together with feeds_ui_get_form for using multiple times on one page.
  * 
- * $output = feeds_ui_get_form('feeds_ui_button_form', 'call_back_func', $param, t('Select'));
+ * $output = feeds_ui_get_form('feeds_ui_button_form', t('Select'), 'call_back_func', $param);
  * 
  * @param $form_state
  *   Form API form state. 
