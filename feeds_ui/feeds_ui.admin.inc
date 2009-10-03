@@ -217,6 +217,10 @@ function feeds_ui_edit_page($feed, $active = 'help', $plugin_key = '') {
 /**
  * Helper for building a list of plugins of a specific type.
  * 
+ * @todo: this code may be able to simplify by creating a better API on Feed class for
+ * manipulating fetcher/parser/processor plugins. Right now we always need to know which
+ * type of plugin we are manipulating which creates a lot of awkward code.
+ * 
  * @param $feed
  *   Feed object.
  * @param $type
@@ -236,7 +240,6 @@ function _feeds_ui_list_plugins_by_type($feed, $type, $selected, $multiple = FAL
     $actions = array();
     if (in_array($key, $selected)) {
       if ($multiple) {
-        // $actions = array(_feeds_ui_get_select_form($feed, $plugin['handler']['class'], 'remove'));
         $param = array(
           'feed_id' => $feed->id, 
           'plugin_key' => $key,
@@ -245,7 +248,6 @@ function _feeds_ui_list_plugins_by_type($feed, $type, $selected, $multiple = FAL
       }
     }
     else {
-      // $actions = array(_feeds_ui_get_select_form($feed, $plugin['handler']['class'], 'select'));
       $param = array(
         'feed_id' => $feed->id, 
         'plugin_key' => $key,
@@ -293,23 +295,6 @@ function feeds_ui_remove_plugin($args) {
     $feed->removeProcessor($plugin_key);
     $feed->save();
   }
-}
-
-/**
- * Helper for getting a feeds_ui_select_form().
- * 
- * @param $feed
- *   A Feed object.
- * @param $plugin_key
- *   A string that identifies a Feeds plugin.
- * @param $action
- *   Either 'select' or 'remove'. 
- * 
- * @return 
- *   A rendered form.
- */
-function _feeds_ui_get_select_form($feed, $plugin_key, $action) {
-  return drupal_get_form($plugin_key .'_feeds_ui_select_form', $feed, $plugin_key, $action);
 }
 
 /**
@@ -371,57 +356,6 @@ function feeds_ui_button_form_submit($form, &$form_state) {
     $callback = $form['#button_callback'];
     $param = $form['#callback_param'];
     $callback($param);
-  }
-}
-
-/**
- * Form callback for selecting a plugin on a feed.
- */
-function feeds_ui_select_form(&$form_state, $feed, $plugin_key, $action = 'select') {
-  $form = array();
-  $form['#feed'] = $feed;
-  $form['#plugin_key'] = $plugin_key;
-  $form['#submit'] = array('feeds_ui_select_form_submit');
-  if ($action == 'remove') {
-    $form['remove'] = array(
-      '#type' => 'submit',
-      '#value' => t('Remove'),
-    );
-  }
-  else {
-    $form['select'] = array(
-      '#type' => 'submit',
-      '#value' => t('Select'),
-    );
-  }
-  return $form;
-}
-
-/**
- * Submit handler for feeds_ui_select_form().
- */
-function feeds_ui_select_form_submit($form, &$form_state) {
-  $plugin_key = $form['#plugin_key'];
-  $feed = $form['#feed'];
-  if (isset($form['select'])) {
-    if (feeds_plugin_child($plugin_key, 'FeedsFetcher')) {
-      $feed->setFetcher($plugin_key);
-      $feed->save();
-    }
-    elseif (feeds_plugin_child($plugin_key, 'FeedsParser')) {
-      $feed->setParser($plugin_key);
-      $feed->save();
-    }
-    elseif (feeds_plugin_child($plugin_key, 'FeedsProcessor')) {
-      $feed->addProcessor($plugin_key);
-      $feed->save();
-    }    
-  }
-  elseif (isset($form['remove'])) {
-    if (feeds_plugin_child($plugin_key, 'FeedsProcessor')) {
-      $feed->removeProcessor($plugin_key);
-      $feed->save();
-    }
   }
 }
 
