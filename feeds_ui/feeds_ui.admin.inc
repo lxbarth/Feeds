@@ -230,23 +230,27 @@ function _feeds_ui_list_plugins_by_type($feed, $type, $selected, $multiple = FAL
   $plugins = feeds_get_plugins_by_type();
   $plugins = $plugins[$type];
 
-  if ($multiple) {
-    
-  }
-  
   $containers = array();
   foreach ($plugins as $key => $plugin) {
 
     $actions = array();
     if (in_array($key, $selected)) {
       if ($multiple) {
-        $actions = array(_feeds_ui_get_select_form($feed, $plugin['handler']['class'], 'remove'));
-        // $actions = feeds_ui_get_form('feeds_ui_remove', $feed->id, array($plugin['handler']['class']), t('Remove'));
+        // $actions = array(_feeds_ui_get_select_form($feed, $plugin['handler']['class'], 'remove'));
+        $param = array(
+          'feed_id' => $feed->id, 
+          'plugin_key' => $key,
+        );
+        $actions = array(feeds_ui_get_form('feeds_ui_button_form', t('Remove'), 'feeds_ui_remove_plugin', $param));
       }
     }
     else {
-      $actions = array(_feeds_ui_get_select_form($feed, $plugin['handler']['class'], 'select'));
-      // $actions = feeds_ui_get_form('feeds_ui_select', $feed->id, array($plugin['handler']['class']), t('Select'));
+      // $actions = array(_feeds_ui_get_select_form($feed, $plugin['handler']['class'], 'select'));
+      $param = array(
+        'feed_id' => $feed->id, 
+        'plugin_key' => $key,
+      );
+      $actions = array(feeds_ui_get_form('feeds_ui_button_form', t('Select'), 'feeds_ui_select_plugin', $param));
     }
     $containers[] = array(
       'title' => $plugin['name'],
@@ -255,6 +259,40 @@ function _feeds_ui_list_plugins_by_type($feed, $type, $selected, $multiple = FAL
     );
   }
   return $containers;
+}
+
+/**
+ * Select callback, helper for _feeds_ui_list_plugins_by_type().
+ */
+function feeds_ui_select_plugin($args) {
+  $plugin_key = $args['plugin_key'];
+  $feed = feeds_instance('Feed', $args['feed_id']);
+
+  if (feeds_plugin_child($plugin_key, 'FeedsFetcher')) {
+    $feed->setFetcher($plugin_key);
+    $feed->save();
+  }
+  elseif (feeds_plugin_child($plugin_key, 'FeedsParser')) {
+    $feed->setParser($plugin_key);
+    $feed->save();
+  }
+  elseif (feeds_plugin_child($plugin_key, 'FeedsProcessor')) {
+    $feed->addProcessor($plugin_key);
+    $feed->save();
+  }
+}
+
+/**
+ * Remove callback, helper for _feeds_ui_list_plugins_by_type().
+ */
+function feeds_ui_remove_plugin($args) {
+  $plugin_key = $args['plugin_key'];
+  $feed = feeds_instance('Feed', $args['feed_id']);
+
+  if (feeds_plugin_child($plugin_key, 'FeedsProcessor')) {
+    $feed->removeProcessor($plugin_key);
+    $feed->save();
+  }
 }
 
 /**
@@ -275,37 +313,65 @@ function _feeds_ui_get_select_form($feed, $plugin_key, $action) {
 }
 
 /**
- * Dynamic form callback. 
+ * Generate a form with a random, anonymous form_id. Use like drupal_get_form()
+ * but build as many same forms on one page as you'd like AND submit them 
+ * independently.
+ * 
+ * @see drupal_get_form()
+ * @see feeds_ui_register_form()
  * 
  * @param $form_callback
  *   Form callback for this form.
  * @param ... Parameters to pass into form
- * 
- * feeds_ui_get_toggle_form('add_processor', $feed->id, array('FeedsNodeProcessor'), t('Select'))
  */
-function feeds_ui_get_form($args) {
-  $form_callback = array_shift($args);
-  $form_id = array_shift($args);
-  // Registering the form id and the form callback handler exposes it to FormAPI.
-  feeds_ui_register_form($form_id, $form_callback);
-  
-  return call_user_func_aray('drupal_get_form', $args);
+function feeds_ui_get_form($form_callback) {
+  $args = func_get_args();
+  array_shift($args);
+
+  // Register the form callback generates a random id and exposes the form id to FormAPI.
+  $form_id = feeds_ui_register_form($form_callback);
+  array_unshift($args, $form_id);
+
+  // Build form with drupal_get_form().
+  return call_user_func_array('drupal_get_form', $args);
 }
 
 /**
- * Build a toggle form.
+ * Toggle form: has one button that fires an action. 
+ * Use together with feeds_ui_get_form for using multiple times on one page.
+ * 
+ * $output = feeds_ui_get_form('feeds_ui_button_form', 'call_back_func', $param, t('Select'));
+ * 
+ * @param $form_state
+ *   Form API form state. 
+ * @param $label
+ *   Label on the button.
+ * @param $callback 
+ *   Callback to invoke when button is pushed.
+ * @param $param
+ *   Parameter to pass to callback.
  */
-function feeds_ui_form_wrapper(&$form_state, $form_callback) {
-  $form = $form_callback(&$form_state);
-  $form['#submit'] = array('feeds_ui_form_wrapper_submit');
+function feeds_ui_button_form(&$form_state, $label, $callback, $param) {
+  $form = array();
+  $form['#button_callback'] = $callback;
+  $form['#callback_param'] = $param;
+  $form['#submit'] = array('feeds_ui_button_form_submit');
+  $form['submit'] = array(
+    '#type' => 'submit',
+    '#value' => $label,
+  );
   return $form;
 }
 
 /**
- * Submit handler for feeds_ui_form_wrapper().
+ * Submit handler for feeds_ui_button_form().
  */
-function feeds_ui_form_wrapper_submit($form, &$form_state) {
-  
+function feeds_ui_button_form_submit($form, &$form_state) {
+  if (isset($form['#button_callback'])) {
+    $callback = $form['#button_callback'];
+    $param = $form['#callback_param'];
+    $callback($param);
+  }
 }
 
 /**

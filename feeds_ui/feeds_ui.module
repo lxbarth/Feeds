@@ -10,7 +10,7 @@
 function feeds_ui_help($path, $arg) {
   switch ($path) {
     case 'admin/build/feeds':
-      $output = '<p>'. t('Configure one or more feeds to import content into Drupal. You can use these feed configurations directly here or - if you attach them to a content type - simply by creating a node from that content type.') .'</p>';
+      $output = '<p>'. t('Configure one or more feeds to import content into Drupal. You can use these configurations from the !import_page or - if you attach them to a content type - simply by creating a node from that content type.', array('!import_page' => l(t('Import content page'), 'import'))) .'</p>';
       return $output;
     case 'admin/content/feeds':
       $output = '<p>'. t('Import content into Drupal.') .'</p>';
@@ -30,13 +30,18 @@ function feeds_ui_menu() {
     'access arguments' => array('administer feeds'),
     'file' => 'feeds_ui.admin.inc',
   );
+  $items['admin/build/feeds/list'] = array(
+    'title' => t('List'),
+    'type' => MENU_DEFAULT_LOCAL_TASK,
+  );
   $items['admin/build/feeds/create'] = array(
-    'title' => t('Create feed configuration'),
+    'title' => t('New configuration'),
     'page callback' => 'drupal_get_form',
     'page arguments' => array('feeds_ui_create_form'),
     'access arguments' => array('administer feeds'),
     'file' => 'feeds_ui.admin.inc',
-    'type' => MENU_CALLBACK,
+    'type' => MENU_LOCAL_TASK,
+    'weight' => 1,
   );
   $items['admin/build/feeds/edit/%feeds'] = array(
     'title callback' => 'feed_ui_title',
@@ -46,11 +51,7 @@ function feeds_ui_menu() {
     'access arguments' => array('administer feeds'),
     'file' => 'feeds_ui.admin.inc',
     'type' => MENU_CALLBACK,
-    'weight' => 1,
-  );
-  $items['admin/build/feeds/edit/%feeds/edit'] = array(
-    'title' => t('Basic'),
-    'type' => MENU_DEFAULT_LOCAL_TASK,
+    'weight' => 2,
   );
   $items['admin/build/feeds/delete/%feeds'] = array(
     'title' => t('Delete configuration'),
@@ -105,10 +106,19 @@ function feed_ui_title($feed) {
 /**
  * Register a form_id/callback tuple for later exposure via hook_forms().
  */
-function feeds_ui_register_form($form_id = NULL, $callback = NULL) {
+function feeds_ui_register_form($form_callback = NULL) {
   static $registered = array();
-  if ($form_id && $callback) {
-    $registered[$callback]['callback'] = $form_id;
+  static $count = 0;
+
+  if ($form_callback) {
+
+    while (TRUE) {
+      $callback = $form_callback .'_'. ($count++);
+      if (!isset($registered[$callback])) {
+        $registered[$callback]['callback'] = $form_callback;
+        return $callback;
+      }
+    }
   }
   return $registered;
 }
