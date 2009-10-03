@@ -70,7 +70,6 @@ function feeds_ui_menu() {
 function feeds_ui_theme() {
   return array(
     'feeds_ui_mapping_form' => array(
-      'arguments' => array('form'),
       'file' => 'feeds_ui.admin.inc',
     ),
     'feeds_ui_edit_page' => array(

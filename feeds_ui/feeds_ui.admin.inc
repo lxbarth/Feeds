@@ -229,6 +229,9 @@ function feeds_ui_edit_page($feed, $active = 'help', $plugin_key = '') {
  *   The plugin(s) that are currently selected.
  * @param $multiple
  *   If TRUE, allow multiple choice.
+ * 
+ * @return 
+ *   An array themeable by theme_feeds_ui_container().
  */
 function _feeds_ui_list_plugins_by_type($feed, $type, $selected, $multiple = FALSE) {
   $plugins = feeds_get_plugins_by_type();
@@ -381,7 +384,12 @@ function feeds_ui_mapping_form(&$form_state, $feed, $processor) {
   $mappings = $processor->getMappings();
   $targets = $processor->getMappingTargets();
 
+  foreach ($mappings as $k => $v) {
+    $mappings[$k]['unique'] = feeds_ui_get_form('feeds_ui_button_form', t('Yes'), 'feeds_ui_toggle_unique', array());
+    $mappings[$k]['remove'] = feeds_ui_get_form('feeds_ui_button_form', t('Remove'), 'feeds_ui_remove_mapping', array());
+  }
   $form['#mappings'] = $mappings;
+
   $form['#targets'] = $targets;
   if ($sources) {
     $form['source'] = array(
@@ -419,7 +427,7 @@ function feeds_ui_mapping_form_submit($form, &$form_state) {
 }
 
 /**
- * Delete form.
+ * Delete configuration form.
  */
 function feeds_ui_delete_form(&$form_state, $feed) {
   $form['#redirect'] = 'admin/build/feeds';
@@ -542,8 +550,8 @@ function theme_feeds_ui_mapping_form($form) {
       $rows[] = array(
         $mapping['source'],
         $target,
-        '@todo',
-        '@todo',
+        $mapping['unique'],
+        $mapping['remove'],
       ); 
     }
   }
