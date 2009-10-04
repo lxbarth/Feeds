@@ -520,14 +520,3 @@ function _parser_common_syndication_title($title, $body = FALSE) {
   }
   return $title;
 }
-
-/**
- * Decides if it's possible to use cURL or not.
- *
- * @return
- *   TRUE if curl is available, FALSE otherwise.
- */
-function _parser_common_syndication_use_curl() {
-  $basedir = ini_get("open_basedir");
-  return function_exists('curl_init') && !ini_get('safe_mode') && empty($basedir);
-}
