@@ -16,7 +16,7 @@
  * @return
  *  string - the downloaded data, FALSE - if the URL is not reachable
  */
-function http_get_common_syndication($url, $settings = NULL) {
+function http_request_get_common_syndication($url, $settings = NULL) {
   if (valid_url($url, TRUE)) {
     // Handle password protected feeds.
     $url_parts = parse_url($url);
@@ -28,7 +28,7 @@ function http_get_common_syndication($url, $settings = NULL) {
   }
 
   $accept_invalid_cert = isset($settings['accept_invalid_cert']) ? $settings['accept_invalid_cert'] : FALSE;
-  $downloaded_string = http_get($url, $username, $password, $accept_invalid_cert);
+  $downloaded_string = http_request_get($url, $username, $password, $accept_invalid_cert);
 
   // Cannot get the feed, pass the problem to one level up.
   if ($downloaded_string == FALSE) {
@@ -75,7 +75,7 @@ function http_get_common_syndication($url, $settings = NULL) {
               $rss_link = $original_url['scheme'] .'://'. $original_url['host'] . (isset($original_url['port']) ? ':' : '') . $original_url['port'] . $parsed_url['path'] .'?'. $parsed_url['query']  .'#'. $parsed_url['fragment'];
             }
           }
-          $downloaded_string = http_get_common_syndication($rss_link);
+          $downloaded_string = http_request_get_common_syndication($rss_link);
           break;
         }
       }
@@ -101,14 +101,14 @@ function http_get_common_syndication($url, $settings = NULL) {
  * @return
  *  The data pulled from the URL or FALSE if the feed does not need refresh.
  */
-function http_get($url, $username = NULL, $password = NULL, $accept_invalid_cert = FALSE) {
+function http_request_get($url, $username = NULL, $password = NULL, $accept_invalid_cert = FALSE) {
   // Intra-pagedownload cache, avoid to download the same content twice within one page download (it's possible, compatible and parse calls).
   static $download_cache = array();
   if (isset($download_cache[$url])) {
     return $download_cache[$url];
   }
   $has_etag = FALSE;
-  $curl = http_get_use_curl();
+  $curl = http_request_use_curl();
 
   // Only download and parse data if really needs refresh.
   // Based on "Last-Modified" and "If-Modified-Since".
@@ -182,7 +182,7 @@ function http_get($url, $username = NULL, $password = NULL, $accept_invalid_cert
   $result->code = isset($result->code) ? $result->code : 200;
   // In this case return the cached data.
   if ($result->code == 304) {
-    $cached_data = http_get($url);
+    $cached_data = http_request_cache_get($url);
     if (is_object($cached_data)) {
       $cached_data->from_cache = TRUE;
       return $cached_data;
@@ -191,7 +191,7 @@ function http_get($url, $username = NULL, $password = NULL, $accept_invalid_cert
       // It's a tragedy, this file must exist and contain good data.
       // In this case, clear cache and repeat.
       cache_clear_all('feeds_http_download_'. md5($url));
-      return http_get($url, $username, $password);
+      return http_request_get($url, $username, $password);
     }
   }
 
@@ -218,7 +218,46 @@ function http_get($url, $username = NULL, $password = NULL, $accept_invalid_cert
  * @return
  *   TRUE if curl is available, FALSE otherwise.
  */
-function http_get_use_curl() {
+function http_request_use_curl() {
   $basedir = ini_get("open_basedir");
   return function_exists('curl_init') && !ini_get('safe_mode') && empty($basedir);
+}
+
+/**
+ * Get the cached version of the <var>$url</var>
+ */
+function http_request_cache_get($url) {
+  $cache_file = http_request_sanitize_cache() .'/'. md5($url);
+  if (file_exists($cache_file)) {
+    $file_content = file_get_contents($cache_file);
+    return unserialize($file_content);
+  }
+  return FALSE;
+}
+
+/**
+ * Store the parsed feed into the cache
+ */
+function http_request_cache_set($url, $parsed_feed) {
+  $cache_file = http_request_sanitize_cache() .'/'. md5($url);
+  $cache_fp = fopen($cache_file, 'w');
+  fwrite($cache_fp, serialize($parsed_feed));
+  fclose($cache_fp);
+}
+
+/**
+ * Set the default caching directory if the current setting is not useable
+ */
+function http_request_sanitize_cache() {
+  $cache_location = file_directory_path() .'/parser_common_syndication_cache';
+  if (!is_writeable($cache_location) || !is_dir($cache_location)) {
+    $cache_location = file_create_path($cache_location);
+    if (!file_exists($cache_location) && is_writable(file_directory_path())) {
+      mkdir($cache_location);
+    }
+    if (!is_writeable($cache_location)) {
+      return FALSE;
+    }
+  }
+  return $cache_location;
 }
