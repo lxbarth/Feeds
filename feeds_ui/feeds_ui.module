@@ -115,7 +115,7 @@ function feed_ui_title($feed) {
  */
 function feeds_ui_register_form($form_callback = NULL) {
   static $registered = array();
-  static $count = 0;
+  static $count = 1;
 
   if ($form_callback) {
 

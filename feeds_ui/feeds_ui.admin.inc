@@ -370,26 +370,29 @@ function feeds_ui_button_form_submit($form, &$form_state) {
 /**
  * Edit mapping.
  */
-function feeds_ui_mapping_form(&$form_state, $feed, $processor) {
-  drupal_add_js(drupal_get_path('module', 'feeds_ui') .'/feeds_ui.js');
+function feeds_ui_mapping_form(&$form_state, $feed, $processor_key) {
+  $processor = $feed->processors[$processor_key];
 
   $form = array();
   $form['#feed'] = $feed;
+  $form['#processor'] = $processor;
 
-  // Build a mapping form for each processor configured.
-  $sources = $feed->parser->getMappingSources();
-  $processor = $feed->processors[$processor];
-
-  // @todo: move actual form building into processors?
-  $mappings = $processor->getMappings();
+  // Get mapping sources from parsers and targets from processor.
   $targets = $processor->getMappingTargets();
+  $sources = $feed->parser->getMappingSources();
 
-  foreach ($mappings as $k => $v) {
-    $mappings[$k]['unique'] = feeds_ui_get_form('feeds_ui_button_form', t('Yes'), 'feeds_ui_toggle_unique', array());
-    $mappings[$k]['remove'] = feeds_ui_get_form('feeds_ui_button_form', t('Remove'), 'feeds_ui_remove_mapping', array());
+  // Add unique and remove forms to mappings.
+  $mappings = $processor->getMappings();
+  foreach ($mappings as $k => $mapping) {
+    $param = array(
+      'processor' => $processor, 
+      'mapping' => $mapping,
+    );
+    $mappings[$k]['unique'] = feeds_ui_get_form('feeds_ui_button_form', $mapping['unique'] ? t('Yes') : t('No'), 'feeds_ui_toggle_unique', $param);
+    $mappings[$k]['remove'] = feeds_ui_get_form('feeds_ui_button_form', t('Remove'), 'feeds_ui_remove_mapping', $param);
   }
-  $form['#mappings'] = $mappings;
 
+  $form['#mappings'] = $mappings;
   $form['#targets'] = $targets;
   if ($sources) {
     $form['source'] = array(
@@ -398,6 +401,7 @@ function feeds_ui_mapping_form(&$form_state, $feed, $processor) {
     );
   }
   else {
+    drupal_add_js(drupal_get_path('module', 'feeds_ui') .'/feeds_ui.js');
     $form['source'] = array(
       '#type' => 'textfield',
       '#size' => 20,
@@ -420,14 +424,33 @@ function feeds_ui_mapping_form(&$form_state, $feed, $processor) {
  * Submit handler for feeds_ui_mapping_form().
  */
 function feeds_ui_mapping_form_submit($form, &$form_state) {
-  foreach ($form['#feed']->processors as $class => $processor) {
-    $processor->addMapping($form_state['values']['source'], $form_state['values']['target']);
-    $processor->save();
-  }
+  $processor = $form['#processor'];
+  $processor->addMapping($form_state['values']['source'], $form_state['values']['target']);
+  $processor->save();
+}
+
+/**
+ * Toggle unique callback for mapping form.
+ */
+function feeds_ui_toggle_unique($args) {
+  $processor = $args['processor'];
+  $processor->setUnique($args['mapping']['source'], $args['mapping']['target'], !$args['mapping']['unique']);
+  $processor->save();
+}
+
+/**
+ * Remove callback for mapping form.
+ */
+function feeds_ui_remove_mapping($args) {
+  $processor = $args['processor'];
+  $processor->removeMapping($args['mapping']['source'], $args['mapping']['target']);
+  $processor->save();
 }
 
 /**
  * Delete configuration form.
+ * 
+ * @todo: move up under create form.
  */
 function feeds_ui_delete_form(&$form_state, $feed) {
   $form['#redirect'] = 'admin/build/feeds';
@@ -451,6 +474,7 @@ function feeds_ui_delete_form_submit($form, &$form_state) {
  * Contextual help for build/edit page.
  * 
  * @todo: Write.
+ * @todo: Move up closer to edit page callback.
  */
 function feeds_ui_edit_help() {
   return 'Every feed must have at least one fetcher, parser and processor.';
@@ -470,14 +494,14 @@ function theme_feeds_ui_edit_page($config_info, $active_container) {
   foreach ($config_info as $info) {
     $output .= theme('feeds_ui_container', $info);
   }
-  $output .= '</div>'; // '<div class="left-bar">'
+  $output .= '</div>';
 
   // Build configuration space.
   $output .= '<div class="configuration">';
   $output .= '<div class="configuration-squeeze">';
   $output .= theme('feeds_ui_container', $active_container);
-  $output .= '</div>'; // '<div class="configuration-squeeze">'
-  $output .= '</div>'; // '<div class="configuration">'
+  $output .= '</div>';
+  $output .= '</div>';
 
   $output .= '</div>'; // ''<div class="feeds-settings">';
 
@@ -536,7 +560,7 @@ function theme_feeds_ui_container($container) {
  * Theme function for feeds_ui_mapping_form().
  */
 function theme_feeds_ui_mapping_form($form) {
-  $output = '';
+
   $header = array(
     t('Source'),
     t('Target'),
@@ -546,11 +570,12 @@ function theme_feeds_ui_mapping_form($form) {
 
   $rows = array();
   if (is_array($form['#mappings'])) {
-    foreach ($form['#mappings'] as $target => $mapping) {
+    foreach ($form['#mappings'] as $mapping) {
       $rows[] = array(
         $mapping['source'],
-        $target,
-        $mapping['unique'],
+        $mapping['target'],
+        // @todo: only second form renders correctly. FIX.
+        '<div style="display:none">'. $mapping['unique'] .'</div>'. $mapping['unique'],
         $mapping['remove'],
       ); 
     }
@@ -569,8 +594,7 @@ function theme_feeds_ui_mapping_form($form) {
     '',
     drupal_render($form['add']),
   );
-  $form['#value'] = theme('table', $header, $rows);
-
+  $output = theme('table', $header, $rows);
   $output .= drupal_render($form);
   return $output;
 }

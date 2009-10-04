@@ -238,6 +238,10 @@ class Feed extends FeedsConfigurable {
 
 /**
  * Base class for configurable, peristent objects.
+ * 
+ * Note: setters don't save results. A configurable can be used without actually creating
+ * a record in the database. Only when save() is being called, a configurable is being
+ * written to the database. Thus configurables can be used as temporary objects.
  */
 class FeedsConfigurable {
   protected $config;

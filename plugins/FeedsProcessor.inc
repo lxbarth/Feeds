@@ -33,20 +33,38 @@ abstract class FeedsProcessor extends FeedsConfigurable {
   /**
    * Add a mapping to existing mappings.
    */
-  public function addMapping($source, $target, $unique = NULL) {
+  public function addMapping($source, $target, $unique = FALSE) {
     if (!empty($source) && !empty($target)) {
-      $this->config['mappings'][$target] = array(
+      $this->config['mappings'][] = array(
         'source' => $source,
+        'target' => $target,
         'unique' => $unique,
       );
     }
   }
 
   /**
+   * Set unique state of a mapping target.
+   */
+  public function setUnique($source, $target, $unique) {
+    if (!empty($source) && !empty($target)) {
+      foreach ($this->config['mappings'] as $k => $mapping) {
+        if ($mapping['source'] == $source && $mapping['target'] == $target) {
+          $this->config['mappings'][$k]['unique'] = $unique;
+        }
+      }
+    }
+  }
+
+  /**
    * Remove a mapping.
    */
-  public function removeMapping($target) {
-    unset($this->config['mappings'][$target]);
+  public function removeMapping($source, $target) {
+    foreach ($this->config['mappings'] as $k => $mapping) {
+      if ($mapping['source'] == $source && $mapping['target'] == $target) {
+        unset($this->config['mappings'][$k]);
+      }
+    }
   }
 
   /**
