@@ -233,7 +233,7 @@ function feeds_nodeapi($node, $op) {
     case 'insert':
     case 'update':
       if ($feed = feeds_get_by_content_type($node->type)) {
-        // Node magically moved $form['feeds'] to $node->feeds.
+        // Node module magically moved $form['feeds'] to $node->feeds.
         $feed->fetcher->saveSource($node->feeds, $node->nid);
         $feed->import();
       }
