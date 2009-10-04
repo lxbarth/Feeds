@@ -86,7 +86,7 @@ function feeds_ui_create_form_validate($form, &$form_state) {
   if (ctools_export_load_object('feeds_config', 'conditions', array('id' => $form_state['values']['id'], 'class' => 'Feed'))) {
     form_set_error('id', t('Id is taken.'));
   }
-  $feed->configFormValidate($form, &$form_state);
+  $feed->configFormValidate($form, $form_state);
 }
 
 /**

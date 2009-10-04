@@ -424,12 +424,12 @@ function feeds_config_form(&$form_state, $configurable) {
  * Validation handler for feeds_config_form().
  */
 function feeds_config_form_validate($form, &$form_state) {
-  $form['#configurable']->configFormValidate($form, &$form_state);
+  $form['#configurable']->configFormValidate($form, $form_state);
 }
 
 /**
  * Submit handler for feeds_config_form().
  */
 function feeds_config_form_submit($form, &$form_state) {
-  $form['#configurable']->configFormSubmit($form, &$form_state);
+  $form['#configurable']->configFormSubmit($form, $form_state);
 }
