@@ -24,7 +24,9 @@ class FeedsCSVParser extends FeedsParser {
     $parser = new ParserCSV();
     $parser->setDelimiter($this->config['delimiter']);
     $parser->setSkipFirstLine(FALSE);
-    $result = $parser->parse($iterator);
+    $result = array(
+      'items' => $parser->parse($iterator),
+    );
     return new FeedsParserResult($result);
   }
 

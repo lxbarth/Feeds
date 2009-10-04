@@ -43,8 +43,25 @@ abstract class FeedsParser extends FeedsConfigurable {
    * @return 
    *   An array of mapping sources, or FALSE if the sources can be defined by typing a value
    *   in a text field.
+   * 
+   *   Example:
+   *   array(
+   *     'title',
+   *     'published',
+   *     'url',
+   *     'guid',
+   *   )
    */
   public function getMappingSources() {
     return FALSE;
+  }
+
+  /**
+   * Get an element identified by $element_key of the given item.
+   * The element key corresponds to the values in the array returned by 
+   * FeedsParser::getMappingSources().
+   */
+  public function getSourceElement($item, $element_key) {
+    return $item[$element_key];
   }
 }

@@ -91,8 +91,24 @@ abstract class FeedsProcessor extends FeedsConfigurable {
   /**
    * Execute mapping on an item.
    */
-  public function map($item) {
-    // @todo.
+  public function map($source_item, $target_item = NULL) {
+    $parser = feeds_instance('Feed', $this->id)->parser;
+    if (empty($target_item)) {
+      $target_item = array();
+    }
+
+    foreach ($this->config['mappings'] as $mapping) {
+      $value = $parser->getSourceElement($source_item, $mapping['sources']);
+      $this->setTargetElement($target_item, $mapping['target'], $value);
+    }
+    return $target_item;
+  }
+
+  /**
+   * Set target element.
+   */
+  public function setTargetElement(&$target_item, $target_element, $value) {
+    $target_item[$target_element] = $value;
   }
 
   /**

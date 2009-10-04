@@ -15,12 +15,12 @@ class FeedsNodeProcessor extends FeedsProcessor {
    */
   function process(FeedsParserResult $parserResult, $nid = NULL) {
     if ($parser_result->type == 'simple') {
-      foreach ($parser_result->value as $value) {
-        // @todo
-      }
     }
     elseif ($parser_result->type == 'syndication') {
-      // @todo
+    }
+    foreach ($parser_result->value['items'] as $item) {
+      $node = $this->map($item);
+      dsm($node);
     }
   }
 
@@ -56,18 +56,31 @@ class FeedsNodeProcessor extends FeedsProcessor {
   }
 
   /**
-   * Map.
+   * Execute mapping on an item.
    */
-  function map($source_item, $target_item, $source_element, $target_element) {
-    
+  public function map($source_item) {
+    // Prepare node object.
+    $target_node = new stdClass();
+    $target_node->type = $this->config['content_type'];
+    node_object_prepare($target_node);
+
+    // Have parent class do the iterating.
+    return parent::map($source_item, $target_node);
   }
 
+  /**
+   * Override setTargetElement to operate on a target item that is a node.
+   */
+  public function setTargetElement($target_node, $target_element, $value) {
+    $target_node->$target_element = $value;
+  }
+  
   /**
    * Override parent::getDefaultConfig().
    */
   public function getDefaultConfig() {
     $types = node_get_types('names');
-    return array('content_type' => key($types));
+    return array('content_type' => key($types), 'update_existing' => FALSE);
   }
 
   /**
@@ -82,6 +95,12 @@ class FeedsNodeProcessor extends FeedsProcessor {
       '#description' => t('Choose node type to create from this feed.'),
       '#options' => $types,
       '#default_value' => $this->config['content_type'],
+    );
+    $form['update_existing'] = array(
+      '#type' => 'checkbox',
+      '#title' => t('Update existing items'),
+      '#description' => t('Check if existing items should be updated from the feed.'),
+      '#default_value' => $this->config['update_existing'],
     );
     return $form;
   }
