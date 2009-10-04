@@ -2,6 +2,7 @@
 // $Id: feeds_ui.admin.inc,v 1.14 2009/09/21 14:55:47 alexb Exp $
 /**
  * @file
+ * Contains all page callbacks, forms and theming functions for Feeds administrative pages.
  */
 
 /**
