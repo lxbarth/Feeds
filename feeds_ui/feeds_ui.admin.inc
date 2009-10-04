@@ -32,6 +32,7 @@ function feeds_ui_overview_page() {
         $feed->config['name'],
         $type,
         l(t('Edit'), 'admin/build/feeds/edit/'. $feed->id) .' | '. 
+        l(t('Export'), 'admin/build/feeds/export/'. $feed->id) .' | '.
         l(t('Delete'), 'admin/build/feeds/delete/'. $feed->id),
       );
     }
@@ -123,6 +124,21 @@ function feeds_ui_delete_form(&$form_state, $feed) {
  */
 function feeds_ui_delete_form_submit($form, &$form_state) {
   feeds_delete($form['#feed']->id);
+}
+
+/**
+ * Export a feed configuration.
+ */
+function feeds_ui_export_form(&$form_state, $feed) {
+  $code = feeds_export($feed->id);
+
+  $form['export'] = array(
+    '#title' => t('Export feed configuration'),
+    '#type' => 'textarea',
+    '#value' => $code,
+    '#rows' => substr_count($code, "\n"),
+  );
+  return $form;
 }
 
 /**

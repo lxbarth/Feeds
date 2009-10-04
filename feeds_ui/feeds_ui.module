@@ -43,6 +43,15 @@ function feeds_ui_menu() {
     'type' => MENU_LOCAL_TASK,
     'weight' => 1,
   );
+  $items['admin/build/feeds/export/%feeds'] = array(
+    'title callback' => 'feed_ui_title',
+    'title arguments' => array(4),
+    'page callback' => 'drupal_get_form',
+    'page arguments' => array('feeds_ui_export_form', 4),
+    'access arguments' => array('administer feeds'),
+    'file' => 'feeds_ui.admin.inc',
+    'type' => MENU_CALLBACK,
+  );
   $items['admin/build/feeds/edit/%feeds'] = array(
     'title callback' => 'feed_ui_title',
     'title arguments' => array(4),
@@ -51,7 +60,6 @@ function feeds_ui_menu() {
     'access arguments' => array('administer feeds'),
     'file' => 'feeds_ui.admin.inc',
     'type' => MENU_CALLBACK,
-    'weight' => 2,
   );
   $items['admin/build/feeds/delete/%feeds'] = array(
     'title' => t('Delete configuration'),

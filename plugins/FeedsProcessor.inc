@@ -65,6 +65,8 @@ abstract class FeedsProcessor extends FeedsConfigurable {
         unset($this->config['mappings'][$k]);
       }
     }
+    // Keep or keys clean.
+    $this->config['mappings'] = array_values($this->config['mappings']);
   }
 
   /**
