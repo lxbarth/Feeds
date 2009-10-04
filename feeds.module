@@ -431,11 +431,16 @@ function feeds_delete($id) {
 
 /**
  * Includes a feeds module include file.
+ * 
+ * @param $file 
+ *   The filename without the .inc extension.
+ * @param $directory
+ *   The feeds subdirectory the file resides in.
  */
-function feeds_include($file, $type = 'includes') {
+function feeds_include($file, $directory = 'includes') {
   static $included = array();
   if (!isset($included[$file])) {
-    require_once './' . drupal_get_path('module', 'feeds') . "/$type/$file.inc";
+    require_once './' . drupal_get_path('module', 'feeds') . "/$directory/$file.inc";
   }
 
   $included[$file] = TRUE;
