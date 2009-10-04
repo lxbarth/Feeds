@@ -6,6 +6,15 @@
  */
 
 /**
+ * Contextual help for build/edit page.
+ * 
+ * @todo: Write.
+ */
+function feeds_ui_edit_help() {
+  return 'Every feed must have at least one fetcher, parser and processor.';
+}
+
+/**
  * Build overview of available configurations.
  */
 function feeds_ui_overview_page() {
@@ -42,8 +51,6 @@ function feeds_ui_overview_page() {
 
 /**
  * Create a new configuration.
- * 
- * @todo: make this a multi-step once all forms are stabilized.
  */
 function feeds_ui_create_form(&$form_state) {
   drupal_add_js(drupal_get_path('module', 'feeds_ui') .'/feeds_ui.js');
@@ -150,7 +157,6 @@ function feeds_ui_edit_page($feed, $active = 'help', $plugin_key = '') {
       $active_container['body'] = _feeds_ui_list_plugins_by_type($feed, 'processor', $config['processors'], TRUE);
       break;
     case 'settings':
-      // @todo: Use central factory and simplify this.
       if ($plugin_key == 'Feed') {
         $active_container['title'] = t('Basic settings');
         $active_container['body'] = feeds_get_config_form($feed);
@@ -240,7 +246,7 @@ function feeds_ui_edit_page($feed, $active = 'help', $plugin_key = '') {
 /**
  * Helper for building a list of plugins of a specific type.
  * 
- * @todo: this code may be able to simplify by creating a better API on Feed class for
+ * @todo: this code may be simplified by creating a better API on Feed class for
  * manipulating fetcher/parser/processor plugins. Right now we always need to know which
  * type of plugin we are manipulating which creates a lot of awkward code.
  * 
@@ -470,16 +476,6 @@ function feeds_ui_remove_mapping($args) {
   $processor = $args['processor'];
   $processor->removeMapping($args['mapping']['source'], $args['mapping']['target']);
   $processor->save();
-}
-
-/**
- * Contextual help for build/edit page.
- * 
- * @todo: Write.
- * @todo: Move up closer to edit page callback.
- */
-function feeds_ui_edit_help() {
-  return 'Every feed must have at least one fetcher, parser and processor.';
 }
 
 /**
