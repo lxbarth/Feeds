@@ -3,7 +3,8 @@
 
 /**
  * @file
- *   Downloading and parsing functions for Common Syndication Parser
+ *   Downloading and parsing functions for Common Syndication Parser.
+ *   Pillaged from FeedAPI common syndication parser.
  */
 
 /**
@@ -518,4 +519,15 @@ function _parser_common_syndication_title($title, $body = FALSE) {
     $title = $words[0] .' '. $words[1] .' '. $words[2];
   }
   return $title;
+}
+
+/**
+ * Decides if it's possible to use cURL or not.
+ *
+ * @return
+ *   TRUE if curl is available, FALSE otherwise.
+ */
+function _parser_common_syndication_use_curl() {
+  $basedir = ini_get("open_basedir");
+  return function_exists('curl_init') && !ini_get('safe_mode') && empty($basedir);
 }
