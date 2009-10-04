@@ -33,4 +33,23 @@ Drupal.behaviors.feeds = function() {
   $('.hide-text-on-focus').focus(function() {
     $(this).val('');
   });
+
+  /**
+   * Replace form buttons on mapping form with check boxes and links.
+   * @see function feeds_ui_button_form() in feeds_ui.admin.inc
+   */
+  $(document).ready(function(){
+    // Hide the button and show a link instead.
+    $('input.feeds-ui-button').hide();
+    $('input.feeds-ui-button').each(function(i) {
+      $(this).after(
+        '<a href="#" class="feeds-ui-button-submit">' + $(this).val() + '</a>'
+      );
+    });
+
+    // Attach a click handler to the anchor tag that submits the form.
+    $('a.feeds-ui-button-submit').click(function() {
+      $(this).parent().parent('form').submit();
+    });
+  });
 };

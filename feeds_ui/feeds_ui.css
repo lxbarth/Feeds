@@ -1,5 +1,6 @@
 /* $Id$ */
 
+/* Feeds edit form layout. */
 div.feeds-settings {
   }
 div.left-bar {
@@ -16,6 +17,8 @@ div.configuration {
   div.configuration-squeeze {
     margin-left: 250px;
     }
+
+/* Container theming. */
 div.feeds-container {
   }
 div.feeds-container h4 {
@@ -49,3 +52,8 @@ div.feeds-container.plain {
         margin: 0;
         display: inline;
         }
+
+/* Mapping form. */
+#center table form {
+  margin: 0;
+  }

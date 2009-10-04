@@ -276,7 +276,7 @@ function _feeds_ui_list_plugins_by_type($feed, $type, $selected, $multiple = FAL
           'feed_id' => $feed->id, 
           'plugin_key' => $key,
         );
-        $actions = array(feeds_ui_get_form('feeds_ui_button_form', t('Remove'), 'feeds_ui_remove_plugin', $param));
+        $actions = array(feeds_ui_get_form('feeds_ui_button_form', 'Remove', 'feeds_ui_remove_plugin', $param));
       }
     }
     else {
@@ -284,7 +284,7 @@ function _feeds_ui_list_plugins_by_type($feed, $type, $selected, $multiple = FAL
         'feed_id' => $feed->id, 
         'plugin_key' => $key,
       );
-      $actions = array(feeds_ui_get_form('feeds_ui_button_form', t('Select'), 'feeds_ui_select_plugin', $param));
+      $actions = array(feeds_ui_get_form('feeds_ui_button_form', 'Select', 'feeds_ui_select_plugin', $param));
     }
     $containers[] = array(
       'title' => $plugin['name'],
@@ -362,12 +362,12 @@ function feeds_ui_get_form($form_callback) {
  * 
  * Use together with feeds_ui_get_form for using multiple times on one page.
  * 
- * $output = feeds_ui_get_form('feeds_ui_button_form', t('Select'), 'call_back_func', $param);
+ * $output = feeds_ui_get_form('feeds_ui_button_form', 'Select', 'call_back_func', $param);
  * 
  * @param $form_state
  *   Form API form state. 
  * @param $label
- *   Label on the button.
+ *   Label on the button. Don't wrap in t().
  * @param $callback 
  *   Callback to invoke when button is pushed.
  * @param $param
@@ -380,7 +380,8 @@ function feeds_ui_button_form(&$form_state, $label, $callback, $param) {
   $form['#submit'] = array('feeds_ui_button_form_submit');
   $form['submit'] = array(
     '#type' => 'submit',
-    '#value' => $label,
+    '#value' => t($label),
+    '#attributes' => array('class' => 'feeds-ui-button'),
   );
   return $form;
 }
@@ -400,6 +401,7 @@ function feeds_ui_button_form_submit($form, &$form_state) {
  * Edit mapping.
  */
 function feeds_ui_mapping_form(&$form_state, $feed, $processor_key) {
+  drupal_add_js(drupal_get_path('module', 'feeds_ui') .'/feeds_ui.js');
   $processor = $feed->processors[$processor_key];
 
   $form = array();
@@ -407,19 +409,21 @@ function feeds_ui_mapping_form(&$form_state, $feed, $processor_key) {
   $form['#processor'] = $processor;
 
   // Get mapping sources from parsers and targets from processor.
-  $targets = $processor->getMappingTargets();
   $sources = $feed->parser->getMappingSources();
+  $targets = $processor->getMappingTargets();
 
   // Add unique and remove forms to mappings.
   $mappings = $processor->getMappings();
   if (is_array($mappings)) {
-    foreach ($mappings as $k => $mapping) {
+    foreach ($mappings as $i => $mapping) {
       $param = array(
         'processor' => $processor, 
         'mapping' => $mapping,
       );
-      $mappings[$k]['unique'] = feeds_ui_get_form('feeds_ui_button_form', $mapping['unique'] ? t('Yes') : t('No'), 'feeds_ui_toggle_unique', $param);
-      $mappings[$k]['remove'] = feeds_ui_get_form('feeds_ui_button_form', t('Remove'), 'feeds_ui_remove_mapping', $param);
+      if ($targets[$mapping['target']]['optional_unique']) {
+        $mappings[$i]['unique'] = feeds_ui_get_form('feeds_ui_button_form', $mapping['unique'] ? 'Yes' : 'No', 'feeds_ui_toggle_unique', $param);
+      }
+      $mappings[$i]['remove'] = feeds_ui_get_form('feeds_ui_button_form', 'Remove', 'feeds_ui_remove_mapping', $param);
     }
   }
 
@@ -432,7 +436,6 @@ function feeds_ui_mapping_form(&$form_state, $feed, $processor_key) {
     );
   }
   else {
-    drupal_add_js(drupal_get_path('module', 'feeds_ui') .'/feeds_ui.js');
     $form['source'] = array(
       '#type' => 'textfield',
       '#size' => 20,
@@ -562,10 +565,9 @@ function theme_feeds_ui_mapping_form($form) {
   $header = array(
     t('Source'),
     t('Target'),
-    t('Unique'),
+    t('Unique target'),
     '&nbsp;',
   );
-
   $rows = array();
   if (is_array($form['#mappings'])) {
     foreach ($form['#mappings'] as $mapping) {
@@ -574,7 +576,8 @@ function theme_feeds_ui_mapping_form($form) {
         $mapping['target'],
         // @todo: only second form renders correctly. FIX.
         '<div style="display:none">'. $mapping['unique'] .'</div>'. $mapping['unique'],
-        $mapping['remove'],
+        // @todo: only second form renders correctly. FIX.
+        '<div style="display:none">'. $mapping['remove'] .'</div>'. $mapping['remove'],
       ); 
     }
   }

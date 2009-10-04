@@ -40,14 +40,16 @@ class FeedsNodeProcessor extends FeedsProcessor {
       'body' => array(), 
       'status' => array(),
       'url' => array(
-        'optional unique' => TRUE, 
+        'optional_unique' => TRUE, 
         ),
       'guid' => array(
-        'optional unique' => TRUE, 
+        'optional_unique' => TRUE, 
         ),
+        /* @todo: move to mapper api.
       'taxonomy' => array(
         'options' => taxonomy_get_vocabularies(),
         ),
+        */
     );
     drupal_alter('feeds_node_processor_targets', $targets);
     return $targets;
