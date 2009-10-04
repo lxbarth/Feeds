@@ -6,7 +6,7 @@
 
 /**
  * A Feeds result class.
- * 
+ *
  * @see class FeedsFetcherResult
  * @see class FeedsParserResult
  */
@@ -19,7 +19,7 @@ abstract class FeedsResult {
 
   /**
    * Constructor: create object, validate class variables.
-   * 
+   *
    * @param $value
    *   The value of this result.
    * @param $type
@@ -131,13 +131,13 @@ class Feed extends FeedsConfigurable {
 
   /**
    * Import feed by using configured fetchers, parsers, processors.
-   * 
+   *
    * @param $nid
    *   If this configuaration is attached to a feed node, $nid contains the
    *   node id of the feed node.
-   * 
+   *
    * @todo: Break out into a facade-style FeedsImport class?
-   * @todo: Pass in source object, not ominous identifier $nid. 
+   * @todo: Pass in source object, not ominous identifier $nid.
    *        Figure out how to reconcile source object with nid handling.
    *        We may need to think of per-import (= per-node) configurations in a larger context.
    *        For instance, right now a parser or a processor can't offer any one-off configuration options
@@ -209,7 +209,7 @@ class Feed extends FeedsConfigurable {
 
   /**
    * Add a processor.
-   * 
+   *
    * @param $processor
    *   String that is the plugin id of a processor.
    */
@@ -224,7 +224,7 @@ class Feed extends FeedsConfigurable {
 
   /**
    * Remove a processor.
-   * 
+   *
    * @param $processor
    *   String that is the plugin id of a processor.
    */
@@ -238,7 +238,7 @@ class Feed extends FeedsConfigurable {
 
 /**
  * Base class for configurable, peristent objects.
- * 
+ *
  * Note: setters don't save results. A configurable can be used without actually creating
  * a record in the database. Only when save() is being called, a configurable is being
  * written to the database. Thus configurables can be used as temporary objects.
@@ -249,7 +249,7 @@ class FeedsConfigurable {
 
   /**
    * Instantiate a FeedsConfigurable object.
-   * 
+   *
    * Don't use directly, use feeds_instance() instead.
    */
   public static function instance($class, $id) {
@@ -307,10 +307,10 @@ class FeedsConfigurable {
 
   /**
    * Return this configurable's protected variables.
-   * 
+   *
    * Called automatically when accessing protected variables from outside.
    * e. g. print $object->id;
-   * 
+   *
    * @see http://us2.php.net/__get
    */
   public function __get($name) {
@@ -319,8 +319,8 @@ class FeedsConfigurable {
 
   /**
    * Return default configuration.
-   * 
-   * @return 
+   *
+   * @return
    *   Array where keys are the variable names of the configuration elements and
    *   values are their default values.
    */
@@ -333,7 +333,7 @@ class FeedsConfigurable {
   /**
    * Set configuration.
    * @todo: save() automatically?
-   * 
+   *
    * @param $config
    *   Array containing configuration information. Will be filtered by the keys returned by
    *   getDefaultConfig().
@@ -358,7 +358,7 @@ class FeedsConfigurable {
 
   /**
    * Return configuration form for this object.
-   * 
+   *
    * @return FormAPI style form definition.
    */
   public function configForm(&$form_state) {
@@ -385,10 +385,10 @@ class FeedsConfigurable {
 /**
  * Config form wrapper. Use to render the configuration form of
  * a FeedsConfigurable object.
- * 
- * @param 
+ *
+ * @param
  *   FeedsConfigurable object.
- * 
+ *
  * @return
  *   Rendered config form, if available. Empty string otherwise.
  */
@@ -400,12 +400,12 @@ function feeds_get_config_form($configurable) {
 }
 
 /**
- * Config form callback. Don't call directly, but use 
+ * Config form callback. Don't call directly, but use
  * feeds_get_config_form($configurable) instead.
- * 
- * @param 
+ *
+ * @param
  *   FormAPI $form_state.
- * @param 
+ * @param
  *   FeedsConfigurable object.
  */
 function feeds_config_form(&$form_state, $configurable) {

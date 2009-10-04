@@ -79,8 +79,8 @@ function feeds_import_form(&$form_state, $feed_id) {
 
 /**
  * Render a feeds delete form.
- * 
- * Used on both node pages and configuration pages. 
+ *
+ * Used on both node pages and configuration pages.
  * Therefore either $feed_id or $node may be missing.
  */
 function feeds_delete_items_form(&$form_state, $feed_id, $node = NULL) {
@@ -111,12 +111,12 @@ function feeds_control_box($feed, $nid = NULL) {
   if (user_access('administer feeds')) {
     $rows = array();
     $rows[] = array(
-      l(t('Reimport feed'), 'node/2/refresh'), 
+      l(t('Reimport feed'), 'node/2/refresh'),
       // @todo adjust description by configuration.
       t('Reads source information, creates items that do not exist and optionally updates existing items.'),
     );
     $rows[] = array(
-      l(t('Delete all items'), 'node/2/delete-items'), 
+      l(t('Delete all items'), 'node/2/delete-items'),
       t('Deletes all content imported by that feed.'),
     );
     $element = array(

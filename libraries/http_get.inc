@@ -2,15 +2,15 @@
 // $Id$
 /**
  * @file
- * Download via HTTP. 
- * 
+ * Download via HTTP.
+ *
  * Support caching, HTTP Basic Authentication, detection of RSS/Atom feeds, redirects.
  */
 
 /**
  * Download RSS or Atom feeds from a given URL. If document in given URL is an HTML
  * document, function attempts to discover RSS or Atom feeds and downloads them.
- * 
+ *
  * @todo: use exceptions, not string or false return values.
  *
  * @return

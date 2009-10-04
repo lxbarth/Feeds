@@ -9,7 +9,7 @@ abstract class FeedsProcessor extends FeedsConfigurable {
   /**
    * Process the result of the parser or previous processors.
    * Extending classes must implement this method.
-   * 
+   *
    * @param FeedsParserResult $parserResult
    *   The result of the parsing stage.
    * @param $nid
@@ -71,10 +71,10 @@ abstract class FeedsProcessor extends FeedsConfigurable {
 
   /**
    * Declare possible mapping targets.
-   * 
+   *
    * @return
    *   An array of mapping targets. Keys are paths to targets
-   *   separated by ->, values are TRUE if target can be unique, 
+   *   separated by ->, values are TRUE if target can be unique,
    *   FALSE otherwise.
    */
   public function getMappingTargets() {

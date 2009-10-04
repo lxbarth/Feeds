@@ -23,7 +23,7 @@ abstract class FeedsParser extends FeedsConfigurable {
 
   /**
    * Parse content fetched by fetcher.
-   * 
+   *
    * Stub method. Extending classes must implement this method.
    *
    * @param $fetcherResult
@@ -32,18 +32,18 @@ abstract class FeedsParser extends FeedsConfigurable {
    *   If this configuration is attached to a content type, $nid contains the
    *   node id of the Feed node.
    * @return
-   *   A parsed array. 
+   *   A parsed array.
    *   @todo: define this array (object?).
    */
   public abstract function parse(FeedsFetcherResult $fetcherResult, $nid = NULL);
 
   /**
    * Declare the possible mapping sources that this parser produces.
-   * 
-   * @return 
+   *
+   * @return
    *   An array of mapping sources, or FALSE if the sources can be defined by typing a value
    *   in a text field.
-   * 
+   *
    *   Example:
    *   array(
    *     'title' => t('Title'),
@@ -58,7 +58,7 @@ abstract class FeedsParser extends FeedsConfigurable {
 
   /**
    * Get an element identified by $element_key of the given item.
-   * The element key corresponds to the values in the array returned by 
+   * The element key corresponds to the values in the array returned by
    * FeedsParser::getMappingSources().
    */
   public function getSourceElement($item, $element_key) {

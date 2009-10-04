@@ -14,23 +14,23 @@ class FeedsFetcherResult extends FeedsResult {
 
 /**
  * Abstract class, defines interface for fetchers.
- * 
- * Not using interfaces because we need a simple inheritence tree for determining the 
+ *
+ * Not using interfaces because we need a simple inheritence tree for determining the
  * plugin type. See hook_feeds_plugin().
- * 
+ *
  * @todo: There is a potential conceptual problem:
- * 
- * - We assume that only a feed source can be stored per feed and ***no other per-feed 
+ *
+ * - We assume that only a feed source can be stored per feed and ***no other per-feed
  *   configuration information***
  * - This might lead to ugly hacks when other plugins in fact need a per node configuration.
- * - Possible solution: Abstract sourceLoad() etc. and push into FeedsConfigurable, or make 
+ * - Possible solution: Abstract sourceLoad() etc. and push into FeedsConfigurable, or make
  *   FeedsConfigurable cascadable.
  */
 abstract class FeedsFetcher extends FeedsConfigurable {
 
   /**
    * Callback methods, exposes source form.
-   * 
+   *
    * @todo: move HTTP fetcher specific code down into HTTP fetcher.
    */
   public function sourceForm($nid = NULL) {
@@ -49,11 +49,11 @@ abstract class FeedsFetcher extends FeedsConfigurable {
 
   /**
    * Validation handler for sourceForm().
-   * 
+   *
    * @param $form
    *   The form to perform the validation on.
    * @param $values
-   *   The values to perform the validation on. 
+   *   The values to perform the validation on.
    *   This is a subsection of the usual $form_state['values'] that
    *   only contains the values from the form defined in sourceForm().
    */
@@ -78,12 +78,12 @@ abstract class FeedsFetcher extends FeedsConfigurable {
 
   /**
    * Save a source.
-   * 
+   *
    * @param $source
    *   Source array in the convention of this fetcher.
-   * 
+   *
    * @param $nid
-   *   If configuration is attached to a content type, pass in the feed node's 
+   *   If configuration is attached to a content type, pass in the feed node's
    *   node id.
    */
   public function saveSource($source, $nid = NULL) {
@@ -108,15 +108,15 @@ abstract class FeedsFetcher extends FeedsConfigurable {
       db_query('DELETE FROM {feeds_source} WHERE id = "%s" AND class = "%s" AND nid = %d', $this->id, get_class($this), $nid);
     }
   }
-  
+
   /**
    * Fetch content from a source and return it.
-   * 
+   *
    * Stub method. Every class that extends FeedsFetcher must implement this method.
    *
-   * @param $source 
+   * @param $source
    *   Source value as entered by user through sourceForm().
-   * 
+   *
    * @todo: Define format of return value?
    */
   public abstract function fetch($nid = NULL);

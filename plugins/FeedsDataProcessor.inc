@@ -14,6 +14,6 @@ class FeedsDataProcessor extends FeedsProcessor {
     return NULL;
   }
   public function purge($nid = NULL) {
-    
+
   }
 }

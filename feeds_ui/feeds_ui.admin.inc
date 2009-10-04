@@ -7,7 +7,7 @@
 
 /**
  * Contextual help for build/edit page.
- * 
+ *
  * @todo: Write.
  */
 function feeds_ui_edit_help() {
@@ -31,7 +31,7 @@ function feeds_ui_overview_page() {
       $rows[] = array(
         $feed->config['name'],
         $type,
-        l(t('Edit'), 'admin/build/feeds/edit/'. $feed->id) .' | '. 
+        l(t('Edit'), 'admin/build/feeds/edit/'. $feed->id) .' | '.
         l(t('Export'), 'admin/build/feeds/export/'. $feed->id) .' | '.
         l(t('Delete'), 'admin/build/feeds/delete/'. $feed->id),
       );
@@ -148,7 +148,7 @@ function feeds_ui_edit_page($feed, $active = 'help', $plugin_key = '') {
 
   // Get plugins and configuration.
   $plugins = feeds_get_plugins();
-  $config = $feed->config;  
+  $config = $feed->config;
   // Base path for changing the active container.
   $path = 'admin/build/feeds/edit/'. $feed->id .'/';
 
@@ -261,11 +261,11 @@ function feeds_ui_edit_page($feed, $active = 'help', $plugin_key = '') {
 
 /**
  * Helper for building a list of plugins of a specific type.
- * 
+ *
  * @todo: this code may be simplified by creating a better API on Feed class for
  * manipulating fetcher/parser/processor plugins. Right now we always need to know which
  * type of plugin we are manipulating which creates a lot of awkward code.
- * 
+ *
  * @param $feed
  *   Feed object.
  * @param $type
@@ -274,8 +274,8 @@ function feeds_ui_edit_page($feed, $active = 'help', $plugin_key = '') {
  *   The plugin(s) that are currently selected.
  * @param $multiple
  *   If TRUE, allow multiple choice.
- * 
- * @return 
+ *
+ * @return
  *   An array themeable by theme_feeds_ui_container().
  */
 function _feeds_ui_list_plugins_by_type($feed, $type, $selected, $multiple = FALSE) {
@@ -289,7 +289,7 @@ function _feeds_ui_list_plugins_by_type($feed, $type, $selected, $multiple = FAL
     if (in_array($key, $selected)) {
       if ($multiple) {
         $param = array(
-          'feed_id' => $feed->id, 
+          'feed_id' => $feed->id,
           'plugin_key' => $key,
         );
         $actions = array(feeds_ui_get_form('feeds_ui_button_form', 'Remove', 'feeds_ui_remove_plugin', $param));
@@ -297,7 +297,7 @@ function _feeds_ui_list_plugins_by_type($feed, $type, $selected, $multiple = FAL
     }
     else {
       $param = array(
-        'feed_id' => $feed->id, 
+        'feed_id' => $feed->id,
         'plugin_key' => $key,
       );
       $actions = array(feeds_ui_get_form('feeds_ui_button_form', 'Select', 'feeds_ui_select_plugin', $param));
@@ -347,16 +347,16 @@ function feeds_ui_remove_plugin($args) {
 
 /**
  * Wrapper or drupal_get_form().
- * 
+ *
  * Generate a form with a unique, anonymous form_id. Use like drupal_get_form()
- * but build as many same forms on one page as you'd like AND submit them 
+ * but build as many same forms on one page as you'd like AND submit them
  * independently. Make sure that forms that are being built with this wrapper
  * declare their validation and submit handlers explicitely ($form['#validate']
  * and $form['#submit']).
- * 
+ *
  * @see drupal_get_form()
  * @see feeds_ui_register_form()
- * 
+ *
  * @param $form_callback
  *   Form callback for this form.
  * @param ... Parameters to pass into form
@@ -374,17 +374,17 @@ function feeds_ui_get_form($form_callback) {
 }
 
 /**
- * Form that has one button that fires an action. 
- * 
+ * Form that has one button that fires an action.
+ *
  * Use together with feeds_ui_get_form for using multiple times on one page.
- * 
+ *
  * $output = feeds_ui_get_form('feeds_ui_button_form', 'Select', 'call_back_func', $param);
- * 
+ *
  * @param $form_state
- *   Form API form state. 
+ *   Form API form state.
  * @param $label
  *   Label on the button. Don't wrap in t().
- * @param $callback 
+ * @param $callback
  *   Callback to invoke when button is pushed.
  * @param $param
  *   Parameter to pass to callback.
@@ -437,7 +437,7 @@ function feeds_ui_mapping_form(&$form_state, $feed, $processor_key) {
       $mappings[$i]['source'] = $source_options[$mappings[$i]['source']];
       $mappings[$i]['target'] = $target_options[$mappings[$i]['target']];
       $param = array(
-        'processor' => $processor, 
+        'processor' => $processor,
         'mapping' => $mapping,
       );
       if ($targets[$mapping['target']]['optional_unique']) {
@@ -502,7 +502,7 @@ function feeds_ui_remove_mapping($args) {
 }
 
 /**
- * Walk the result of FeedsParser::getMappingSources() or 
+ * Walk the result of FeedsParser::getMappingSources() or
  * FeedsProcessor::getMappingTargets() and format them into
  * a Form API options array.
  */
@@ -551,12 +551,12 @@ function theme_feeds_ui_edit_page($config_info, $active_container) {
 }
 
 /**
- * Render a simple container. A container can have a title, a description and 
+ * Render a simple container. A container can have a title, a description and
  * one or more actions. Recursive.
- * 
+ *
  * @todo: Replace with theme_fieldset or a wrapper to theme_fieldset?
- * 
- * @param $container 
+ *
+ * @param $container
  *   An array that describes the container. All elements are optional:
  *   array(
  *     'title' => 'the title',
@@ -619,7 +619,7 @@ function theme_feeds_ui_mapping_form($form) {
         '<div style="display:none">'. $mapping['unique'] .'</div>'. $mapping['unique'],
         // @todo: only second form renders correctly. FIX.
         '<div style="display:none">'. $mapping['remove'] .'</div>'. $mapping['remove'],
-      ); 
+      );
     }
   }
   if (!count($rows)) {

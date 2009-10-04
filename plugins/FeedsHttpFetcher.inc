@@ -13,14 +13,14 @@ class FeedsHttpFetcher extends FeedsFetcher {
 
   /**
    * Fetch a resource via http.
-   * 
+   *
    * @todo: Use Curl, fall back to drupal_http_request.
    * @todo: Add caching.
    *
    * @param $resource
    *   A resource description of type FeedsResource.
-   * 
-   * @return 
+   *
+   * @return
    *   A string from the requested location if successful, or FALSE if not.
    */
   public function fetch($nid = NULL) {

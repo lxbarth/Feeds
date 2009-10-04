@@ -52,7 +52,7 @@ class FeedsFileFetcher extends FeedsFetcher {
 
   /**
    * Fetch a local resource.
-   * 
+   *
    * @todo: support seemless expanding of archives.
    */
   public function fetch($nid = NULL) {

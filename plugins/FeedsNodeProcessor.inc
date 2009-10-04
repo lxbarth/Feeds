@@ -48,14 +48,14 @@ class FeedsNodeProcessor extends FeedsProcessor {
       ),
       'body' => array(
         'name' => t('Node body'),
-      ), 
+      ),
       'url' => array(
         'name' => t('URL'),
-        'optional_unique' => TRUE, 
+        'optional_unique' => TRUE,
         ),
       'guid' => array(
         'name' => t('GUID'),
-        'optional_unique' => TRUE, 
+        'optional_unique' => TRUE,
         ),
         /* @todo: move to mapper api.
       'taxonomy' => array(

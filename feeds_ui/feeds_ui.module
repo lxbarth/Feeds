@@ -112,11 +112,11 @@ function feed_ui_title($feed) {
 
 /**
  * Register a form callback and generate a unique form_id for it.
- * 
+ *
  * @param $form_callback
  *   A callback that returns a Form API form definition.
- * 
- * @return 
+ *
+ * @return
  *   If $form_callback is given, a unique form id for the callback.
  *   If $form_callback is not given, a hook_forms() compatible array
  *   of all registered forms.

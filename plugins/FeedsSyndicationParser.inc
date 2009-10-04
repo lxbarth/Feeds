@@ -3,7 +3,7 @@
 
 /**
  * Class definition for Common Syndication Parser.
- * 
+ *
  * Parses RSS and Atom feeds.
  */
 class FeedsSyndicationParser extends FeedsParser {
@@ -27,10 +27,10 @@ class FeedsSyndicationParser extends FeedsParser {
    */
   public function getMappingSources() {
     return array(
-      'title' => t('Title'), 
-       'description' => t('Description'), 
-       'link' => t('Item URL (link)'), 
-       'guid' => t('Item GUID'), 
+      'title' => t('Title'),
+       'description' => t('Description'),
+       'link' => t('Item URL (link)'),
+       'guid' => t('Item GUID'),
        'tags' => t('Categories'),
      );
   }

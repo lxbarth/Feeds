@@ -126,12 +126,12 @@ function feeds_ctools_plugin_api($owner, $api) {
 
 /**
  * Implementation of hook_feeds_plugins().
- * 
+ *
  * @todo: Document API. Uses CTools plugin handling, extra keys:
  * 'description', 'hidden'
- * 
+ *
  * @todo: Also declare and load Feed and FeedsConfigurable class with this API?
- * 
+ *
  * @todo: move this to feeds.plugins.inc?
  */
 function feeds_feeds_plugins() {
@@ -276,7 +276,7 @@ function feeds_form_alter(&$form, $form_state, $form_id) {
 
 /**
  * Validation handler for node forms and feeds_import_form().
- * 
+ *
  * Has to live in feeds.module, needs to be callable from node form.
  */
 function feeds_import_form_validate($form, &$form_state) {
@@ -286,9 +286,9 @@ function feeds_import_form_validate($form, &$form_state) {
 
 /**
  * Submit handler for feeds_import_form().
- * 
- * Cannot be used for node form, as node form executes all submit handlers in 
- * node_form_submit_build_node() /before/ it creates the node and a node nid 
+ *
+ * Cannot be used for node form, as node form executes all submit handlers in
+ * node_form_submit_build_node() /before/ it creates the node and a node nid
  * is known :(
  */
 function feeds_import_form_submit($form, &$form_state) {
@@ -299,8 +299,8 @@ function feeds_import_form_submit($form, &$form_state) {
 
 /**
  * Get all available plugins. Does not list hidden plugins.
- * 
- * @return 
+ *
+ * @return
  *   An array where the keys are the plugin keys and the values
  *   are the plugin info arrays as defined in hook_feeds_plugins().
  */
@@ -315,13 +315,13 @@ function feeds_get_plugins() {
     }
     $result[$key] = $info;
   }
-  return $result;  
+  return $result;
 }
 
 /**
- * Get all available plugins categorized by whether they are a 
+ * Get all available plugins categorized by whether they are a
  * fetcher, a parser or a processor plugin.
- * 
+ *
  * Does not list hidden plugins.
  */
 function feeds_get_plugins_by_type() {
@@ -344,11 +344,11 @@ function feeds_get_plugins_by_type() {
 
 /**
  * Load a plugin's class file.
- * 
+ *
  * @param $plugin
  *   The key of the plugin.
- * 
- * @return 
+ *
+ * @return
  *   String that identifies the class name associated with this plugin.
  *   The class name is the one specified in the plugins $info['handler'] property.
  */
@@ -372,7 +372,7 @@ function feeds_load_all() {
 
 /**
  * Get an instance of a given class for a given id.
- * 
+ *
  * @param $class
  *   A string that is the name of the class to instantiate.
  * @param $id
@@ -385,7 +385,7 @@ function feeds_instance($class, $id) {
 
 /**
  * Get an instance of a class for a given plugin and id.
- * 
+ *
  * @param $class
  *   A string that is the key of the plugin to load.
  * @param $id
@@ -400,11 +400,11 @@ function feeds_plugin_instance($plugin, $id) {
 
 /**
  * Get a feed configuration by content type.
- * 
+ *
  * @param $content_type
  *   A node type string.
- * 
- * @return 
+ *
+ * @return
  *   A Feed object if one is available, FALSE otherwise.
  */
 function feeds_get_by_content_type($content_type) {
@@ -431,8 +431,8 @@ function feeds_delete($id) {
 
 /**
  * Includes a feeds module include file.
- * 
- * @param $file 
+ *
+ * @param $file
  *   The filename without the .inc extension.
  * @param $directory
  *   The feeds subdirectory the file resides in.
@@ -448,15 +448,15 @@ function feeds_include($file, $directory = 'includes') {
 
 /**
  * Determines whether given plugin is derived from given base plugin.
- * 
+ *
  * @param $plugin
  *   String that identifies a Feeds plugin key.
  * @param $parent_plugin
  *   String that identifies a Feeds plugin key to be tested against.
- * 
- * @return 
+ *
+ * @return
  *   TRUE if $parent_plugin is directly *or indirectly* a parent of $plugin,
- *   FALSE otherwise. 
+ *   FALSE otherwise.
  */
 function feeds_plugin_child($plugin, $parent_plugin) {
   ctools_include('plugins');
@@ -476,10 +476,10 @@ function feeds_plugin_child($plugin, $parent_plugin) {
 
 /**
  * Export a feed configuration.
- * 
+ *
  * @todo: export attached plugin configuration. Decide wether plugin config should
  * be actually stored with feed.
- * 
+ *
  * It actually seems that export.inc does not support multi-field keys.
  */
 function feeds_export($feed_id, $indent = '') {
