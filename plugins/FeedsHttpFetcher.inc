@@ -25,12 +25,12 @@ class FeedsHttpFetcher extends FeedsFetcher {
    */
   public function fetch($nid = NULL) {
     $url = $this->loadSource($nid);
-    feeds_include('http_get', 'libraries');
+    feeds_include('http_request', 'libraries');
     if ($this->config['auto_detect_feeds']) {
-      return new FeedsFetcherResult(http_get_common_syndication($url), 'text/xml');
+      return new FeedsFetcherResult(http_request_get_common_syndication($url), 'text/xml');
     }
     else {
-      return new FeedsFetcherResult(http_get($url), 'text/xml');
+      return new FeedsFetcherResult(http_request_get($url), 'text/xml');
     }
   }
 

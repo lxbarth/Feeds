@@ -415,23 +415,6 @@ function _parser_common_syndication_RSS20_parse($feed_XML) {
 }
 
 /**
- * Set the default caching directory if the current setting is not useable
- */
-function _parser_common_syndication_sanitize_cache() {
-  $cache_location = file_directory_path() .'/parser_common_syndication_cache';
-  if (!is_writeable($cache_location) || !is_dir($cache_location)) {
-    $cache_location = file_create_path($cache_location);
-    if (!file_exists($cache_location) && is_writable(file_directory_path())) {
-      mkdir($cache_location);
-    }
-    if (!is_writeable($cache_location)) {
-      return FALSE;
-    }
-  }
-  return $cache_location;
-}
-
-/**
  * Parse a date comes from a feed.
  *
  * @param $date_string
