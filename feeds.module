@@ -432,10 +432,10 @@ function feeds_delete($id) {
 /**
  * Includes a feeds module include file.
  */
-function feeds_include($file) {
+function feeds_include($file, $type = 'includes') {
   static $included = array();
   if (!isset($included[$file])) {
-    require_once './' . drupal_get_path('module', 'feeds') . "/includes/$file.inc";
+    require_once './' . drupal_get_path('module', 'feeds') . "/$type/$file.inc";
   }
 
   $included[$file] = TRUE;
