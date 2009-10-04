@@ -20,7 +20,6 @@ class FeedsNodeProcessor extends FeedsProcessor {
     }
     foreach ($parser_result->value['items'] as $item) {
       $node = $this->map($item);
-      dsm($node);
     }
   }
 
