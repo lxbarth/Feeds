@@ -12,7 +12,14 @@ class FeedsSyndicationParser extends FeedsParser {
    * Parses a raw string and returns a Feed object from it.
    */
   public function parse(FeedsFetcherResult $fetcherResult, $nid = NULL) {
-    // @todo
+    if ($fetcherResult->type == 'text/filepath') {
+      $string = file_get_contents($fetcherResult->value);
+    }
+    else {
+      $string = $fetcherResult->value;
+    }
+    feeds_include('common_syndication_parser', 'libraries');
+    dsm(common_syndication_parser_parse($string));
   }
 
   /**
