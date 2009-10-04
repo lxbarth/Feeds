@@ -14,7 +14,6 @@ class FeedsNodeProcessor extends FeedsProcessor {
    * Implementation of FeedsProcessor::process();
    */
   function process(FeedsParserResult $parserResult, $nid = NULL) {
-    dsm($parserResult);
     foreach ($parserResult->value['items'] as $item) {
       // If the target item does not exist OR if update_existing is enabled, map and save.
       if (!$nid = $this->existingItemId($item, $nid) || $this->config['update_existing']) {
