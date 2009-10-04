@@ -383,13 +383,15 @@ function feeds_ui_mapping_form(&$form_state, $feed, $processor_key) {
 
   // Add unique and remove forms to mappings.
   $mappings = $processor->getMappings();
-  foreach ($mappings as $k => $mapping) {
-    $param = array(
-      'processor' => $processor, 
-      'mapping' => $mapping,
-    );
-    $mappings[$k]['unique'] = feeds_ui_get_form('feeds_ui_button_form', $mapping['unique'] ? t('Yes') : t('No'), 'feeds_ui_toggle_unique', $param);
-    $mappings[$k]['remove'] = feeds_ui_get_form('feeds_ui_button_form', t('Remove'), 'feeds_ui_remove_mapping', $param);
+  if (is_array($mappings)) {
+    foreach ($mappings as $k => $mapping) {
+      $param = array(
+        'processor' => $processor, 
+        'mapping' => $mapping,
+      );
+      $mappings[$k]['unique'] = feeds_ui_get_form('feeds_ui_button_form', $mapping['unique'] ? t('Yes') : t('No'), 'feeds_ui_toggle_unique', $param);
+      $mappings[$k]['remove'] = feeds_ui_get_form('feeds_ui_button_form', t('Remove'), 'feeds_ui_remove_mapping', $param);
+    }
   }
 
   $form['#mappings'] = $mappings;
