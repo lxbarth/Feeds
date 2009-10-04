@@ -95,6 +95,28 @@ function feeds_ui_create_form_submit($form, &$form_state) {
   menu_rebuild();
 }
 
+
+/**
+ * Delete configuration form.
+ */
+function feeds_ui_delete_form(&$form_state, $feed) {
+  $form['#redirect'] = 'admin/build/feeds';
+  $form['#feed'] = $feed;
+  return confirm_form($form,
+    t('Would you really like to delete the configuration !id?', array('!id' => $feed->id)),
+    $form['#redirect'],
+    t('This action cannot be undone.'),
+    t('Delete')
+  );
+}
+
+/**
+ * Submit handler for feeds_ui_delete_form().
+ */
+function feeds_ui_delete_form_submit($form, &$form_state) {
+  feeds_delete($form['#feed']->id);
+}
+
 /**
  * Edit feed configuration.
  */
@@ -447,29 +469,6 @@ function feeds_ui_remove_mapping($args) {
   $processor = $args['processor'];
   $processor->removeMapping($args['mapping']['source'], $args['mapping']['target']);
   $processor->save();
-}
-
-/**
- * Delete configuration form.
- * 
- * @todo: move up under create form.
- */
-function feeds_ui_delete_form(&$form_state, $feed) {
-  $form['#redirect'] = 'admin/build/feeds';
-  $form['#feed'] = $feed;
-  return confirm_form($form,
-    t('Would you really like to delete the configuration !id?', array('!id' => $feed->id)),
-    $form['#redirect'],
-    t('This action cannot be undone.'),
-    t('Delete')
-  );
-}
-
-/**
- * Submit handler for feeds_ui_delete_form().
- */
-function feeds_ui_delete_form_submit($form, &$form_state) {
-  feeds_delete($form['#feed']->id);
 }
 
 /**
