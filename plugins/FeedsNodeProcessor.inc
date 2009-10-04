@@ -19,7 +19,13 @@ class FeedsNodeProcessor extends FeedsProcessor {
     elseif ($parser_result->type == 'syndication') {
     }
     foreach ($parser_result->value['items'] as $item) {
-      $node = $this->map($item);
+      // If the target item does not exist OR if update_existing is enabled, map and save.
+      if (!$nid = $this->existingItemId($item, $nid) || $this->config['update_existing']) {
+        $node = $this->map($item);
+        $node->nid = $nid;
+        dsm($node);
+        // node_save($node);
+      }
     }
   }
 
@@ -35,13 +41,24 @@ class FeedsNodeProcessor extends FeedsProcessor {
    */
   function getMappingTargets() {
     $targets = array(
-      'title' => array(),
-      'body' => array(), 
-      'status' => array(),
+      'title' => array(
+        'name' => t('Node title'), // @todo: write out.
+       ),
+      'status' => array(
+        'name' => t('Published status'),
+      ),
+      'created' => array(
+        'name' => t('Published date'),
+      ),
+      'body' => array(
+        'name' => t('Node body'),
+      ), 
       'url' => array(
+        'name' => t('URL'),
         'optional_unique' => TRUE, 
         ),
       'guid' => array(
+        'name' => t('GUID'),
         'optional_unique' => TRUE, 
         ),
         /* @todo: move to mapper api.
@@ -71,9 +88,42 @@ class FeedsNodeProcessor extends FeedsProcessor {
    * Override setTargetElement to operate on a target item that is a node.
    */
   public function setTargetElement($target_node, $target_element, $value) {
-    $target_node->$target_element = $value;
+    if (in_array($source_item, array('url', 'guid'))) {
+      $target_node->FeedsNodeProcessor->$target_element = $value;
+    }
+    elseif (in_array('title', 'body', 'status', 'created')) {
+      $target_node->$target_element = $value;
+    }
   }
-  
+
+  /**
+   * Get nid of an existing feed item node if available.
+   */
+  function existingItemId($source_item, $feed_nid) {
+    $parser = feeds_instance('Feed', $this->id)->parser;
+    $targets = array();
+    foreach ($this->config['mappings'] as $mapping) {
+      if ($mapping['unique']) {
+        $targets[$target] = $parser->getSourceElement($source_item, $mapping['source']);
+      }
+    }
+    foreach ($targets as $target => $value) {
+      switch ($targets) {
+        case 'url':
+          $nid = db_result(db_query('SELECT nid FROM {feeds_node_item} WHERE feed_nid = %d AND url = "%s"', $feed_nid, $value));
+          break;
+        case 'guid':
+          $nid = db_result(db_query('SELECT nid FROM {feeds_node_item} WHERE feed_nid = %d AND guid = "%s"', $feed_nid, $value));
+          break;
+      }
+      if ($nid) {
+        // Return with the first nid found.
+        return $nid;
+      }
+    }
+    return FALSE;
+  }
+
   /**
    * Override parent::getDefaultConfig().
    */

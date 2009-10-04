@@ -12,13 +12,19 @@ class FeedsSyndicationParser extends FeedsParser {
    * Parses a raw string and returns a Feed object from it.
    */
   public function parse(FeedsFetcherResult $fetcherResult, $nid = NULL) {
-    
+    // @todo
   }
 
   /**
    * Return mapping sources.
    */
   public function getMappingSources() {
-    return array('title', 'description', 'url', 'guid', 'tags');
+    return array(
+      'title' => t('Title'), 
+       'description' => t('Description'), 
+       'link' => t('Item URL (link)'), 
+       'guid' => t('Item GUID'), 
+       'tags' => t('Categories'),
+     );
   }
 }

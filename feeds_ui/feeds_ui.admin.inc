@@ -424,14 +424,18 @@ function feeds_ui_mapping_form(&$form_state, $feed, $processor_key) {
   $form['#feed'] = $feed;
   $form['#processor'] = $processor;
 
-  // Get mapping sources from parsers and targets from processor.
+  // Get mapping sources from parsers and targets from processor, format them for output.
   $sources = $feed->parser->getMappingSources();
+  $source_options = _feeds_ui_format_options($sources);
   $targets = $processor->getMappingTargets();
+  $target_options = _feeds_ui_format_options($targets);
 
   // Add unique and remove forms to mappings.
   $mappings = $processor->getMappings();
   if (is_array($mappings)) {
     foreach ($mappings as $i => $mapping) {
+      $mappings[$i]['source'] = $source_options[$mappings[$i]['source']];
+      $mappings[$i]['target'] = $target_options[$mappings[$i]['target']];
       $param = array(
         'processor' => $processor, 
         'mapping' => $mapping,
@@ -448,7 +452,7 @@ function feeds_ui_mapping_form(&$form_state, $feed, $processor_key) {
   if ($sources) {
     $form['source'] = array(
       '#type' => 'select',
-      '#options' => array('' => t('Select a source')) + drupal_map_assoc($sources),
+      '#options' => array('' => t('Select a source')) + $source_options,
     );
   }
   else {
@@ -461,7 +465,7 @@ function feeds_ui_mapping_form(&$form_state, $feed, $processor_key) {
   }
   $form['target'] = array(
     '#type' => 'select',
-    '#options' => array('' => t('Select a target')) + drupal_map_assoc(array_keys($targets)),
+    '#options' => array('' => t('Select a target')) + _feeds_ui_format_options($targets),
   );
   $form['add'] = array(
     '#type' => 'submit',
@@ -495,6 +499,27 @@ function feeds_ui_remove_mapping($args) {
   $processor = $args['processor'];
   $processor->removeMapping($args['mapping']['source'], $args['mapping']['target']);
   $processor->save();
+}
+
+/**
+ * Walk the result of FeedsParser::getMappingSources() or 
+ * FeedsProcessor::getMappingTargets() and format them into
+ * a Form API options array.
+ */
+function _feeds_ui_format_options($options) {
+  $result = array();
+  foreach ($options as $k => $v) {
+    if (is_array($v) && !empty($v['name'])) {
+      $result[$k] = $v['name'];
+    }
+    elseif (is_array($v)) {
+      $result[$k] = $k;
+    }
+    else {
+      $result[$k] = $v;
+    }
+  }
+  return $result;
 }
 
 /**

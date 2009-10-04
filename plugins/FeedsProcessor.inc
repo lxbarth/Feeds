@@ -112,9 +112,9 @@ abstract class FeedsProcessor extends FeedsConfigurable {
   }
 
   /**
-   * Determine whether a given item is unique.
+   * Retrieve the target item's existing id if available. Otherwise return FALSE.
    */
-  public function unique($item) {
-    // @todo.
+  public function existingItemId($item, $nid) {
+    return FALSE;
   }
 }

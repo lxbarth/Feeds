@@ -46,10 +46,10 @@ abstract class FeedsParser extends FeedsConfigurable {
    * 
    *   Example:
    *   array(
-   *     'title',
-   *     'published',
-   *     'url',
-   *     'guid',
+   *     'title' => t('Title'),
+   *     'created' => t('Published date'),
+   *     'url' => t('Feed item URL'),
+   *     'guid' => t('Feed item GUID'),
    *   )
    */
   public function getMappingSources() {
