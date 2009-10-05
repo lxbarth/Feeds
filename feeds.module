@@ -5,6 +5,10 @@
  * Feeds - basic API functions and hook implementations.
  */
 
+// Vague request time. Use as common point of reference and to avoid expensive
+// calls to time().
+define('FEEDS_REQUEST_TIME', time());
+
 /**
  * Implementation of hook_cron().
  */
@@ -266,6 +270,7 @@ function _feeds_nodeapi_node_processor($node, $op) {
       }
       break;
     case 'insert':
+      $node->feeds_node_item->nid = $node->nid;
       drupal_write_record('feeds_node_item', $node->feeds_node_item);
       break;
     case 'update':

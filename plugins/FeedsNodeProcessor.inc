@@ -18,8 +18,10 @@ class FeedsNodeProcessor extends FeedsProcessor {
       // If the target item does not exist OR if update_existing is enabled, map and save.
       if (!$nid = $this->existingItemId($item, $nid) || $this->config['update_existing']) {
         $node = $this->map($item);
-        $node->nid = $nid;
-        // node_save($node);
+        if (!empty($nid)) {
+          $node->nid = $nid;
+        }
+        node_save($node);
       }
     }
   }
@@ -78,6 +80,8 @@ class FeedsNodeProcessor extends FeedsProcessor {
     }
     $target_node = new stdClass();
     $target_node->type = $this->config['content_type'];
+    $target_node->feeds_node_item = new stdClass();
+    $target_node->feeds_node_item->imported = FEEDS_REQUEST_TIME;
     node_object_prepare($target_node);
 
     // Have parent class do the iterating.
@@ -89,9 +93,6 @@ class FeedsNodeProcessor extends FeedsProcessor {
    */
   public function setTargetElement($target_node, $target_element, $value) {
     if (in_array($target_element, array('url', 'guid'))) {
-      if (!isset($target_node->feeds_node_item)) {
-        $target_node->feeds_node_item = new stdClass();
-      }
       $target_node->feeds_node_item->$target_element = $value;
     }
     elseif (in_array($target_element, array('title', 'body', 'status', 'created'))) {
