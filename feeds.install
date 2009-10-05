@@ -80,7 +80,7 @@ function feeds_schema() {
     ),
     'indexes' => array(
         'id' => array('id'),
-        'nid' => array('nid'),
+        'feed_nid' => array('feed_nid'),
         'class' => array('class'),
       ),
   );

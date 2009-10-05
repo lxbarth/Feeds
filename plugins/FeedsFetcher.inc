@@ -68,7 +68,7 @@ abstract class FeedsFetcher extends FeedsConfigurable {
       $result = db_query('SELECT * FROM {feeds_source} WHERE id = "%s" AND class = "%s"', $this->id, get_class($this));
     }
     else {
-      $result = db_query('SELECT * FROM {feeds_source} WHERE id = "%s" AND class = "%s" AND nid = %d', $this->id, get_class($this), $feed_nid);
+      $result = db_query('SELECT * FROM {feeds_source} WHERE id = "%s" AND class = "%s" AND feed_nid = %d', $this->id, get_class($this), $feed_nid);
     }
     if ($source = db_fetch_object($result)) {
       return unserialize($source->source);
@@ -90,7 +90,7 @@ abstract class FeedsFetcher extends FeedsConfigurable {
     $this->deleteSource($feed_nid);
     $object = array(
       'id' => $this->id,
-      'nid' => $feed_nid,
+      'feed_nid' => $feed_nid,
       'class' => get_class($this),
       'source' => $source['feeds_source'], // This is the same key that we defined in sourceForm().
     );
@@ -105,7 +105,7 @@ abstract class FeedsFetcher extends FeedsConfigurable {
       db_query('DELETE FROM {feeds_source} WHERE id = "%s" AND class = "%s"', $this->id, get_class($this));
     }
     else {
-      db_query('DELETE FROM {feeds_source} WHERE id = "%s" AND class = "%s" AND nid = %d', $this->id, get_class($this), $feed_nid);
+      db_query('DELETE FROM {feeds_source} WHERE id = "%s" AND class = "%s" AND feed_nid = %d', $this->id, get_class($this), $feed_nid);
     }
   }
 
