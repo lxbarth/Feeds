@@ -1,0 +1,8 @@
+<?php
+// $Id$
+
+/**
+ * @file
+ * @todo: Test Feeds API. Split into unit tests and UI tests that verify the few
+ * UI elements in Feeds (without Feeds UI).
+ */
