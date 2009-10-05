@@ -353,20 +353,35 @@ function feeds_get_plugins() {
  * fetcher, a parser or a processor plugin.
  *
  * Does not list hidden plugins.
+ *
+ * @return
+ *   An array where the keys are plugin types and the elements are
+ *   arrays of plugin info arrays.
+ *
+ *   Example:
+ *   array(
+ *     'fetcher' => array(
+ *       'FeedsFileFetcher' => array(
+ *          // File fetcher info.
+ *       ),
+ *       'FeedsHttpFetcher' => array(
+ *          // Http fetcher info.
+ *     ),
+ *     'parser' => array(
+ *       // All available processors, following the pattern of the fetcher array.
+ *     ),
+ *     'processor => array(
+ *       // All available parsers, following the pattern of the fetcher array.
+ *     ),
+ *   );
  */
 function feeds_get_plugins_by_type() {
   $plugins = feeds_get_plugins();
 
   $result = array();
   foreach ($plugins as $key => $info) {
-    if (feeds_plugin_child($key, 'FeedsFetcher')) {
-      $result['fetcher'][$key] = $info;
-    }
-    elseif (feeds_plugin_child($key, 'FeedsParser')) {
-      $result['parser'][$key] = $info;
-    }
-    elseif (feeds_plugin_child($key, 'FeedsProcessor')) {
-      $result['processor'][$key] = $info;
+    if ($plugin_type = feeds_plugin_type($key)) {
+      $result[$plugin_type][$key] = $info;
     }
   }
   return $result;
@@ -479,6 +494,8 @@ function feeds_include($file, $directory = 'includes') {
 /**
  * Determines whether given plugin is derived from given base plugin.
  *
+ * @todo: update variable names. Should be $plugin_key if it is a key string.
+ *
  * @param $plugin
  *   String that identifies a Feeds plugin key.
  * @param $parent_plugin
@@ -502,6 +519,32 @@ function feeds_plugin_child($plugin, $parent_plugin) {
   else {
     return feeds_plugin_child($info['handler']['parent'], $parent_plugin);
   }
+}
+
+/**
+ * Determine the type of a plugin.
+ *
+ * @param $plugin_key
+ *   String that is a Feeds plugin key.
+ *
+ * @return
+ *   One of the following values:
+ *   'fetcher' if the plugin is a fetcher
+ *   'parser' if the plugin is a parser
+ *   'processor' if the plugin is a processor
+ *   FALSE otherwise.
+ */
+function feeds_plugin_type($plugin_key) {
+  if (feeds_plugin_child($plugin_key, 'FeedsFetcher')) {
+    return 'fetcher';
+  }
+  elseif (feeds_plugin_child($plugin_key, 'FeedsParser')) {
+    return 'parser';
+  }
+  elseif (feeds_plugin_child($plugin_key, 'FeedsProcessor')) {
+    return 'processor';
+  }
+  return FALSE;
 }
 
 /**

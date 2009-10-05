@@ -161,16 +161,10 @@ function feeds_ui_edit_page($feed, $active = 'help', $plugin_key = '') {
       $active_container['body'] = feeds_ui_edit_help();
       break;
     case 'fetcher':
-      $active_container['title'] = t('Select a fetcher');
-      $active_container['body'] = _feeds_ui_list_plugins_by_type($feed, 'fetcher', array($config['fetcher']));
-      break;
     case 'parser':
-      $active_container['title'] = t('Select a parser');
-      $active_container['body'] = _feeds_ui_list_plugins_by_type($feed, 'parser', array($config['parser']));
-      break;
     case 'processor':
-      $active_container['title'] = t('Add a processor');
-      $active_container['body'] = _feeds_ui_list_plugins_by_type($feed, 'processor', $config['processors'], TRUE);
+      $active_container['title'] = t('Select a !plugin_type', array('!plugin_type' => $active));
+      $active_container['body'] = _feeds_ui_list_plugins_by_type($feed, $active, $config[$active]);
       break;
     case 'settings':
       if ($plugin_key == 'Feed') {
@@ -185,7 +179,7 @@ function feeds_ui_edit_page($feed, $active = 'help', $plugin_key = '') {
       break;
     case 'mapping':
       $active_container['title'] = t('Mapping for !processor', array('!processor' => $plugins[$plugin_key]['name']));
-      $active_container['body'] = drupal_get_form('feeds_ui_mapping_form', $feed, $plugin_key);
+      $active_container['body'] = drupal_get_form('feeds_ui_mapping_form', $feed);
       break;
   }
 
@@ -238,22 +232,22 @@ function feeds_ui_edit_page($feed, $active = 'help', $plugin_key = '') {
   $config_info[] = $info;
 
   // Processor.
-  $info['title'] = t('Processor');
-  $info['body'] = array();
-  $info['actions'] = array(l(t('Change'), $path .'processor'));
-  foreach ($config['processors'] as $processor) {
-    $actions = array();
-    if (feeds_get_config_form($feed->processors[$processor])) {
-      $actions[] = l(t('Settings'), $path .'settings/'. $processor);
-    }
-    $actions[] = l(t('Mapping'), $path .'mapping/'. $processor);
-
-    $info['body'][] = array(
-      'title' => $plugins[$processor]['name'],
-      'body' => $plugins[$processor]['description'],
-      'actions' => $actions,
-    );
+  $processor = $plugins[$config['processor']];
+  $actions = array();
+  if (feeds_get_config_form($feed->processor)) {
+    $actions[] = l(t('Settings'), $path .'settings/'. $config['processor']);
   }
+  // @todo: We assume that every processor supports mapping - that's not necessarily the case.
+  $actions[] = l(t('Mapping'), $path .'mapping/'. $processor);
+  $info['title'] = t('Processor');
+  $info['body'] = array(
+    array(
+      'title' => $processor['name'],
+      'body' => $processor['description'],
+      'actions' => $actions,
+    )
+  );
+  $info['actions'] = array(l(t('Change'), $path .'processor'));
   $config_info[] = $info;
 
   return theme('feeds_ui_edit_page', $config_info, $active_container);
@@ -262,40 +256,24 @@ function feeds_ui_edit_page($feed, $active = 'help', $plugin_key = '') {
 /**
  * Helper for building a list of plugins of a specific type.
  *
- * @todo: this code may be simplified by creating a better API on Feed class for
- * manipulating fetcher/parser/processor plugins. Right now we always need to know which
- * type of plugin we are manipulating which creates a lot of awkward code.
- *
  * @param $feed
  *   Feed object.
  * @param $type
  *   Plugin type. One of 'fetcher', 'parser', 'processor'.
  * @param $selected
  *   The plugin(s) that are currently selected.
- * @param $multiple
- *   If TRUE, allow multiple choice.
  *
  * @return
  *   An array themeable by theme_feeds_ui_container().
  */
-function _feeds_ui_list_plugins_by_type($feed, $type, $selected, $multiple = FALSE) {
+function _feeds_ui_list_plugins_by_type($feed, $type, $selected) {
   $plugins = feeds_get_plugins_by_type();
   $plugins = $plugins[$type];
 
   $containers = array();
   foreach ($plugins as $key => $plugin) {
-
     $actions = array();
-    if (in_array($key, $selected)) {
-      if ($multiple) {
-        $param = array(
-          'feed_id' => $feed->id,
-          'plugin_key' => $key,
-        );
-        $actions = array(feeds_ui_get_form('feeds_ui_button_form', 'Remove', 'feeds_ui_remove_plugin', $param));
-      }
-    }
-    else {
+    if ($key != $selected) {
       $param = array(
         'feed_id' => $feed->id,
         'plugin_key' => $key,
@@ -318,31 +296,9 @@ function feeds_ui_select_plugin($args) {
   $plugin_key = $args['plugin_key'];
   $feed = feeds_instance('Feed', $args['feed_id']);
 
-  if (feeds_plugin_child($plugin_key, 'FeedsFetcher')) {
-    $feed->setFetcher($plugin_key);
-    $feed->save();
-  }
-  elseif (feeds_plugin_child($plugin_key, 'FeedsParser')) {
-    $feed->setParser($plugin_key);
-    $feed->save();
-  }
-  elseif (feeds_plugin_child($plugin_key, 'FeedsProcessor')) {
-    $feed->addProcessor($plugin_key);
-    $feed->save();
-  }
-}
-
-/**
- * Remove callback, helper for _feeds_ui_list_plugins_by_type().
- */
-function feeds_ui_remove_plugin($args) {
-  $plugin_key = $args['plugin_key'];
-  $feed = feeds_instance('Feed', $args['feed_id']);
-
-  if (feeds_plugin_child($plugin_key, 'FeedsProcessor')) {
-    $feed->removeProcessor($plugin_key);
-    $feed->save();
-  }
+  // Set the plugin and save feed.
+  $feed->setPlugin($plugin_key);
+  $feed->save();
 }
 
 /**
@@ -416,28 +372,26 @@ function feeds_ui_button_form_submit($form, &$form_state) {
 /**
  * Edit mapping.
  */
-function feeds_ui_mapping_form(&$form_state, $feed, $processor_key) {
+function feeds_ui_mapping_form(&$form_state, $feed) {
   drupal_add_js(drupal_get_path('module', 'feeds_ui') .'/feeds_ui.js');
-  $processor = $feed->processors[$processor_key];
 
   $form = array();
   $form['#feed'] = $feed;
-  $form['#processor'] = $processor;
 
   // Get mapping sources from parsers and targets from processor, format them for output.
   $sources = $feed->parser->getMappingSources();
   $source_options = _feeds_ui_format_options($sources);
-  $targets = $processor->getMappingTargets();
+  $targets = $feed->processor->getMappingTargets();
   $target_options = _feeds_ui_format_options($targets);
 
   // Add unique and remove forms to mappings.
-  $mappings = $processor->getMappings();
+  $mappings = $feed->processor->getMappings();
   if (is_array($mappings)) {
     foreach ($mappings as $i => $mapping) {
       $mappings[$i]['source'] = $source_options[$mappings[$i]['source']];
       $mappings[$i]['target'] = $target_options[$mappings[$i]['target']];
       $param = array(
-        'processor' => $processor,
+        'processor' => $feed->processor,
         'mapping' => $mapping,
       );
       if ($targets[$mapping['target']]['optional_unique']) {
@@ -478,9 +432,9 @@ function feeds_ui_mapping_form(&$form_state, $feed, $processor_key) {
  * Submit handler for feeds_ui_mapping_form().
  */
 function feeds_ui_mapping_form_submit($form, &$form_state) {
-  $processor = $form['#processor'];
-  $processor->addMapping($form_state['values']['source'], $form_state['values']['target']);
-  $processor->save();
+  $feed = $form['#feed'];
+  $feed->processor->addMapping($form_state['values']['source'], $form_state['values']['target']);
+  $feed->processor->save();
 }
 
 /**

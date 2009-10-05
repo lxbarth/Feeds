@@ -58,7 +58,9 @@ abstract class FeedsResult {
  */
 class Feed extends FeedsConfigurable {
 
-  protected $fetcher, $parser, $processors;
+  // Every feed has a fetcher, a parser and a processor.
+  // These variable names match the possible return values of feeds_plugin_type().
+  protected $fetcher, $parser, $processor;
 
   /**
    * Instantiate class variables.
@@ -68,10 +70,7 @@ class Feed extends FeedsConfigurable {
 
     $this->fetcher = feeds_plugin_instance($this->config['fetcher'], $id);
     $this->parser = feeds_plugin_instance($this->config['parser'], $id);
-    // @todo: Allow only one processor per configuration.
-    foreach ($this->config['processors'] as $processor) {
-      $this->processors[$processor] = feeds_plugin_instance($processor, $id);
-    }
+    $this->processor = feeds_plugin_instance($this->config['processor'], $id);
   }
 
   /**
@@ -82,7 +81,7 @@ class Feed extends FeedsConfigurable {
       'name' => '',
       'fetcher' => 'FeedsHttpFetcher',
       'parser' => 'FeedsSyndicationParser',
-      'processors' => array('FeedsNodeProcessor' => 'FeedsNodeProcessor'),
+      'processor' => 'FeedsNodeProcessor',
       'content_type' => '',
       'update' => 0,
       'refresh_period' => FEEDAPI_CRON_NEVER_REFRESH,
@@ -131,7 +130,7 @@ class Feed extends FeedsConfigurable {
   }
 
   /**
-   * Import feed by using configured fetchers, parsers, processors.
+   * Import feed by using configured fetchers, parsers, processor.
    *
    * @param $feed_nid
    *   If this configuaration is attached to a feed node, $nid contains the
@@ -147,92 +146,35 @@ class Feed extends FeedsConfigurable {
   public function import($feed_nid = NULL) {
     $result = $this->fetcher->fetch($feed_nid);
     $result = $this->parser->parse($result, $feed_nid);
-    foreach ($this->processors as $processor) {
-      $processor->process($result, $feed_nid);
-    }
+    $this->processor->process($result, $feed_nid);
   }
 
   /**
    * Remove all imported items.
    */
   public function purge($feed_nid = NULL) {
-    foreach ($this->processors as $processor) {
-      $processor->purge($feed_nid);
-    }
+    $this->processor->purge($feed_nid);
   }
 
   /**
-   * Set active fetcher. Does not save fetcher to configuration.
+   * Set plugin.
    *
-   * @param $fetcher
-   *   String that is the plugin id of a fetcher.
-   */
-  public function setFetcher($fetcher) {
-    if ($class = feeds_load_plugin_class($fetcher)) {
-      unset($this->fetcher);
-      $this->config['fetcher'] = $fetcher;
-      $this->fetcher = new $class($this->id);
-    }
-  }
-
-  /**
-   * Set active parser. Does not save parser to configuration.
+   * @param $plugin_key
+   *   A fetcher, parser or processor plugin.
    *
-   * @param $parser
-   *   String that is the plugin id of a parser.
+   * @todo: error handling.
    */
-  public function setParser($parser) {
-    if ($class = feeds_load_plugin_class($parser)) {
-      unset($this->parser);
-      $this->config['parser'] = $parser;
-      $this->parser = new $class($this->id);
-    }
-  }
-
-  /**
-   * Set active processors.
-   *
-   * @param $processors
-   *  Array of strings that are plugin ids of processors.
-   */
-  public function setProcessors($processors) {
-    foreach ($this->processors as $processor) {
-      // @todo: verify that this actually distroys the objects.
-      unset($processor);
-    }
-    $this->processors = array();
-    $this->config['processors'] = drupal_map_assoc($processors);
-    foreach ($processors as $processor) {
-      $class = feeds_load_plugin_class($processor);
-      $this->processors[$processor] = new $class($this->id);
-    }
-  }
-
-  /**
-   * Add a processor.
-   *
-   * @param $processor
-   *   String that is the plugin id of a processor.
-   */
-  public function addProcessor($processor) {
-    if (!isset($this->processors[$processor])) {
-      if ($class = feeds_load_plugin_class($processor)) {
-        $this->processors[$processor] = new $class($this->id);
-        $this->config['processors'][$processor] = $processor;
+  public function setPlugin($plugin_key) {
+    // $plugin_type can be either 'fetcher', 'parser' or 'processor'
+    if ($plugin_type = feeds_plugin_type($plugin_key)) {
+      if ($class = feeds_load_plugin_class($plugin_key)) {
+        // Remove existing pointer to object.
+        unset($this->$plugin_type);
+        // Set configuration information.
+        $this->config[$plugin_type] = $plugin_key;
+        // Update pointer to object.
+        $this->$plugin_type = feeds_instance($class, $this->id);
       }
-    }
-  }
-
-  /**
-   * Remove a processor.
-   *
-   * @param $processor
-   *   String that is the plugin id of a processor.
-   */
-  public function removeProcessor($processor) {
-    if (isset($this->processors[$processor])) {
-      unset($this->processors[$processor]);
-      unset($this->config['processors'][$processor]);
     }
   }
 }
