@@ -68,6 +68,7 @@ class Feed extends FeedsConfigurable {
 
     $this->fetcher = feeds_plugin_instance($this->config['fetcher'], $id);
     $this->parser = feeds_plugin_instance($this->config['parser'], $id);
+    // @todo: Allow only one processor per configuration.
     foreach ($this->config['processors'] as $processor) {
       $this->processors[$processor] = feeds_plugin_instance($processor, $id);
     }
