@@ -57,129 +57,26 @@ abstract class FeedsResult {
 }
 
 /**
- * Configurable importer class. This is the main hub for Feeds module's functionality.
+ * Define a configurable interface.
+ *
+ * Note how a configurable does not need to implement any DB persistence
+ * methods like load(), save() or delete().
+ *
+ * @todo: revisit this, we may want to make plugins implementers of
+ * FeedsConfigurableInterface and not extenders of FeedsConfigurable and
+ * then move the responsibility of storing configuration to the
+ * Feeds class.
+ *
+ * @todo: we may want to define an explicit getConfig(), right now we use
+ * the magic method __get().
+ *
+ * @todo: comment methods.
  */
-class Feed extends FeedsConfigurable {
-
-  // Every feed has a fetcher, a parser and a processor.
-  // These variable names match the possible return values of feeds_plugin_type().
-  protected $fetcher, $parser, $processor;
-
-  /**
-   * Instantiate class variables.
-   */
-  protected function __construct($id) {
-    parent::__construct($id);
-
-    $this->fetcher = feeds_plugin_instance($this->config['fetcher'], $id);
-    $this->parser = feeds_plugin_instance($this->config['parser'], $id);
-    $this->processor = feeds_plugin_instance($this->config['processor'], $id);
-  }
-
-  /**
-   * Return defaults for feed configuration.
-   */
-  public function getDefaultConfig() {
-    return array(
-      'name' => '',
-      'fetcher' => 'FeedsHttpFetcher',
-      'parser' => 'FeedsSyndicationParser',
-      'processor' => 'FeedsNodeProcessor',
-      'content_type' => '',
-      'update' => 0,
-      'refresh_period' => FEEDS_CRON_NEVER_REFRESH,
-    );
-  }
-
-  /**
-   * Override parent::configForm().
-   */
-  public function configForm(&$form_state) {
-    $form = array();
-    $form['name'] = array(
-      '#type' => 'textfield',
-      '#title' => t('Name'),
-      '#description' => t('The name of this configuration.'),
-      '#default_value' => $this->config['name'],
-      '#required' => TRUE,
-    );
-    $form['content_type'] = array(
-      '#type' => 'select',
-      '#title' => t('Attach to content type'),
-      '#description' => t('If you attach a configuration to a node you can use nodes for creating feeds on your site.'),
-      '#options' => array('' => t('None')) + node_get_types('names'),
-      '#default_value' => $this->config['content_type'],
-    );
-    $period = drupal_map_assoc(array(1, 900, 1800, 3600, 10800, 21600, 43200, 86400, 259200, 604800, 2419200), 'format_interval');
-    $period[FEEDS_CRON_NEVER_REFRESH] = t('Never');
-    $period[1] = t('As often as possible');
-    $form['refresh_period'] = array(
-      '#type' => 'select',
-      '#title' => t('Minimum refresh period'),
-      '#options' => $period,
-      '#description' => t('This is the minimum time that must elapse before a feed may be refreshed automatically.'),
-      '#default_value' => $this->config['refresh_period'],
-    );
-    return $form;
-  }
-
-  /**
-   * Override parent::configFormSubmit().
-   */
-  public function configFormSubmit($form, &$form_state) {
-    parent::configFormSubmit($form, $form_state);
-    // Clear cache, changes to content_type have an affect on menu tree.
-    menu_rebuild();
-  }
-
-  /**
-   * Import feed by using configured fetchers, parsers, processor.
-   *
-   * @param $feed_nid
-   *   If this configuaration is attached to a feed node, $nid contains the
-   *   node id of the feed node.
-   *
-   * @todo: Break out into a facade-style FeedsImport class?
-   * @todo: Pass in source object, not ominous identifier $feed_nid.
-   *        Figure out how to reconcile source object with nid handling.
-   *        We may need to think of per-import (= per-node) configurations in a larger context.
-   *        For instance, right now a parser or a processor can't offer any one-off configuration options
-   *        for imports. Think of delimiter settings for CSV imports.
-   */
-  public function import($feed_nid = NULL) {
-    $result = $this->fetcher->fetch($feed_nid);
-    $result = $this->parser->parse($result, $feed_nid);
-    $this->processor->process($result, $feed_nid);
-  }
-
-  /**
-   * Remove all imported items.
-   */
-  public function purge($feed_nid = NULL) {
-    $this->processor->purge($feed_nid);
-  }
-
-  /**
-   * Set plugin.
-   *
-   * @param $plugin_key
-   *   A fetcher, parser or processor plugin.
-   *
-   * @todo: error handling.
-   */
-  public function setPlugin($plugin_key) {
-    // $plugin_type can be either 'fetcher', 'parser' or 'processor'
-    if ($plugin_type = feeds_plugin_type($plugin_key)) {
-      if ($class = feeds_load_plugin_class($plugin_key)) {
-        // Remove existing pointer to object.
-        unset($this->$plugin_type);
-        // Set configuration information.
-        $this->config[$plugin_type] = $plugin_key;
-        // Update pointer to object.
-        $this->$plugin_type = feeds_instance($class, $this->id);
-      }
-    }
-  }
+interface FeedsConfigurableInterface {
+  public function configForm(&$form_state);
+  public function setConfig($config);
+  public function addConfig($config);
+  public function getDefaultConfig();
 }
 
 /**
@@ -189,7 +86,7 @@ class Feed extends FeedsConfigurable {
  * a record in the database. Only when save() is being called, a configurable is being
  * written to the database. Thus configurables can be used as temporary objects.
  */
-class FeedsConfigurable {
+class FeedsConfigurable implements FeedsConfigurableInterface {
   protected $config;
   protected $id;
 
@@ -325,6 +222,132 @@ class FeedsConfigurable {
     // Save here. Manipulation through form assumes that the FeedsConfigurable
     // object is persistent (DB or code).
     $this->save();
+  }
+}
+
+/**
+ * Configurable importer class. This is the main hub for Feeds module's functionality.
+ */
+class Feed extends FeedsConfigurable {
+
+  // Every feed has a fetcher, a parser and a processor.
+  // These variable names match the possible return values of feeds_plugin_type().
+  protected $fetcher, $parser, $processor;
+
+  /**
+   * Instantiate class variables.
+   */
+  protected function __construct($id) {
+    parent::__construct($id);
+
+    $this->fetcher = feeds_plugin_instance($this->config['fetcher'], $id);
+    $this->parser = feeds_plugin_instance($this->config['parser'], $id);
+    $this->processor = feeds_plugin_instance($this->config['processor'], $id);
+  }
+
+  /**
+   * Return defaults for feed configuration.
+   */
+  public function getDefaultConfig() {
+    return array(
+      'name' => '',
+      'fetcher' => 'FeedsHttpFetcher',
+      'parser' => 'FeedsSyndicationParser',
+      'processor' => 'FeedsNodeProcessor',
+      'content_type' => '',
+      'update' => 0,
+      'refresh_period' => FEEDS_CRON_NEVER_REFRESH,
+    );
+  }
+
+  /**
+   * Override parent::configForm().
+   */
+  public function configForm(&$form_state) {
+    $form = array();
+    $form['name'] = array(
+      '#type' => 'textfield',
+      '#title' => t('Name'),
+      '#description' => t('The name of this configuration.'),
+      '#default_value' => $this->config['name'],
+      '#required' => TRUE,
+    );
+    $form['content_type'] = array(
+      '#type' => 'select',
+      '#title' => t('Attach to content type'),
+      '#description' => t('If you attach a configuration to a node you can use nodes for creating feeds on your site.'),
+      '#options' => array('' => t('None')) + node_get_types('names'),
+      '#default_value' => $this->config['content_type'],
+    );
+    $period = drupal_map_assoc(array(1, 900, 1800, 3600, 10800, 21600, 43200, 86400, 259200, 604800, 2419200), 'format_interval');
+    $period[FEEDS_CRON_NEVER_REFRESH] = t('Never');
+    $period[1] = t('As often as possible');
+    $form['refresh_period'] = array(
+      '#type' => 'select',
+      '#title' => t('Minimum refresh period'),
+      '#options' => $period,
+      '#description' => t('This is the minimum time that must elapse before a feed may be refreshed automatically.'),
+      '#default_value' => $this->config['refresh_period'],
+    );
+    return $form;
+  }
+
+  /**
+   * Override parent::configFormSubmit().
+   */
+  public function configFormSubmit($form, &$form_state) {
+    parent::configFormSubmit($form, $form_state);
+    // Clear cache, changes to content_type have an affect on menu tree.
+    menu_rebuild();
+  }
+
+  /**
+   * Import feed by using configured fetchers, parsers, processor.
+   *
+   * @param $feed_nid
+   *   If this configuaration is attached to a feed node, $nid contains the
+   *   node id of the feed node.
+   *
+   * @todo: Break out into a facade-style FeedsImport class?
+   * @todo: Pass in source object, not ominous identifier $feed_nid.
+   *        Figure out how to reconcile source object with nid handling.
+   *        We may need to think of per-import (= per-node) configurations in a larger context.
+   *        For instance, right now a parser or a processor can't offer any one-off configuration options
+   *        for imports. Think of delimiter settings for CSV imports.
+   */
+  public function import($feed_nid = NULL) {
+    $result = $this->fetcher->fetch($feed_nid);
+    $result = $this->parser->parse($result, $feed_nid);
+    $this->processor->process($result, $feed_nid);
+  }
+
+  /**
+   * Remove all imported items.
+   */
+  public function purge($feed_nid = NULL) {
+    $this->processor->purge($feed_nid);
+  }
+
+  /**
+   * Set plugin.
+   *
+   * @param $plugin_key
+   *   A fetcher, parser or processor plugin.
+   *
+   * @todo: error handling.
+   */
+  public function setPlugin($plugin_key) {
+    // $plugin_type can be either 'fetcher', 'parser' or 'processor'
+    if ($plugin_type = feeds_plugin_type($plugin_key)) {
+      if ($class = feeds_load_plugin_class($plugin_key)) {
+        // Remove existing pointer to object.
+        unset($this->$plugin_type);
+        // Set configuration information.
+        $this->config[$plugin_type] = $plugin_key;
+        // Update pointer to object.
+        $this->$plugin_type = feeds_instance($class, $this->id);
+      }
+    }
   }
 }
 
