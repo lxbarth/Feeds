@@ -151,13 +151,3 @@ function feeds_uninstall() {
   // Remove tables.
   drupal_uninstall_schema('feeds');
 }
-
-/**
- * Will delete this one before first release, for convenience...
- */
-function feeds_update_6001() {
-  $schema = feeds_schema();
-  $ret = array();
-  db_create_table($ret, 'feeds_node_item', $schema['feeds_node_item']);
-  return $ret;
-}
