@@ -12,16 +12,16 @@ abstract class FeedsProcessor extends FeedsConfigurable {
    *
    * @param FeedsParserResult $parserResult
    *   The result of the parsing stage.
-   * @param $nid
+   * @param $feed_nid
    *   Node ID of a feed node, IF this configuration is attached to a node.
    */
-  public abstract function process(FeedsParserResult $parserResult, $nid = NULL);
+  public abstract function process(FeedsParserResult $parserResult, $feed_nid = NULL);
 
   /**
-   * Remove all stored results for this configuration OR - if $nid given -
+   * Remove all stored results for this configuration OR - if $feed_nid given -
    * for this configuration for this feed node.
    */
-  public abstract function purge($nid = NULL);
+  public abstract function purge($feed_nid = NULL);
 
   /**
    * Declare default configuration.
@@ -118,7 +118,7 @@ abstract class FeedsProcessor extends FeedsConfigurable {
   /**
    * Retrieve the target item's existing id if available. Otherwise return FALSE.
    */
-  public function existingItemId($item, $nid) {
+  public function existingItemId($item, $feed_nid) {
     return FALSE;
   }
 }

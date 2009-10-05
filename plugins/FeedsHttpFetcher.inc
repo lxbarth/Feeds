@@ -23,8 +23,8 @@ class FeedsHttpFetcher extends FeedsFetcher {
    * @return
    *   A string from the requested location if successful, or FALSE if not.
    */
-  public function fetch($nid = NULL) {
-    $url = $this->loadSource($nid);
+  public function fetch($feed_nid = NULL) {
+    $url = $this->loadSource($feed_nid);
     feeds_include('http_request', 'libraries');
     if ($this->config['auto_detect_feeds']) {
       return new FeedsFetcherResult(http_request_get_common_syndication($url), 'text/xml');

@@ -11,7 +11,7 @@ class FeedsSyndicationParser extends FeedsParser {
   /**
    * Parses a raw string and returns a Feed object from it.
    */
-  public function parse(FeedsFetcherResult $fetcherResult, $nid = NULL) {
+  public function parse(FeedsFetcherResult $fetcherResult, $feed_nid = NULL) {
     if ($fetcherResult->type == 'text/filepath') {
       $string = file_get_contents($fetcherResult->value);
     }

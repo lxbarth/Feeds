@@ -33,8 +33,8 @@ abstract class FeedsFetcher extends FeedsConfigurable {
    *
    * @todo: move HTTP fetcher specific code down into HTTP fetcher.
    */
-  public function sourceForm($nid = NULL) {
-    if (!$source = $this->loadSource($nid)) {
+  public function sourceForm($feed_nid = NULL) {
+    if (!$source = $this->loadSource($feed_nid)) {
       $source = $this->config['source'];
     }
     $form = array();
@@ -63,12 +63,12 @@ abstract class FeedsFetcher extends FeedsConfigurable {
   /**
    * Load source.
    */
-  public function loadSource($nid = NULL) {
-    if (empty($nid)) {
+  public function loadSource($feed_nid = NULL) {
+    if (empty($feed_nid)) {
       $result = db_query('SELECT * FROM {feeds_source} WHERE id = "%s" AND class = "%s"', $this->id, get_class($this));
     }
     else {
-      $result = db_query('SELECT * FROM {feeds_source} WHERE id = "%s" AND class = "%s" AND nid = %d', $this->id, get_class($this), $nid);
+      $result = db_query('SELECT * FROM {feeds_source} WHERE id = "%s" AND class = "%s" AND nid = %d', $this->id, get_class($this), $feed_nid);
     }
     if ($source = db_fetch_object($result)) {
       return unserialize($source->source);
@@ -82,15 +82,15 @@ abstract class FeedsFetcher extends FeedsConfigurable {
    * @param $source
    *   Source array in the convention of this fetcher.
    *
-   * @param $nid
+   * @param $feed_nid
    *   If configuration is attached to a content type, pass in the feed node's
    *   node id.
    */
-  public function saveSource($source, $nid = NULL) {
-    $this->deleteSource($nid);
+  public function saveSource($source, $feed_nid = NULL) {
+    $this->deleteSource($feed_nid);
     $object = array(
       'id' => $this->id,
-      'nid' => $nid,
+      'nid' => $feed_nid,
       'class' => get_class($this),
       'source' => $source['feeds_source'], // This is the same key that we defined in sourceForm().
     );
@@ -100,12 +100,12 @@ abstract class FeedsFetcher extends FeedsConfigurable {
   /**
    * Delete a source.
    */
-  public function deleteSource($nid = NULL) {
-    if (empty($nid)) {
+  public function deleteSource($feed_nid = NULL) {
+    if (empty($feed_nid)) {
       db_query('DELETE FROM {feeds_source} WHERE id = "%s" AND class = "%s"', $this->id, get_class($this));
     }
     else {
-      db_query('DELETE FROM {feeds_source} WHERE id = "%s" AND class = "%s" AND nid = %d', $this->id, get_class($this), $nid);
+      db_query('DELETE FROM {feeds_source} WHERE id = "%s" AND class = "%s" AND nid = %d', $this->id, get_class($this), $feed_nid);
     }
   }
 
@@ -119,5 +119,5 @@ abstract class FeedsFetcher extends FeedsConfigurable {
    *
    * @todo: Define format of return value?
    */
-  public abstract function fetch($nid = NULL);
+  public abstract function fetch($feed_nid = NULL);
 }
