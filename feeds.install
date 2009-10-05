@@ -84,6 +84,39 @@ function feeds_schema() {
         'class' => array('class'),
       ),
   );
+  $schema['feeds_node_item'] = array(
+    'description' => t('Stores additional information about feed item nodes. Used by FeedsNodeProcessor.'),
+    'fields' => array(
+      'nid' => array(
+        'type' => 'int',
+        'unsigned' => TRUE,
+        'not null' => TRUE,
+        'description' => t("Primary Key: The feed item node's nid."),
+      ),
+      'imported' => array(
+        'type' => 'int',
+        'not null' => TRUE,
+        'default' => 0,
+        'description' => t('Import date of the feed item, as a Unix timestamp.'),
+      ),
+      'url' => array(
+        'type' => 'text',
+        'not null' => TRUE,
+        'description' => t('Link to the feed item.'),
+      ),
+      'guid' => array(
+        'type' => 'text',
+        'not null' => TRUE,
+        'description' => t('Unique identifier for the feed item.'),
+      ),
+    ),
+    'primary key' => array('nid'),
+    'indexes' => array(
+      'imported' => array('imported'),
+      'url' => array(array('url', 255)),
+      'guid' => array(array('guid', 255)),
+    ),
+  );
   return $schema;
 }
 

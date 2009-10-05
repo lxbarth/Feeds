@@ -111,7 +111,7 @@ function feeds_control_box($feed, $nid = NULL) {
   if (user_access('administer feeds')) {
     $rows = array();
     $rows[] = array(
-      l(t('Reimport feed'), 'node/2/refresh'),
+      l(t('Reimport feed'), 'node/2/import'),
       // @todo adjust description by configuration.
       t('Reads source information, creates items that do not exist and optionally updates existing items.'),
     );

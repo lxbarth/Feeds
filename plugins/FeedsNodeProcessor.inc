@@ -13,7 +13,7 @@ class FeedsNodeProcessor extends FeedsProcessor {
   /**
    * Implementation of FeedsProcessor::process();
    */
-  function process(FeedsParserResult $parserResult, $nid = NULL) {
+  public function process(FeedsParserResult $parserResult, $nid = NULL) {
     foreach ($parserResult->value['items'] as $item) {
       // If the target item does not exist OR if update_existing is enabled, map and save.
       if (!$nid = $this->existingItemId($item, $nid) || $this->config['update_existing']) {
@@ -27,14 +27,21 @@ class FeedsNodeProcessor extends FeedsProcessor {
   /**
    * Implementation of FeedsProcessor::purge().
    */
-  function purge($nid = NULL) {
+  public function purge($nid = NULL) {
     // @todo
+  }
+
+  /**
+   * hook_nodeapi().
+   */
+  public static function nodeapi($node, $op, $a1, $a2) {
+
   }
 
   /**
    * Return available mapping targets.
    */
-  function getMappingTargets() {
+  public function getMappingTargets() {
     $targets = array(
       'title' => array(
         'name' => t('Node title'), // @todo: write out.
@@ -89,7 +96,10 @@ class FeedsNodeProcessor extends FeedsProcessor {
    */
   public function setTargetElement($target_node, $target_element, $value) {
     if (in_array($target_element, array('url', 'guid'))) {
-      $target_node->FeedsNodeProcessor->$target_element = $value;
+      if (!isset($target_node->feeds_node_item)) {
+        $target_node->feeds_node_item = new stdClass();
+      }
+      $target_node->feeds_node_item->$target_element = $value;
     }
     elseif (in_array($target_element, array('title', 'body', 'status', 'created'))) {
       $target_node->$target_element = $value;
@@ -99,7 +109,7 @@ class FeedsNodeProcessor extends FeedsProcessor {
   /**
    * Get nid of an existing feed item node if available.
    */
-  function existingItemId($source_item, $feed_nid) {
+  public function existingItemId($source_item, $feed_nid) {
     $parser = feeds_instance('Feed', $this->id)->parser;
     $targets = array();
     foreach ($this->config['mappings'] as $mapping) {

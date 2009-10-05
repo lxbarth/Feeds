@@ -5,6 +5,10 @@
  * @file
  *   Downloading and parsing functions for Common Syndication Parser.
  *   Pillaged from FeedAPI common syndication parser.
+ *
+ * @todo Restructure. OO could work wonders here.
+ * @todo Write unit tests.
+ * @todo Keep in Feeds project or host on Drupal?
  */
 
 /**

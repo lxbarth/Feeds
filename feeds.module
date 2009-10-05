@@ -229,6 +229,7 @@ function feeds_feeds_plugins() {
  * Implementation of hook_nodeapi().
  */
 function feeds_nodeapi($node, $op) {
+  _feeds_nodeapi_node_processor($node, $op);
   switch ($op) {
     case 'insert':
     case 'update':
@@ -241,6 +242,7 @@ function feeds_nodeapi($node, $op) {
     case 'view':
       if ($feed = feeds_get_by_content_type($node->type)) {
         module_load_include('inc', 'feeds', 'feeds.pages');
+        // @todo: remove or expand on this approach.
         $node->content['feeds_info']['#value'] = feeds_control_box($feed);
         $node->content['feeds_info']['#weight'] = -10;
       }
@@ -249,6 +251,29 @@ function feeds_nodeapi($node, $op) {
       if ($feed = feeds_get_by_content_type($node->type)) {
         $feed->fetcher->deleteSource($node->nid);
       }
+      break;
+  }
+}
+
+/**
+ * Break out FeedsNodeProcessor specific nodeapi operations.
+ */
+function _feeds_nodeapi_node_processor($node, $op) {
+  switch ($op) {
+    case 'load':
+      if ($result = db_fetch_object(db_query('SELECT imported, guid, url FROM {feeds_node_item} WHERE nid = %d', $node->nid))) {
+        $node->feeds_node_item = $result;
+      }
+      break;
+    case 'insert':
+      drupal_write_record('feeds_node_item', $node->feeds_node_item);
+      break;
+    case 'update':
+      $node->feeds_node_item->nid = $node->nid;
+      drupal_write_record('feeds_node_item', $node->feeds_node_item, 'nid');
+      break;
+    case 'delete':
+      db_query('DELETE FROM {feeds_node_item} WHERE nid = %d', $node->nid);
       break;
   }
 }
