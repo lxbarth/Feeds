@@ -8,13 +8,49 @@
 // Vague request time. Use as common point of reference and to avoid expensive
 // calls to time().
 define('FEEDS_REQUEST_TIME', time());
+define('FEEDS_SCHEDULE_NEVER_REFRESH', -1);
 
 /**
  * Implementation of hook_cron().
  */
 function feeds_cron() {
-  feeds_include('queue');
-  feeds_queue_refresh();
+  feeds_include('scheduler');
+  feeds_scheduler_cron();
+}
+
+/**
+ * Implementation of hook_cron_queue_info().
+ * Invoked by drupal_queue module if present.
+ */
+function feeds_cron_queue_info() {
+  $queues = array();
+  $queues['feeds_queue'] = array(
+    'worker callback' => 'feeds_refresh',
+    'time' => variable_get('feeds_worker_time', 60),
+  );
+  return $queues;
+}
+
+/**
+ * Refreshes a feed identified by $feed_info.
+ *
+ * We need this to have a one-function callback for drupal_queue. Can be used
+ * otherwise without problems.
+ *
+ * @param $feed_info
+ *   Array where the key 'id' is the id of a Feed object and the key 'feed_nid'
+ *   is the node id of feed node.
+ */
+function feeds_refresh($feed_info) {
+  //@todo: invoke $feed->import();
+  $feed = feeds_instance('Feed', $feed_info['id']);
+  try {
+    $feed->import($feed_info['feed_nid']);
+  }
+  catch (Exception $e) {
+    drupal_set_message($e->getMessage(), 'error');
+    watchdog('feeds_refresh', $e->getMessage(), array(), WATCHDOG_ERROR);
+  }
 }
 
 /**

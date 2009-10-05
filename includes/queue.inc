@@ -1,5 +1,11 @@
 <?php
 // $Id: queue.inc,v 1.1 2009/09/16 17:58:13 alexb Exp $
+
+/**
+ * @file
+ * Scheduling refreshing of feeds.
+ */
+
 /**
  * Refreshes scheduled feeds.
  */

@@ -7,3 +7,8 @@ Work in progress.
 See http://drupal.org/project/issues/feeds for planned features / outstanding tasks.
 
 Contact alex_b http://drupal.org/user/53995 for details.
+
+Performance
+===========
+
+If you are managing more than ten feeds with this module, use drupal_queue module.

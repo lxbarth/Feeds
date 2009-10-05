@@ -4,9 +4,6 @@
  * @file
  */
 
-// Designates that a feed should be never refreshed.
-define('FEEDS_CRON_NEVER_REFRESH', -1);
-
 /**
  * A Feeds result class.
  *
@@ -256,7 +253,7 @@ class Feed extends FeedsConfigurable {
       'processor' => 'FeedsNodeProcessor',
       'content_type' => '',
       'update' => 0,
-      'refresh_period' => FEEDS_CRON_NEVER_REFRESH,
+      'refresh_period' => FEEDS_SCHEDULE_NEVER_REFRESH,
     );
   }
 
@@ -280,7 +277,7 @@ class Feed extends FeedsConfigurable {
       '#default_value' => $this->config['content_type'],
     );
     $period = drupal_map_assoc(array(1, 900, 1800, 3600, 10800, 21600, 43200, 86400, 259200, 604800, 2419200), 'format_interval');
-    $period[FEEDS_CRON_NEVER_REFRESH] = t('Never');
+    $period[FEEDS_SCHEDULE_NEVER_REFRESH] = t('Never');
     $period[1] = t('As often as possible');
     $form['refresh_period'] = array(
       '#type' => 'select',
@@ -314,6 +311,9 @@ class Feed extends FeedsConfigurable {
    *        We may need to think of per-import (= per-node) configurations in a larger context.
    *        For instance, right now a parser or a processor can't offer any one-off configuration options
    *        for imports. Think of delimiter settings for CSV imports.
+   *
+   * @throws Exception
+   *   If a problem with fetching, parsing or processing occured.
    */
   public function import($feed_nid = NULL) {
     $result = $this->fetcher->fetch($feed_nid);

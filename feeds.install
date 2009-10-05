@@ -65,11 +65,11 @@ function feeds_schema() {
         'default' => '',
         'description' => 'Class name of the feeds plugin.',
       ),
-      'nid' => array(
+      'feed_nid' => array(
         'type' => 'int',
         'not null' => FALSE,
         'unsigned' => TRUE,
-        'description' => 'Node nid if this particular source is attached to a node.',
+        'description' => 'Node nid if this particular source is attached to a feed node.',
       ),
       'source' => array(
         'type' => 'text',
@@ -83,6 +83,31 @@ function feeds_schema() {
         'nid' => array('nid'),
         'class' => array('class'),
       ),
+  );
+  $schema['feeds_schedule'] = array(
+    'description' => t('Contains feeds scheduled for refresh.'),
+    'fields' => array(
+      'id' => array(
+        'type' => 'varchar',
+        'length' => '255',
+        'not null' => TRUE,
+        'default' => '',
+        'description' => 'Id of the feed configuration.',
+      ),
+      'feed_nid' => array(
+        'type' => 'int',
+        'not null' => FALSE,
+        'unsigned' => TRUE,
+        'description' => 'Node nid if this particular source is attached to a feed node.',
+      ),
+      'next_refresh_time' => array(
+        'type' => 'int',
+        'unsigned' => FALSE,
+        'default' => 0,
+        'not null' => TRUE,
+        'description' => 'Timestamp of the earliest possible next refresh time for this feed.',
+      ),
+    ),
   );
   $schema['feeds_node_item'] = array(
     'description' => t('Stores additional information about feed item nodes. Used by FeedsNodeProcessor.'),
