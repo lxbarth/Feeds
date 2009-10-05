@@ -4,6 +4,9 @@
  * @file
  */
 
+// Designates that a feed should be never refreshed.
+define('FEEDS_CRON_NEVER_REFRESH', -1);
+
 /**
  * A Feeds result class.
  *
@@ -84,7 +87,7 @@ class Feed extends FeedsConfigurable {
       'processor' => 'FeedsNodeProcessor',
       'content_type' => '',
       'update' => 0,
-      'refresh_period' => FEEDAPI_CRON_NEVER_REFRESH,
+      'refresh_period' => FEEDS_CRON_NEVER_REFRESH,
     );
   }
 
@@ -108,7 +111,7 @@ class Feed extends FeedsConfigurable {
       '#default_value' => $this->config['content_type'],
     );
     $period = drupal_map_assoc(array(1, 900, 1800, 3600, 10800, 21600, 43200, 86400, 259200, 604800, 2419200), 'format_interval');
-    $period[FEEDAPI_CRON_NEVER_REFRESH] = t('Do not refresh periodically');
+    $period[FEEDS_CRON_NEVER_REFRESH] = t('Never');
     $period[1] = t('As often as possible');
     $form['refresh_period'] = array(
       '#type' => 'select',

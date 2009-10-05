@@ -40,18 +40,12 @@ class FeedsUITestCase extends DrupalWebTestCase {
    * UI functionality tests on
    * feeds_ui_overview(),
    * feeds_ui_create_form(),
-   * feeds_ui_edit_page().
+   * Change plugins on feeds_ui_edit_page().
    */
   public function testEditFeedConfiguration() {
 
-    // Create new feed configuration.
-    $this->drupalGet('admin/build/feeds');
-    $this->clickLink('New configuration');
-    $edit = array(
-      'name' => 'Test feed',
-      'id' => 'test_feed',
-    );
-    $this->drupalPost('admin/build/feeds/create', $edit, 'Create');
+    // Create a feed.
+    $this->createFeedConfiguration('Test feed', 'test_feed');
 
     // Assert UI elements.
     $this->assertText('Your feed has been created with default settings.');
@@ -87,6 +81,44 @@ class FeedsUITestCase extends DrupalWebTestCase {
 
     // Assert changed configuration.
     $this->assertPlugins('test_feed', 'FeedsFileFetcher', 'FeedsCSVParser', 'FeedsDataProcessor');
+  }
+
+  /**
+   * Test basic settings on a feed.
+   */
+  public function testBasicSettings() {
+
+    // Create a feed.
+    $this->createFeedConfiguration('test_feed', 'Test feed');
+
+    // Test form settings.
+    $edit = array(
+      'name' => 'Syndication feed',
+      'content_type' => 'page',
+      'refresh_period' => 3600,
+    );
+    $this->drupalPost('admin/build/feeds/edit/test_feed/settings/Feed', $edit, 'Save');
+
+    // Assert results of change.
+    $this->assertText('Edit Syndication feed');
+    $this->assertText('Attached to: Page');
+    $this->assertText('Refresh: every 1 hour');
+    $this->drupalGet('admin/build/feeds');
+    $this->assertLink('Page'); // See whether string 'Page' shows up in table.
+  }
+
+  /**
+   * Create feed config.
+   */
+  public function createFeedConfiguration($name, $id) {
+    // Create new feed configuration.
+    $this->drupalGet('admin/build/feeds');
+    $this->clickLink('New configuration');
+    $edit = array(
+      'name' => $name,
+      'id' => $id,
+    );
+    $this->drupalPost('admin/build/feeds/create', $edit, 'Create');
   }
 
   /**

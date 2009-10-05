@@ -188,10 +188,22 @@ function feeds_ui_edit_page($feed, $active = 'help', $plugin_key = '') {
   $info['class'] = 'config-set';
 
   // Basic information.
+  $items = array();
+  $items[] = t('Attached to: !type', array('!type' => $feed->config['content_type'] ? node_get_types('name', $feed->config['content_type']) : t('[none]')));
+  if ($feed->config['refresh_period'] == FEEDS_CRON_NEVER_REFRESH) {
+    $refresh_period = t('never');
+  }
+  elseif ($feed->config['refresh_period'] == 1) {
+    $refresh_period = t('as often as possible');
+  }
+  else {
+    $refresh_period = t('every !interval', array('!interval' => format_interval($feed->config['refresh_period'])));
+  }
+  $items[] = t('Refresh: !refresh_period', array('!refresh_period' => $refresh_period));
   $info['title'] = t('Basic settings');
   $info['body'] = array(
     array(
-      'body' => '@todo: summary',
+      'body' => theme('item_list', $items),
       'actions' => array(l(t('Settings'), $path .'settings/Feed')),
     ),
   );
