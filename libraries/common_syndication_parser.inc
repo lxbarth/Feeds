@@ -88,7 +88,7 @@ function _parser_common_syndication_feed_format_detect($xml) {
  * Parse atom feeds.
  */
 function _parser_common_syndication_atom10_parse($feed_XML) {
-  $parsed_source = new stdClass();
+  $parsed_source = array();
 
   $base = (string) array_shift($feed_XML->xpath("@base"));
   if (!valid_url($base, TRUE)) {
@@ -96,17 +96,16 @@ function _parser_common_syndication_atom10_parse($feed_XML) {
   }
 
   // Detect the title
-  $parsed_source->title = isset($feed_XML->title) ? _parser_common_syndication_title("{$feed_XML->title}") : "";
+  $parsed_source['title'] = isset($feed_XML->title) ? _parser_common_syndication_title("{$feed_XML->title}") : "";
   // Detect the description
-  $parsed_source->description = isset($feed_XML->subtitle) ? "{$feed_XML->subtitle}" : "";
-  $parsed_source->options = new stdClass();
+  $parsed_source['description'] = isset($feed_XML->subtitle) ? "{$feed_XML->subtitle}" : "";
 
-  $parsed_source->options->link = _parser_common_syndication_link($feed_XML->link);
-  if (valid_url($parsed_source->options->link) && !valid_url($parsed_source->options->link, TRUE) && !empty($base)) {
-    $parsed_source->options->link = $base . $parsed_source->options->link;
+  $parsed_source['link'] = _parser_common_syndication_link($feed_XML->link);
+  if (valid_url($parsed_source['link']) && !valid_url($parsed_source['link'], TRUE) && !empty($base)) {
+    $parsed_source['link'] = $base . $parsed_source['link'];
   }
 
-  $parsed_source->items = array();
+  $parsed_source['items'] = array();
 
   foreach ($feed_XML->entry as $news) {
     $original_url = NULL;
@@ -176,20 +175,19 @@ function _parser_common_syndication_atom10_parse($feed_XML) {
 
     $original_url = _parser_common_syndication_link($news->link);
 
-    $item = new stdClass();
-    $item->title = _parser_common_syndication_title($title, $body);
-    $item->description = $body;
-    $item->options = new stdClass();
-    $item->options->original_author = $original_author;
-    $item->options->timestamp = _parser_common_syndication_parse_date(isset($news->published) ? "{$news->published}" : "{$news->issued}");
-    $item->options->original_url = trim($original_url);
-    if (valid_url($item->options->original_url) && !valid_url($item->options->original_url, TRUE) && !empty($base)) {
-      $item->options->original_url = $base . $item->options->original_url;
+    $item = array();
+    $item['title'] = _parser_common_syndication_title($title, $body);
+    $item['description'] = $body;
+    $item['author'] = $original_author;
+    $item['timestamp'] = _parser_common_syndication_parse_date(isset($news->published) ? "{$news->published}" : "{$news->issued}");
+    $item['url'] = trim($original_url);
+    if (valid_url($item['url']) && !valid_url($item['url'], TRUE) && !empty($base)) {
+      $item['url'] = $base . $item['url'];
     }
-    $item->options->guid = $guid;
-    $item->options->tags = isset($additional_taxonomies['ATOM Categories']) ? $additional_taxonomies['ATOM Categories'] : array();
-    $item->options->domains = isset($additional_taxonomies['ATOM Domains']) ? $additional_taxonomies['ATOM Domains'] : array();
-    $parsed_source->items[] = $item;
+    $item['guid'] = $guid;
+    $item['tags'] = isset($additional_taxonomies['ATOM Categories']) ? $additional_taxonomies['ATOM Categories'] : array();
+    $item['domains'] = isset($additional_taxonomies['ATOM Domains']) ? $additional_taxonomies['ATOM Domains'] : array();
+    $parsed_source['items'][] = $item;
   }
   return $parsed_source;
 }
@@ -258,31 +256,31 @@ function _parser_common_syndication_RDF10_parse($feed_XML) {
       'options'     => (object)array(
         'guid'            => 'rdf:about',
         'timestamp'       => 'dc:date',
-        'original_author' => array('dc:creator', 'dc:publisher'),
-        'original_url'    => array('rss:link', 'rdf:about'),
+        'author' => array('dc:creator', 'dc:publisher'),
+        'url'    => array('rss:link', 'rdf:about'),
         'tags'            => 'dc:subject',
       ),
     ));
 
     // Special handling for the title:
-    $item->title = _parser_common_syndication_title($item->title, $item->description);
+    $item['title'] = _parser_common_syndication_title($item['title'], $item['description']);
 
     // Parse any date/time values into Unix timestamps:
-    $item->options->timestamp = _parser_common_syndication_parse_date($item->options->timestamp);
+    $item['timestamp'] = _parser_common_syndication_parse_date($item['timestamp']);
 
     // If no author name found, use the feed title:
-    if (empty($item->options->original_author)) {
-      $item->options->original_author = $parsed_source->title;
+    if (empty($item['author'])) {
+      $item['author'] = $parsed_source['title'];
     }
 
     // Add every found RDF property to the feed item.
-    $item->rdf = (object)array();
+    $item['rdf'] = (object)array();
     foreach ($rdf_data as $rdf_property => $rdf_value) {
       $rdf_property = str_replace(':', '_', $rdf_property); // looks nicer in the mapper UI
-      $item->rdf->$rdf_property = $rdf_value;
+      $item['rdf'][$rdf_property] = $rdf_value;
     }
 
-    $parsed_source->items[] = $item;
+    $parsed_source['items'][] = $item;
   }
 
   return $parsed_source;
@@ -314,15 +312,14 @@ function _parser_common_syndication_RDF10_item($rdf_data, $mappings) {
  * Parse RSS2.0 feeds.
  */
 function _parser_common_syndication_RSS20_parse($feed_XML) {
-  $parsed_source = new stdClass();
+  $parsed_source = array();
   // Detect the title.
-  $parsed_source->title = isset($feed_XML->channel->title) ? _parser_common_syndication_title("{$feed_XML->channel->title}") : "";
+  $parsed_source['title'] = isset($feed_XML->channel->title) ? _parser_common_syndication_title("{$feed_XML->channel->title}") : "";
   // Detect the description.
-  $parsed_source->description = isset($feed_XML->channel->description) ? "{$feed_XML->channel->description}" : "";
-  $parsed_source->options = new stdClass();
+  $parsed_source['description'] = isset($feed_XML->channel->description) ? "{$feed_XML->channel->description}" : "";
   // Detect the link.
-  $parsed_source->options->link = isset($feed_XML->channel->link) ? "{$feed_XML->channel->link}" : "";
-  $parsed_source->items = array();
+  $parsed_source['link'] = isset($feed_XML->channel->link) ? "{$feed_XML->channel->link}" : "";
+  $parsed_source['items'] = array();
 
   foreach ($feed_XML->xpath('//item') as $news) {
     $category = $news->xpath('category');
@@ -394,22 +391,21 @@ function _parser_common_syndication_RSS20_parse($feed_XML) {
       }
     }
 
-    $item = new stdClass();
-    $item->title = _parser_common_syndication_title($title, $body);
-    $item->description = $body;
-    $item->options = new stdClass();
-    $item->options->original_author = $original_author;
+    $item = array();
+    $item['title'] = _parser_common_syndication_title($title, $body);
+    $item['description'] = $body;
+    $item['author'] = $original_author;
     if (isset($news['pubDate'])) {
-      $item->options->timestamp = _parser_common_syndication_parse_date($news['pubDate']);
+      $item['timestamp'] = _parser_common_syndication_parse_date($news['pubDate']);
     }
     else {
-      $item->options->timestamp = time();
+      $item['timestamp'] = time();
     }
-    $item->options->original_url = trim($original_url);
-    $item->options->guid = $guid;
-    $item->options->domains = $additional_taxonomies['RSS Domains'];
-    $item->options->tags = $additional_taxonomies['RSS Categories'];
-    $parsed_source->items[] = $item;
+    $item['url'] = trim($original_url);
+    $item['guid'] = $guid;
+    $item['domains'] = $additional_taxonomies['RSS Domains'];
+    $item['tags'] = $additional_taxonomies['RSS Categories'];
+    $parsed_source['items'][] = $item;
   }
   return $parsed_source;
 }
