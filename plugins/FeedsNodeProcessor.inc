@@ -11,16 +11,26 @@
 class FeedsNodeProcessor extends FeedsProcessor {
 
   /**
-   * Implementation of FeedsProcessor::process();
+   * Implementation of FeedsProcessor::process().
    */
-  public function process(FeedsParserResult $parserResult, $nid = NULL) {
+  public function process(FeedsParserResult $parserResult, $feed_nid = NULL) {
+
     foreach ($parserResult->value['items'] as $item) {
       // If the target item does not exist OR if update_existing is enabled, map and save.
-      if (!$nid = $this->existingItemId($item, $nid) || $this->config['update_existing']) {
+      if (!$nid = $this->existingItemId($item, $feed_nid) || $this->config['update_existing']) {
+
+        // Map item to a node.
         $node = $this->map($item);
+
+        // Add some default information.
+        $node->feeds_node_item->id = $this->id;
+        $node->feeds_node_item->imported = FEEDS_REQUEST_TIME;
+        $node->feeds_node_item->feed_nid = $feed_nid;
         if (!empty($nid)) {
           $node->nid = $nid;
         }
+
+        // Save the node.
         node_save($node);
       }
     }
@@ -28,9 +38,13 @@ class FeedsNodeProcessor extends FeedsProcessor {
 
   /**
    * Implementation of FeedsProcessor::purge().
+   * @todo: use batch API.
    */
-  public function purge($nid = NULL) {
-    // @todo
+  public function purge($feed_nid = NULL) {
+    $result = db_query('SELECT nid FROM {feeds_node_item} WHERE feed_nid = %d', $feed_nid);
+    while ($node = db_fetch_object($result)) {
+      node_delete($node->nid);
+    }
   }
 
   /**
@@ -81,7 +95,6 @@ class FeedsNodeProcessor extends FeedsProcessor {
     $target_node = new stdClass();
     $target_node->type = $this->config['content_type'];
     $target_node->feeds_node_item = new stdClass();
-    $target_node->feeds_node_item->imported = FEEDS_REQUEST_TIME;
     node_object_prepare($target_node);
 
     // Have parent class do the iterating.

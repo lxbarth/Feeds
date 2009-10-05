@@ -135,6 +135,7 @@ class Feed extends FeedsConfigurable {
    * @param $nid
    *   If this configuaration is attached to a feed node, $nid contains the
    *   node id of the feed node.
+   *   @todo: name this variable consistently throughout the module $feed_nid.
    *
    * @todo: Break out into a facade-style FeedsImport class?
    * @todo: Pass in source object, not ominous identifier $nid.
