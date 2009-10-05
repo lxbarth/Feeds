@@ -121,11 +121,11 @@ class FeedsNodeProcessor extends FeedsProcessor {
     $targets = array();
     foreach ($this->config['mappings'] as $mapping) {
       if ($mapping['unique']) {
-        $targets[$target] = $parser->getSourceElement($source_item, $mapping['source']);
+        $targets[$mapping['target']] = $parser->getSourceElement($source_item, $mapping['source']);
       }
     }
     foreach ($targets as $target => $value) {
-      switch ($targets) {
+      switch ($target) {
         case 'url':
           $nid = db_result(db_query('SELECT nid FROM {feeds_node_item} WHERE feed_nid = %d AND url = "%s"', $feed_nid, $value));
           break;
