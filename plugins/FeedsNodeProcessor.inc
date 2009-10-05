@@ -32,13 +32,6 @@ class FeedsNodeProcessor extends FeedsProcessor {
   }
 
   /**
-   * hook_nodeapi().
-   */
-  public static function nodeapi($node, $op, $a1, $a2) {
-
-  }
-
-  /**
    * Return available mapping targets.
    */
   public function getMappingTargets() {
