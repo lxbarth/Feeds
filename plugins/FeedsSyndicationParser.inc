@@ -24,14 +24,20 @@ class FeedsSyndicationParser extends FeedsParser {
 
   /**
    * Return mapping sources.
+   *
+   * @todo: at a future point, we could expose data type information here,
+   * storage systems like Data module could use this information to store
+   * parsed data automatically in fields with a correct field type.
    */
   public function getMappingSources() {
     return array(
       'title' => t('Title'),
-       'description' => t('Description'),
-       'link' => t('Item URL (link)'),
-       'guid' => t('Item GUID'),
-       'tags' => t('Categories'),
+      'description' => t('Description'),
+      'author' => t('Author'),
+      'timestamp' => t('Published date'),
+      'url' => t('Item URL (link)'),
+      'guid' => t('Item GUID'),
+      'tags' => t('Categories'),
      );
   }
 }

@@ -180,6 +180,7 @@ function http_request_get($url, $username = NULL, $password = NULL, $accept_inva
   }
 
   $result->code = isset($result->code) ? $result->code : 200;
+
   // In this case return the cached data.
   if ($result->code == 304) {
     $cached_data = http_request_cache_get($url);
@@ -190,7 +191,7 @@ function http_request_get($url, $username = NULL, $password = NULL, $accept_inva
     else {
       // It's a tragedy, this file must exist and contain good data.
       // In this case, clear cache and repeat.
-      cache_clear_all('feeds_http_download_'. md5($url));
+      cache_clear_all('feeds_http_download_'. md5($url), 'cache');
       return http_request_get($url, $username, $password);
     }
   }

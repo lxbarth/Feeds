@@ -19,7 +19,6 @@ class FeedsNodeProcessor extends FeedsProcessor {
       if (!$nid = $this->existingItemId($item, $nid) || $this->config['update_existing']) {
         $node = $this->map($item);
         $node->nid = $nid;
-        dsm($node);
         // node_save($node);
       }
     }
@@ -72,6 +71,11 @@ class FeedsNodeProcessor extends FeedsProcessor {
    */
   public function map($source_item) {
     // Prepare node object.
+    static $included;
+    if (!$included) {
+      module_load_include('inc', 'node', 'node.pages');
+      $included = TRUE;
+    }
     $target_node = new stdClass();
     $target_node->type = $this->config['content_type'];
     node_object_prepare($target_node);
@@ -84,10 +88,10 @@ class FeedsNodeProcessor extends FeedsProcessor {
    * Override setTargetElement to operate on a target item that is a node.
    */
   public function setTargetElement($target_node, $target_element, $value) {
-    if (in_array($source_item, array('url', 'guid'))) {
+    if (in_array($target_element, array('url', 'guid'))) {
       $target_node->FeedsNodeProcessor->$target_element = $value;
     }
-    elseif (in_array('title', 'body', 'status', 'created')) {
+    elseif (in_array($target_element, array('title', 'body', 'status', 'created'))) {
       $target_node->$target_element = $value;
     }
   }
@@ -125,7 +129,7 @@ class FeedsNodeProcessor extends FeedsProcessor {
    */
   public function getDefaultConfig() {
     $types = node_get_types('names');
-    return array('content_type' => key($types), 'update_existing' => FALSE);
+    return array('content_type' => key($types), 'update_existing' => FALSE, 'mappings' => array());
   }
 
   /**
