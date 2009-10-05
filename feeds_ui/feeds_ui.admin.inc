@@ -101,6 +101,7 @@ function feeds_ui_create_form_submit($form, &$form_state) {
   // Set a message and redirect to settings form.
   drupal_set_message(t('Your feed has been created with default settings. If they do not fit your use case you can change them here.'));
   $form_state['redirect'] = 'admin/build/feeds/edit/'. $feed->id;
+  // Clear cache, creating a configuration may have an affect on menu tree.
   menu_rebuild();
 }
 
@@ -124,6 +125,8 @@ function feeds_ui_delete_form(&$form_state, $feed) {
  */
 function feeds_ui_delete_form_submit($form, &$form_state) {
   feeds_delete($form['#feed']->id);
+  // Clear cache, deleting a configuration may have an affect on menu tree.
+  menu_rebuild();
 }
 
 /**

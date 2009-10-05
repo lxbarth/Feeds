@@ -30,7 +30,7 @@ class FeedsUITestCase extends DrupalWebTestCase {
     $this->drupalLogin(
       $this->drupalCreateUser(
         array(
-          'administer feeds',
+          'administer feeds', 'use feeds', 'create story content', 'create page content',
         )
       )
     );
@@ -48,7 +48,7 @@ class FeedsUITestCase extends DrupalWebTestCase {
     $this->createFeedConfiguration('Test feed', 'test_feed');
 
     // Assert UI elements.
-    $this->assertText('Your feed has been created with default settings.');
+    $this->drupalGet('admin/build/feeds/edit/test_feed');
     $this->assertText('Basic settings');
     $this->assertText('Fetcher');
     $this->assertText('HTTP Fetcher');
@@ -62,11 +62,12 @@ class FeedsUITestCase extends DrupalWebTestCase {
     $this->assertRaw('admin/build/feeds/edit/test_feed/fetcher');
     $this->assertRaw('admin/build/feeds/edit/test_feed/parser');
     $this->assertRaw('admin/build/feeds/edit/test_feed/processor');
-
-    // Assert presence of default plugins.
-    $this->assertPlugins('test_feed', 'FeedsHttpFetcher', 'FeedsSyndicationParser', 'FeedsNodeProcessor');
+    $this->drupalGet('import');
+    $this->assertText('Test feed');
 
     // Select some other plugins.
+    $this->drupalGet('admin/build/feeds/edit/test_feed');
+
     $this->clickLink('Change', 0);
     $this->assertText('Select a fetcher');
     $this->drupalPost('admin/build/feeds/edit/test_feed/fetcher', array(), 'Select');
@@ -81,17 +82,16 @@ class FeedsUITestCase extends DrupalWebTestCase {
 
     // Assert changed configuration.
     $this->assertPlugins('test_feed', 'FeedsFileFetcher', 'FeedsCSVParser', 'FeedsDataProcessor');
-  }
 
-  /**
-   * Test basic settings on a feed.
-   */
-  public function testBasicSettings() {
+    // Delete feed.
+    $this->drupalPost('admin/build/feeds/delete/test_feed', array(), 'Delete');
+    $this->drupalGet('import');
+    $this->assertNoText('Test feed');
 
-    // Create a feed.
-    $this->createFeedConfiguration('test_feed', 'Test feed');
+    // Create the same feed again.
+    $this->createFeedConfiguration('Test feed', 'test_feed');
 
-    // Test form settings.
+    // Test basic settings settings.
     $edit = array(
       'name' => 'Syndication feed',
       'content_type' => 'page',
@@ -105,6 +105,23 @@ class FeedsUITestCase extends DrupalWebTestCase {
     $this->assertText('Refresh: every 1 hour');
     $this->drupalGet('admin/build/feeds');
     $this->assertLink('Page'); // See whether string 'Page' shows up in table.
+
+    // Configure processor.
+    $edit = array(
+      'content_type' => 'story',
+    );
+    $this->drupalPost('admin/build/feeds/edit/test_feed/settings/FeedsNodeProcessor', $edit, 'Save');
+    $this->assertRaw('value="story" selected="selected"');
+
+    // Create a feed node.
+    $edit = array(
+      'title' => 'Development Seed',
+      'feeds[feeds_source]' => $GLOBALS['base_url'] .'/'. drupal_get_path('module', 'feeds') .'/tests/feeds/developmentseed.rss2',
+      );
+    $this->drupalPost('node/add/page', $edit, 'Save');
+    $this->assertText('Page Development Seed has been created.');
+
+    // @todo: refreshing/deleting feed items. Needs to live in feeds.test
   }
 
   /**
@@ -119,6 +136,10 @@ class FeedsUITestCase extends DrupalWebTestCase {
       'id' => $id,
     );
     $this->drupalPost('admin/build/feeds/create', $edit, 'Create');
+
+    // Assert message and presence of default plugins.
+    $this->assertText('Your feed has been created with default settings.');
+    $this->assertPlugins('test_feed', 'FeedsHttpFetcher', 'FeedsSyndicationParser', 'FeedsNodeProcessor');
   }
 
   /**
