@@ -254,7 +254,7 @@ function feeds_ui_edit_page($feed, $active = 'help', $plugin_key = '') {
     $actions[] = l(t('Settings'), $path .'settings/'. $config['processor']['plugin_key']);
   }
   // @todo: We assume that every processor supports mapping - that's not necessarily the case.
-  $actions[] = l(t('Mapping'), $path .'mapping/'. $processor);
+  $actions[] = l(t('Mapping'), $path .'mapping');
   $info['title'] = t('Processor');
   $info['body'] = array(
     array(
