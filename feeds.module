@@ -18,8 +18,7 @@ define('FEEDS_EXPORT_NONE', 0);
  * Implementation of hook_cron().
  */
 function feeds_cron() {
-  feeds_include('scheduler');
-  feeds_scheduler_cron();
+  feeds_scheduler_instance()->cron();
 }
 
 /**
@@ -29,7 +28,7 @@ function feeds_cron() {
 function feeds_cron_queue_info() {
   $queues = array();
   $queues['feeds_queue'] = array(
-    'worker callback' => 'feeds_scheduler_refresh',
+    'worker callback' => 'feeds_scheduler_work',
     'time' => variable_get('feeds_worker_time', 60),
   );
   return $queues;
@@ -180,8 +179,7 @@ function feeds_nodeapi($node, $op) {
         $feed->import($source);
 
         // Add feed to scheduler.
-        feeds_include('scheduler');
-        feeds_scheduler_add($feed, $node->nid);
+        feeds_scheduler_instance()->add($feed, $node->nid);
       }
       break;
     case 'view':
@@ -194,9 +192,8 @@ function feeds_nodeapi($node, $op) {
       break;
     case 'delete':
       if ($feed = feeds_get_by_content_type($node->type)) {
-        feeds_include('scheduler');
         // Remove feed from scheduler and delete source.
-        feeds_scheduler_remove($feed, $node->nid);
+        feeds_scheduler_instance()->remove($feed, $node->nid);
         feeds_source_instance($feed, $node->nid)->delete();
       }
       break;
@@ -290,8 +287,7 @@ function feeds_import_form_submit($form, &$form_state) {
   $feed->import($source);
 
   // Add feed to scheduler.
-  feeds_include('scheduler');
-  feeds_scheduler_add($feed);
+  feeds_scheduler_instance()->add($feed);
 }
 
 /**
@@ -303,9 +299,8 @@ function feeds_import_form_submit($form, &$form_state) {
  *   Array where the key 'id' is the id of a Feed object and the key 'feed_nid'
  *   is the node id of feed node.
  */
-function feeds_scheduler_refresh($feed_info) {
-  feeds_include('scheduler');
-  _feeds_scheduler_refresh($feed_info);
+function feeds_scheduler_work($feed_info) {
+  feeds_scheduler_instance()->work($feed_info);
 }
 
 /**
@@ -429,6 +424,7 @@ function feeds_import($feed, $feed_nid = 0) {
  */
 function feeds_feed_instance($id) {
   feeds_include('Feed');
+  // @todo: move class name retrieval into FeedsConfigurable.
   return FeedsConfigurable::instance(variable_get('feed_class', 'Feed'), $id);
 }
 
@@ -441,10 +437,22 @@ function feeds_feed_instance($id) {
  *   The node id of a feed node if the source is attached to a feed node.
  */
 function feeds_source_instance($feed, $feed_nid = 0) {
-  feeds_include('feed');
+  feeds_include('Feed');
+  // @todo: move class name retrieval into FeedsSource.
   return FeedsSource::instance(variable_get('source_class', 'FeedsSource'), $feed, $feed_nid);
 }
 
+/**
+ * Get a scheduler instance.
+ *
+ * @return
+ *   An object that implements IFeedsScheduler interface.
+ */
+function feeds_scheduler_instance() {
+  feeds_include('Feed');
+  feeds_include('FeedsScheduler');
+  return FeedsScheduler::instance();
+}
 /**
  * Get an instance of a class for a given plugin and id.
  *
