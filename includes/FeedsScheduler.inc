@@ -37,7 +37,7 @@ class FeedsScheduler implements IFeedsScheduler {
   public static function instance() {
     static $instance;
     if (!isset($instance)) {
-      $class = new variable_get('feeds_scheduler_class', 'FeedsScheduler');
+      $class = variable_get('feeds_scheduler_class', 'FeedsScheduler');
       $instance = new $class();
     }
     return $instance;
