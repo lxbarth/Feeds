@@ -104,7 +104,7 @@ class FeedsScheduler implements IFeedsScheduler {
   /**
    * Implementation of IFeedsScheduler::remove().
    */
-  public function remove($feed, $feed_nid = 0) {
+  public function remove(Feed $feed, $feed_nid = 0) {
     db_query('DELETE FROM {feeds_schedule} WHERE id = "%s" AND feed_nid = %d', $feed->id, $feed_nid);
   }
 
