@@ -14,7 +14,10 @@ class FeedsFetcherResult extends FeedsResult {
 
 /**
  * This exception gets thrown when no source is available
- * for a given feed_nid
+ * for a given feed_nid.
+ *
+ * @todo: don't use internal source loading + exception, but load source
+ * object and pass it into Feed object.
  */
 class FeedsNoSourceException extends Exception {}
 
@@ -40,7 +43,10 @@ abstract class FeedsFetcher extends FeedsConfigurable {
    * @todo: move HTTP fetcher specific code down into HTTP fetcher.
    */
   public function sourceForm($feed_nid = NULL) {
-    if (!$source = $this->loadSource($feed_nid)) {
+    try {
+      $source = $this->loadSource($feed_nid);
+    }
+    catch (Exception $e) {
       $source = $this->config['source'];
     }
     $form = array();

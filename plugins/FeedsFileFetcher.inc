@@ -14,7 +14,10 @@ class FeedsFileFetcher extends FeedsFetcher {
    * Source form.
    */
   public function sourceForm($feed_nid = NULL) {
-    if (!$source = $this->loadSource($feed_nid)) {
+    try {
+      $source = $this->loadSource($feed_nid);
+    }
+    catch (Exception $e) {
       $source = $this->config['source'];
     }
     $form = array();

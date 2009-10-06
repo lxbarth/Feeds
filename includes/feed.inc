@@ -176,8 +176,7 @@ class FeedsConfigurable implements FeedsConfigurableInterface {
 /**
  * Configurable importer class. This is the main hub for Feeds module's functionality.
  *
- * @todo: rename to FeedsImportConfig or similar? "Feed" remains a very elusive concept
- * in this module.
+ * @todo: rename to FeedsConfig. "Feed" remains a very elusive concept.
  */
 class Feed extends FeedsConfigurable {
 

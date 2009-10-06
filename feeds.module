@@ -37,6 +37,8 @@ function feeds_cron_queue_info() {
 
 /**
  * Implementation of hook_perm().
+ *
+ * @todo: add more fine grained permissions for every single configuration.
  */
 function feeds_perm() {
   return array('use feeds', 'administer feeds');
@@ -256,6 +258,8 @@ function feeds_form_alter(&$form, $form_state, $form_id) {
  * Validation handler for node forms and feeds_import_form().
  *
  * Has to live in feeds.module, needs to be callable from node form.
+ *
+ * @todo: find a way to move to feeds.pages.inc.
  */
 function feeds_import_form_validate($form, &$form_state) {
   $feed = feeds_instance('Feed', $form['#feed_id']);
@@ -268,6 +272,8 @@ function feeds_import_form_validate($form, &$form_state) {
  * Cannot be used for node form, as node form executes all submit handlers in
  * node_form_submit_build_node() /before/ it creates the node and a node nid
  * is known :(
+ *
+ * @todo: move to feeds.pages.inc.
  */
 function feeds_import_form_submit($form, &$form_state) {
   $feed = feeds_instance('Feed', $form['#feed_id']);
