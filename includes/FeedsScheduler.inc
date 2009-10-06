@@ -3,9 +3,12 @@
 
 /**
  * @file
- * Scheduling refreshing of feeds.
+ * FeedsScheduler class and related.
  */
 
+/**
+ * Describe a scheduler.
+ */
 interface IFeedsScheduler {
   /**
    * Run Drupal cron.

@@ -6,7 +6,7 @@
  * Home of Feed Class and related interfaces.
  */
 
-// Including feed.inc automatically includes dependencies.
+// Including Feed.inc automatically includes dependencies.
 require_once(dirname(__FILE__) .'/FeedsConfigurable.inc');
 require_once(dirname(__FILE__) .'/FeedsSource.inc');
 
@@ -202,31 +202,6 @@ class Feed extends FeedsConfigurable {
     parent::configFormSubmit($form, $form_state);
     // Clear cache, changes to content_type have an affect on menu tree.
     menu_rebuild();
-  }
-
-  /**
-   * Import feed by using configured fetchers, parsers, processor.
-   *
-   * @param FeedsSource $source
-   *   Object that describes the source to be imported.
-   *
-   * @throws Exception
-   *   If a problem with fetching, parsing or processing occured.
-   */
-  public function import(FeedsSource $source) {
-    $result = $this->fetcher->fetch($source);
-    $result = $this->parser->parse($result, $source);
-    $this->processor->process($result, $source);
-  }
-
-  /**
-   * Remove all imported items.
-   *
-   * @param FeedsSource $source
-   *   Object that describes the source for importing.
-   */
-  public function purge(FeedsSource $source) {
-    $this->processor->purge($source);
   }
 
   /**

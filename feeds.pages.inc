@@ -50,7 +50,8 @@ function feeds_import_node_form(&$form_state, $node) {
  */
 function feeds_import_node_form_submit($form, $form_state) {
   $feed = feeds_feed_instance($form['#feed_id']);
-  $feed->import($form['#feed_nid']);
+  $source = feeds_source_instance($feed, $form['#feed_nid']);
+  feeds_importer_instance()->import($feed, $source);
 }
 
 /**
@@ -103,7 +104,7 @@ function feeds_delete_items_form(&$form_state, $feed_id, $node = NULL) {
 function feeds_delete_items_form_submit($form, &$form_state) {
   $feed = feeds_feed_instance($form['#feed_id']);
   $source = feeds_source_instance($feed, $form['#feed_nid']);
-  $feed->purge($source);
+  feeds_importer_instance()->import($feed, $source);
 }
 
 /**
