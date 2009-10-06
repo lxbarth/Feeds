@@ -80,7 +80,7 @@ class FeedsScheduler implements IFeedsScheduler {
         if ($queue->createItem($feed_info)) {
           // Remove item from schedule after adding it to queue.
           // This will make sure that we don't add an item twice to the queue.
-          $this->remove($feed_info);
+          $this->remove($feed_info['feed_id'], $feed_info['feed_nid']);
         }
       }
     }
