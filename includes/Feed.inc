@@ -207,31 +207,26 @@ class Feed extends FeedsConfigurable {
   /**
    * Import feed by using configured fetchers, parsers, processor.
    *
-   * @param $feed_nid
-   *   If this configuaration is attached to a feed node, $nid contains the
-   *   node id of the feed node.
-   *
-   * @todo: Break out into a facade-style FeedsImport class?
-   * @todo: Pass in source object, not ominous identifier $feed_nid.
-   *        Figure out how to reconcile source object with nid handling.
-   *        We may need to think of per-import (= per-node) configurations in a larger context.
-   *        For instance, right now a parser or a processor can't offer any one-off configuration options
-   *        for imports. Think of delimiter settings for CSV imports.
+   * @param FeedsSource $source
+   *   Object that describes the source to be imported.
    *
    * @throws Exception
    *   If a problem with fetching, parsing or processing occured.
    */
-  public function import($feed_nid = NULL) {
-    $result = $this->fetcher->fetch($feed_nid);
-    $result = $this->parser->parse($result, $feed_nid);
-    $this->processor->process($result, $feed_nid);
+  public function import(FeedsSource $source) {
+    $result = $this->fetcher->fetch($source);
+    $result = $this->parser->parse($result, $source);
+    $this->processor->process($result, $source);
   }
 
   /**
    * Remove all imported items.
+   *
+   * @param FeedsSource $source
+   *   Object that describes the source for importing.
    */
-  public function purge($feed_nid = NULL) {
-    $this->processor->purge($feed_nid);
+  public function purge(FeedsSource $source) {
+    $this->processor->purge($source);
   }
 
   /**

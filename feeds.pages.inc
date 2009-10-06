@@ -102,7 +102,8 @@ function feeds_delete_items_form(&$form_state, $feed_id, $node = NULL) {
  */
 function feeds_delete_items_form_submit($form, &$form_state) {
   $feed = feeds_feed_instance($form['#feed_id']);
-  $feed->purge($form['#feed_nid']);
+  $source = feeds_source_instance($feed, $form['#feed_nid']);
+  $feed->purge($source);
 }
 
 /**
