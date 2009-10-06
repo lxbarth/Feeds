@@ -63,8 +63,7 @@ abstract class FeedsFetcher extends FeedsConfigurable {
    *   This is a subsection of the usual $form_state['values'] that
    *   only contains the values from the form defined in sourceForm().
    */
-  public function sourceFormValidate($form, &$values) {
-  }
+  public function sourceFormValidate($form, &$values) {}
 
   /**
    * Load source.
