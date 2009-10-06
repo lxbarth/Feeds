@@ -13,6 +13,16 @@
  * @todo: comment.
  */
 interface FeedsSourceInterface {
+  /**
+   * Crook: for ease of use, we implement FeedsSourceInterface for every plugin,
+   * but then we need to have a handle which plugin actually implements a source.
+   *
+   * @see FeedsPlugin class.
+   *
+   * @return
+   *   TRUE if a plugin handles source specific configuration, FALSE otherwise.
+   */
+  public function hasSourceConfig();
   public function setSourceConfig($source_config);
   public function getSourceDefaults();
   public function sourceForm();
@@ -128,7 +138,7 @@ class FeedsSource extends FeedsConfigurable {
    */
   public function setConfig($config) {
     foreach (array('fetcher', 'parser', 'processor') as $type) {
-      if (isset($config[$type]) && $this->feed->$type instanceof FeedsSourceInterface) {
+      if (isset($config[$type]) && $this->feed->$type->hasSourceConfig()) {
         $this->feed->$type->setSourceConfig($config[$type]);
       }
     }
@@ -143,7 +153,7 @@ class FeedsSource extends FeedsConfigurable {
    */
   public function getConfig() {
     foreach (array('fetcher', 'parser', 'processor') as $type) {
-      if ($this->feed->$type instanceof FeedsSourceInterface) {
+      if ($this->feed->$type->hasSourceConfig()) {
         // @todo: invoke getSourceDefaults() if getSourceConfig() does not yield results?
         // @todo: key in class name, otherwise inconsistent values may occur
         $this->config[$type] = $this->feed->$type->getSourceConfig();
@@ -159,7 +169,7 @@ class FeedsSource extends FeedsConfigurable {
     // Collect information from plugins.
     $defaults = array();
     foreach (array('fetcher', 'parser', 'processor') as $type) {
-      if ($this->feed->$type instanceof FeedsSourceInterface) {
+      if ($this->feed->$type->hasSourceConfig()) {
         $defaults[$type] = $this->feed->$type->getSourceDefaults();
       }
     }
@@ -173,7 +183,7 @@ class FeedsSource extends FeedsConfigurable {
     // Collect information from plugins.
     $form = array();
     foreach (array('fetcher', 'parser', 'processor') as $type) {
-      if ($this->feed->$type instanceof FeedsSourceInterface) {
+      if ($this->feed->$type->hasSourceConfig()) {
         $form[$type] = $this->feed->$type->sourceForm();
         $form[$type]['#tree'] = TRUE;
       }
@@ -190,7 +200,7 @@ class FeedsSource extends FeedsConfigurable {
    */
   public function configFormValidate($form, &$values) {
     foreach (array('fetcher', 'parser', 'processor') as $type) {
-      if (isset($values[$type]) && $this->feed->$type instanceof FeedsSourceInterface) {
+      if (isset($values[$type]) && $this->feed->$type->hasSourceConfig()) {
         $this->feed->$type->sourceFormValidate($form, $values[$type]);
       }
     }
@@ -201,7 +211,7 @@ class FeedsSource extends FeedsConfigurable {
    */
   public function configFormSubmit($form, &$values) {
     foreach (array('fetcher', 'parser', 'processor') as $type) {
-      if (isset($values[$type]) && $this->feed->$type instanceof FeedsSourceInterface) {
+      if (isset($values[$type]) && $this->feed->$type->hasSourceConfig()) {
         $this->feed->$type->sourceFormSubmit($form, $values[$type]);
       }
     }

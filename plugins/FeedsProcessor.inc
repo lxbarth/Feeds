@@ -6,7 +6,7 @@
  *
  * @todo: make implement FeedsSourceInterface
  */
-abstract class FeedsProcessor extends FeedsConfigurable {
+abstract class FeedsProcessor extends FeedsPlugin {
 
   /**
    * Process the result of the parser or previous processors.

@@ -21,7 +21,7 @@ class FeedsParserResult extends FeedsResult {
  *
  * @todo: make implement FeedsSourceInterface
  */
-abstract class FeedsParser extends FeedsConfigurable {
+abstract class FeedsParser extends FeedsPlugin {
 
   /**
    * Parse content fetched by fetcher.

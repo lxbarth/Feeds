@@ -13,9 +13,18 @@ function _feeds_feeds_plugins() {
   $path = drupal_get_path('module', 'feeds') .'/plugins';
 
   $info = array();
+  $info['FeedsPlugin'] = array(
+    'hidden' => TRUE,
+    'handler' => array(
+      'class' => 'FeedsPlugin',
+      'file' => 'FeedsPlugin.inc',
+      'path' => $path,
+    ),
+  );
   $info['FeedsFetcher'] = array(
     'hidden' => TRUE,
     'handler' => array(
+      'parent' => 'FeedsPlugin',
       'class' => 'FeedsFetcher',
       'file' => 'FeedsFetcher.inc',
       'path' => $path,
@@ -24,6 +33,7 @@ function _feeds_feeds_plugins() {
   $info['FeedsParser'] = array(
     'hidden' => TRUE,
     'handler' => array(
+      'parent' => 'FeedsPlugin',
       'class' => 'FeedsParser',
       'file' => 'FeedsParser.inc',
       'path' => $path,
@@ -32,6 +42,7 @@ function _feeds_feeds_plugins() {
   $info['FeedsProcessor'] = array(
     'hidden' => TRUE,
     'handler' => array(
+      'parent' => 'FeedsPlugin',
       'class' => 'FeedsProcessor',
       'file' => 'FeedsProcessor.inc',
       'path' => $path,

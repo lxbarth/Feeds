@@ -12,6 +12,22 @@
 class FeedsHttpFetcher extends FeedsFetcher {
 
   /**
+   * Callback methods, exposes source form.
+   *
+   * @todo: move HTTP fetcher specific code down into HTTP fetcher.
+   */
+  public function sourceForm() {
+    $form = array();
+    $form['url'] = array(
+      '#type' => 'textfield',
+      '#title' => t('URL'),
+      '#description' => t('Enter the URL for this feed.'),
+      '#default_value' => $this->source_config['url'],
+    );
+    return $form;
+  }
+
+  /**
    * Fetch a resource via http.
    *
    * @todo: Use Curl, fall back to drupal_http_request.

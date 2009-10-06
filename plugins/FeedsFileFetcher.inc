@@ -15,15 +15,12 @@ class FeedsFileFetcher extends FeedsFetcher {
    */
   public function sourceForm() {
     $form = array();
-    // @todo: create common base class FeedsPlugin that implements __get and FeedsSourceInterface
-    // then we can get $this->source_config['feeds_source'] instead.
-    $source = $this->getSourceConfig();
     // @todo: rename feeds_source to file.
     $form['feeds_source'] = array(
       '#type' => 'textfield',
       '#title' => t('File'),
       '#description' => t('Specify a file in the site\'s file system path or upload a file below.'),
-      '#default_value' => $source['feeds_source'],
+      '#default_value' => $this->source_config['feeds_source'],
     );
     $form['feeds_upload'] = array(
       '#type' => 'file',

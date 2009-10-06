@@ -17,74 +17,7 @@ class FeedsFetcherResult extends FeedsResult {
  *
  * Implements FeedsSourceInfoInterface to expose source forms to Feeds.
  */
-abstract class FeedsFetcher extends FeedsConfigurable implements FeedsSourceInterface {
-
-  // Holds source information, extending classes should always
-  // go through setters and getters.
-  private $source_config;
-
-  /**
-   * Constructor.
-   *
-   * Initialize class variables.
-   */
-  protected function __construct($id) {
-    parent::__construct($id);
-    $this->source_config = $this->getSourceDefaults();
-  }
-
-  /**
-   * Implementation of FeedsSourceInterface::getSourceConfig().
-   */
-  public function getSourceConfig() {
-    return $this->source_config;
-  }
-
-  /**
-   * Implementation of FeedsSourceInterface::setSourceConfig().
-   */
-  public function setSourceConfig($config) {
-    $this->source_config = $config;
-  }
-
-  /**
-   * Implementation of FeedsSourceInterface::getSourceDefaults().
-   */
-  public function getSourceDefaults() {
-    $values = array_flip(array_keys($this->sourceForm()));
-    foreach ($values as $k => $v) {
-      $values[$k] = '';
-    }
-    return $values;
-  }
-
-  /**
-   * Callback methods, exposes source form.
-   *
-   * @todo: move HTTP fetcher specific code down into HTTP fetcher.
-   */
-  public function sourceForm() {
-    $form = array();
-    $form['url'] = array(
-      '#type' => 'textfield',
-      '#title' => t('URL'),
-      '#description' => t('Enter the URL for this feed.'),
-      '#default_value' => $this->source_config['url'],
-    );
-    return $form;
-  }
-
-  /**
-   * Validation handler for sourceForm.
-   */
-  public function sourceFormValidate($form, &$values) {}
-
-  /**
-   * Submit handler for sourceForm.
-   */
-  public function sourceFormSubmit($form, &$values) {
-    $this->setSourceConfig($values);
-  }
+abstract class FeedsFetcher extends FeedsPlugin {
 
   /**
    * Fetch content from a source and return it.
