@@ -542,9 +542,10 @@ class FeedsSource extends FeedsConfigurable {
     foreach (array('fetcher', 'parser', 'processor') as $type) {
       if ($this->feed->$type instanceof FeedsSourceInterface) {
         // @todo: invoke getSourceDefaults() if getSourceConfig() does not yield results?
-        $this->feed->$type->getSourceConfig();
+        $this->config[$type] = $this->feed->$type->getSourceConfig();
       }
     }
+    return $this->config;
   }
 
   /**

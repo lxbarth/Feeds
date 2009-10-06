@@ -43,6 +43,7 @@ abstract class FeedsFetcher extends FeedsConfigurable implements FeedsSourceInte
    * Implementation of FeedsSourceInterface::setSourceConfig().
    */
   public function setSourceConfig($config) {
+    dsm($config);
     $this->source_config = $config;
   }
 
@@ -82,6 +83,7 @@ abstract class FeedsFetcher extends FeedsConfigurable implements FeedsSourceInte
    * Submit handler for sourceForm.
    */
   public function sourceFormSubmit($form, &$values) {
+    dsm($values);
     $this->source_config['url'] = $values['url'];
   }
 
