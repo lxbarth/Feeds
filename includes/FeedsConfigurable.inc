@@ -80,6 +80,17 @@ class FeedsConfigurable implements FeedsConfigurableInterface {
   }
 
   /**
+   * Override magic method __get(). Make sure that $this->config goes
+   * through getConfig()
+   */
+  public function __get($name) {
+    if ($name == 'config') {
+      return $this->getConfig();
+    }
+    return $this->$name;
+  }
+
+  /**
    * Implementation of getConfig().
    */
   public function getConfig() {

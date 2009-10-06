@@ -16,22 +16,19 @@ class FeedsHttpFetcher extends FeedsFetcher {
    *
    * @todo: move HTTP fetcher specific code down into HTTP fetcher.
    */
-  public function sourceForm() {
+  public function sourceForm($source_config) {
     $form = array();
     $form['url'] = array(
       '#type' => 'textfield',
       '#title' => t('URL'),
       '#description' => t('Enter the URL for this feed.'),
-      '#default_value' => $this->source_config['url'],
+      '#default_value' => $source_config['url'],
     );
     return $form;
   }
 
   /**
    * Fetch a resource via http.
-   *
-   * @todo: Use Curl, fall back to drupal_http_request.
-   * @todo: Add caching.
    *
    * @param $resource
    *   A resource description of type FeedsResource.
@@ -40,7 +37,8 @@ class FeedsHttpFetcher extends FeedsFetcher {
    *   A string from the requested location if successful, or FALSE if not.
    */
   public function fetch(FeedsSource $source) {
-    $url = $source->config['url'];
+    $source_config = $source->getConfigFor($this);
+    $url = $source_config['url'];
     feeds_include('http_request', 'libraries');
     if ($this->config['auto_detect_feeds']) {
       return new FeedsFetcherResult(http_request_get_common_syndication($url), 'text/xml');

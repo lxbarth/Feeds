@@ -8,12 +8,17 @@
 
 /**
  * Implement source interface for all plugins.
+ *
+ * Note how this class does not attempt to store source information locally.
+ * Doing this would break the model where a Source information is strictly an
+ * object that is being passed through Feed and its plugins.
+ *
+ * There is only one instance of a Feed or a FeedsPlugin per feed configuration,
+ * whereas there is one instance of a FeedsSource per feed configuration, per
+ * feed info definition (i. e. per feed configuaration, per feed node + standalone
+ * import form).
  */
 abstract class FeedsPlugin extends FeedsConfigurable implements FeedsSourceInterface {
-
-  // Holds source information, extending classes should always
-  // go through setters and getters.
-  private $source_config;
 
   /**
    * Constructor.
@@ -26,42 +31,18 @@ abstract class FeedsPlugin extends FeedsConfigurable implements FeedsSourceInter
   }
 
   /**
-   * For convenience, expose class variables through __get().
-   */
-  public function __get($name) {
-    return $this->$name;
-  }
-
-  /**
    * Returns TRUE if $this->sourceForm() returns a form.
    */
   public function hasSourceConfig() {
-    $form = $this->sourceForm();
+    $form = $this->sourceForm(array());
     return !empty($form);
-  }
-
-  /**
-   * Implementation of FeedsSourceInterface::getSourceConfig().
-   *
-   * This method is being used by FeedsSource to collect source information
-   * from this plugin.
-   */
-  public function getSourceConfig() {
-    return $this->source_config;
-  }
-
-  /**
-   * Implementation of FeedsSourceInterface::setSourceConfig().
-   */
-  public function setSourceConfig($config) {
-    $this->source_config = $config;
   }
 
   /**
    * Implementation of FeedsSourceInterface::getSourceDefaults().
    */
   public function getSourceDefaults() {
-    $values = array_flip(array_keys($this->sourceForm()));
+    $values = array_flip(array_keys($this->sourceForm(array())));
     foreach ($values as $k => $v) {
       $values[$k] = '';
     }
@@ -71,7 +52,7 @@ abstract class FeedsPlugin extends FeedsConfigurable implements FeedsSourceInter
   /**
    * Callback methods, exposes source form.
    */
-  public function sourceForm() {
+  public function sourceForm($source_config) {
     return array();
   }
 

@@ -133,17 +133,6 @@ class Feed extends FeedsConfigurable {
   }
 
   /**
-   * Override magic method __get(). Make sure that $this->config goes
-   * through getConfig()
-   */
-  public function __get($name) {
-    if ($name == 'config') {
-      return $this->getConfig();
-    }
-    return $this->$name;
-  }
-
-  /**
    * Return defaults for feed configuration.
    */
   public function getDefaultConfig() {

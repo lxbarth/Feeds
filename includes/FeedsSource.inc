@@ -10,6 +10,7 @@
  * Describes a class that defines default values and form descriptions for
  * a FeedSource.
  *
+ * @todo: Call IFeedsSourceClient?
  * @todo: comment.
  */
 interface FeedsSourceInterface {
@@ -23,9 +24,8 @@ interface FeedsSourceInterface {
    *   TRUE if a plugin handles source specific configuration, FALSE otherwise.
    */
   public function hasSourceConfig();
-  public function setSourceConfig($source_config);
   public function getSourceDefaults();
-  public function sourceForm();
+  public function sourceForm($source_config);
   public function sourceFormValidate($form, &$values);
   public function sourceFormSubmit($form, &$values);
 }
@@ -115,9 +115,6 @@ class FeedsSource extends FeedsConfigurable {
       ctools_include('export');
       $this->export_type = EXPORT_IN_DATABASE;
       $this->config = unserialize($config);
-
-      // Invoke setter to set all members.
-      $this->setConfig($this->config);
     }
   }
 
@@ -130,36 +127,16 @@ class FeedsSource extends FeedsConfigurable {
   }
 
   /**
-   * Set configuration.
+   * Convenience function. Returns the configuration for a specific class.
    *
-   * @param $config
-   *   Array containing configuration information. Will be filtered by the keys returned by
-   *   getDefaultConfig().
-   */
-  public function setConfig($config) {
-    foreach (array('fetcher', 'parser', 'processor') as $type) {
-      if (isset($config[$type]) && $this->feed->$type->hasSourceConfig()) {
-        $this->feed->$type->setSourceConfig($config[$type]);
-      }
-    }
-  }
-
-  /**
-   * Get configuration, iterate over members and retrieve their configuration.
+   * @param FeedsSourceInterface $client
+   *   An object that is an implementer of FeedsSourceInterface.
    *
-   * Internally, use $this->getConfig() to pull the configuration status of member
-   * objects on $this->feed. External usage of $object->config will be funnelled through
-   * this method by parent::__get().
+   * @return
+   *   An array stored for $client.
    */
-  public function getConfig() {
-    foreach (array('fetcher', 'parser', 'processor') as $type) {
-      if ($this->feed->$type->hasSourceConfig()) {
-        // @todo: invoke getSourceDefaults() if getSourceConfig() does not yield results?
-        // @todo: key in class name, otherwise inconsistent values may occur
-        $this->config[$type] = $this->feed->$type->getSourceConfig();
-      }
-    }
-    return $this->config;
+  public function getConfigFor(FeedsSourceInterface $client) {
+    return $this->config[get_class($client)];
   }
 
   /**
@@ -170,7 +147,7 @@ class FeedsSource extends FeedsConfigurable {
     $defaults = array();
     foreach (array('fetcher', 'parser', 'processor') as $type) {
       if ($this->feed->$type->hasSourceConfig()) {
-        $defaults[$type] = $this->feed->$type->getSourceDefaults();
+        $defaults[get_class($this->feed->$type)] = $this->feed->$type->getSourceDefaults();
       }
     }
     return $defaults;
@@ -184,8 +161,9 @@ class FeedsSource extends FeedsConfigurable {
     $form = array();
     foreach (array('fetcher', 'parser', 'processor') as $type) {
       if ($this->feed->$type->hasSourceConfig()) {
-        $form[$type] = $this->feed->$type->sourceForm();
-        $form[$type]['#tree'] = TRUE;
+        $class = get_class($this->feed->$type);
+        $form[$class] = $this->feed->$type->sourceForm($this->config[$class]);
+        $form[$class]['#tree'] = TRUE;
       }
     }
     return $form;
@@ -200,8 +178,9 @@ class FeedsSource extends FeedsConfigurable {
    */
   public function configFormValidate($form, &$values) {
     foreach (array('fetcher', 'parser', 'processor') as $type) {
-      if (isset($values[$type]) && $this->feed->$type->hasSourceConfig()) {
-        $this->feed->$type->sourceFormValidate($form, $values[$type]);
+      $class = get_class($this->feed->$type);
+      if (isset($values[$class]) && $this->feed->$type->hasSourceConfig()) {
+        $this->feed->$type->sourceFormValidate($form, $values[$class]);
       }
     }
   }
@@ -211,8 +190,9 @@ class FeedsSource extends FeedsConfigurable {
    */
   public function configFormSubmit($form, &$values) {
     foreach (array('fetcher', 'parser', 'processor') as $type) {
-      if (isset($values[$type]) && $this->feed->$type->hasSourceConfig()) {
-        $this->feed->$type->sourceFormSubmit($form, $values[$type]);
+      $class = get_class($this->feed->$type);
+      if (isset($values[$class]) && $this->feed->$type->hasSourceConfig()) {
+        $this->feed->$type->sourceFormSubmit($form, $values[$class]);
       }
     }
   }
