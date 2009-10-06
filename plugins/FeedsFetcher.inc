@@ -20,7 +20,10 @@ class FeedsFetcherResult extends FeedsResult {
 abstract class FeedsFetcher extends FeedsConfigurable implements FeedsSourceInterface {
 
   // Holds source information.
-  protected $source;
+  // @todo: may be implementers of FeedsSourceInterface shouldn't
+  // keep a copy of source configuration but it should be passed in
+  // when necessary.
+  protected $source_config;
 
   /**
    * Constructor.
@@ -33,10 +36,10 @@ abstract class FeedsFetcher extends FeedsConfigurable implements FeedsSourceInte
   }
 
   /**
-   * Implementation of FeedsSourceInterface::setSource().
+   * Implementation of FeedsSourceInterface::setSourceConfig().
    */
-  public function setSource($source) {
-    $this->source = $source;
+  public function setSourceConfig($config) {
+    $this->source_config = $config;
   }
 
   /**
@@ -61,7 +64,7 @@ abstract class FeedsFetcher extends FeedsConfigurable implements FeedsSourceInte
       '#type' => 'textfield',
       '#title' => t('URL'),
       '#description' => t('Enter the URL for this feed.'),
-      '#default_value' => $this->source['url'],
+      '#default_value' => $this->source_config['url'],
     );
     return $form;
   }

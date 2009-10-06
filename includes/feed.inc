@@ -407,7 +407,7 @@ class Feed extends FeedsConfigurable {
  * @todo: comment.
  */
 interface FeedsSourceInterface {
-  public function setSource($source);
+  public function setSourceConfig($source_config);
   public function getSourceDefaults();
   public function sourceForm();
   public function sourceFormValidate($form, &$values);
@@ -500,7 +500,7 @@ class FeedsSource extends FeedsConfigurable {
       // Set configuration of all implementers of FeedsSourceInterface.
       foreach (array('fetcher', 'parser', 'processor') as $type) {
         if (isset($this->config['type']) && $this->$type instanceof FeedsSourceInterface) {
-          $this->$type->setSource($this->config['type']);
+          $this->$type->setSourceConfig($this->config['type']);
         }
       }
     }
