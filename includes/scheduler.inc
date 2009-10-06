@@ -39,6 +39,8 @@ function feeds_scheduler_cron() {
  *
  * @param $feed
  *   Feed object.
+ * @param $feed_nid
+ *   Feed nid that identifies the source for this configuration.
  */
 function feeds_scheduler_add($feed, $feed_nid = 0) {
   if ($feed->config['refresh_period'] == FEEDS_SCHEDULE_NEVER_REFRESH) {

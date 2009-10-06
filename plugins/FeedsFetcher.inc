@@ -16,8 +16,7 @@ class FeedsFetcherResult extends FeedsResult {
  * This exception gets thrown when no source is available
  * for a given feed_nid
  */
-class FeedsNoSourceException extends Exception {
-}
+class FeedsNoSourceException extends Exception {}
 
 /**
  * Abstract class, defines interface for fetchers.
