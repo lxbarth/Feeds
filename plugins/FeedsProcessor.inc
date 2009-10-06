@@ -92,7 +92,7 @@ abstract class FeedsProcessor extends FeedsConfigurable {
    * Execute mapping on an item.
    */
   public function map($source_item, $target_item = NULL) {
-    $parser = feeds_instance('Feed', $this->id)->parser;
+    $parser = feeds_feed_instance($this->id)->parser;
     if (empty($target_item)) {
       $target_item = array();
     }
@@ -128,7 +128,7 @@ abstract class FeedsProcessor extends FeedsConfigurable {
    * information from this object and store it.
    */
   public function save() {
-    $feed = feeds_instance('Feed', $this->id);
+    $feed = feeds_feed_instance($this->id);
     $feed->save();
   }
 }

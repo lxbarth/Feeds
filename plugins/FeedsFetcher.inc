@@ -141,7 +141,7 @@ abstract class FeedsFetcher extends FeedsConfigurable {
    * information from this object and store it.
    */
   public function save() {
-    $feed = feeds_instance('Feed', $this->id);
+    $feed = feeds_feed_instance($this->id);
     $feed->save();
   }
 }

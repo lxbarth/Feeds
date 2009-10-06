@@ -82,7 +82,7 @@ function feeds_ui_create_form(&$form_state) {
  */
 function feeds_ui_create_form_validate($form, &$form_state) {
   ctools_include('export');
-  $feed = feeds_instance('Feed', $form_state['values']['id']);
+  $feed = feeds_feed_instance($form_state['values']['id']);
   if (ctools_export_load_object('feeds_config', 'conditions', array('id' => $form_state['values']['id'], 'class' => 'Feed'))) {
     form_set_error('id', t('Id is taken.'));
   }
@@ -94,7 +94,7 @@ function feeds_ui_create_form_validate($form, &$form_state) {
  */
 function feeds_ui_create_form_submit($form, &$form_state) {
   // Create feed.
-  $feed = feeds_instance('Feed', $form_state['values']['id']);
+  $feed = feeds_feed_instance($form_state['values']['id']);
   $feed->addConfig($form_state['values']);
   $feed->save();
 
@@ -175,8 +175,7 @@ function feeds_ui_edit_page($feed, $active = 'help', $plugin_key = '') {
         $active_container['title'] = t('Basic settings');
         $active_container['body'] = feeds_get_config_form($feed);
       }
-      elseif ($class = feeds_load_plugin_class($plugin_key)) {
-        $plugin = feeds_instance($class, $feed->id);
+      elseif ($plugin = feeds_plugin_instance($plugin_key, $feed->id)) { // @todo: why does this work?
         $active_container['title'] = t('Settings for !plugin', array('!plugin' => $plugins[$plugin_key]['name']));
         $active_container['body'] = feeds_get_config_form($plugin);
       }
@@ -310,7 +309,7 @@ function _feeds_ui_list_plugins_by_type($feed, $type, $selected) {
  */
 function feeds_ui_select_plugin($args) {
   $plugin_key = $args['plugin_key'];
-  $feed = feeds_instance('Feed', $args['feed_id']);
+  $feed = feeds_feed_instance($args['feed_id']);
 
   // Set the plugin and save feed.
   $feed->setPlugin($plugin_key);

@@ -12,3 +12,13 @@ Performance
 ===========
 
 If you are managing more than ten feeds with this module, use drupal_queue module.
+
+Hidden settings
+===============
+
+Hidden settings are variables that you can define by adding them to the $conf
+array in your settings.php file.
+
+Name: feed_class
+Default: 'Feed'
+Description: The class to use for handling feed configurations.

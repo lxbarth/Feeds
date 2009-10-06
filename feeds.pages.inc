@@ -49,7 +49,7 @@ function feeds_import_node_form(&$form_state, $node) {
  * Submit handler for feeds_import_node_form().
  */
 function feeds_import_node_form_submit($form, $form_state) {
-  $feed = feeds_instance('Feed', $form['#feed_id']);
+  $feed = feeds_feed_instance($form['#feed_id']);
   $feed->import($form['#feed_nid']);
 }
 
@@ -57,7 +57,7 @@ function feeds_import_node_form_submit($form, $form_state) {
  * Render a feeds import form on import/[config] pages.
  */
 function feeds_import_form(&$form_state, $feed_id) {
-  $feed = feeds_instance('Feed', $feed_id);
+  $feed = feeds_feed_instance($feed_id);
 
   $form = array();
   $form['#feed_id'] = $feed->id;
@@ -85,7 +85,7 @@ function feeds_import_form(&$form_state, $feed_id) {
  */
 function feeds_delete_items_form(&$form_state, $feed_id, $node = NULL) {
   if (empty($node)) {
-    $feed = feeds_instance('Feed', $feed_id);
+    $feed = feeds_feed_instance($feed_id);
   }
   else {
     $feed = feeds_get_by_content_type($node->type);
@@ -100,7 +100,7 @@ function feeds_delete_items_form(&$form_state, $feed_id, $node = NULL) {
  * Submit handler for feeds_delete_items_form().
  */
 function feeds_delete_items_form_submit($form, &$form_state) {
-  $feed = feeds_instance('Feed', $form['#feed_id']);
+  $feed = feeds_feed_instance($form['#feed_id']);
   $feed->purge($form['#feed_nid']);
 }
 

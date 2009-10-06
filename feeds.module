@@ -127,7 +127,7 @@ function feeds_menu() {
  * Menu loader callback.
  */
 function feeds_load($id) {
-  return feeds_instance('Feed', $id);
+  return feeds_feed_instance($id);
 }
 
 /**
@@ -262,7 +262,7 @@ function feeds_form_alter(&$form, $form_state, $form_id) {
  * @todo: find a way to move to feeds.pages.inc.
  */
 function feeds_import_form_validate($form, &$form_state) {
-  $feed = feeds_instance('Feed', $form['#feed_id']);
+  $feed = feeds_feed_instance($form['#feed_id']);
   $feed->fetcher->sourceFormValidate($form, $form_state['values']['feeds']);
 }
 
@@ -276,7 +276,7 @@ function feeds_import_form_validate($form, &$form_state) {
  * @todo: move to feeds.pages.inc.
  */
 function feeds_import_form_submit($form, &$form_state) {
-  $feed = feeds_instance('Feed', $form['#feed_id']);
+  $feed = feeds_feed_instance($form['#feed_id']);
 
   // Save source and import.
   $feed->fetcher->saveSource($form_state['values']['feeds']);
@@ -385,7 +385,7 @@ function feeds_load_all() {
   $feeds = array();
   foreach ($configs as $config) {
     if ($config->id) {
-      $feeds[$config->id] = feeds_instance('Feed', $config->id);
+      $feeds[$config->id] = feeds_feed_instance($config->id);
     }
   }
   return $feeds;
@@ -399,9 +399,9 @@ function feeds_load_all() {
  * @param $id
  *   A string that is the id of the object.
  */
-function feeds_instance($class, $id) {
+function feeds_feed_instance($id) {
   feeds_include('feed');
-  return FeedsConfigurable::instance($class, $id);
+  return FeedsConfigurable::instance(variable_get('feed_class', 'Feed'), $id);
 }
 
 /**
@@ -413,8 +413,9 @@ function feeds_instance($class, $id) {
  *   A string that is the id of the object.
  */
 function feeds_plugin_instance($plugin, $id) {
+  feeds_include('feed');
   if ($class = feeds_load_plugin_class($plugin)) {
-    return feeds_instance($class, $id);
+    return FeedsConfigurable::instance($class, $id);
   }
   return NULL;
 }

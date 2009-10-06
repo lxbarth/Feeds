@@ -67,7 +67,7 @@ function feeds_scheduler_remove($feed, $feed_nid = 0) {
  */
 function _feeds_scheduler_refresh($feed_info) {
 
-  $feed = feeds_instance('Feed', $feed_info['id']);
+  $feed = feeds_feed_instance($feed_info['id']);
 
   // Only refresh if feed is actually in DB or in default configuration,
   // otherwise remove from schedule.

@@ -82,7 +82,8 @@ class FeedsConfigurable implements FeedsConfigurableInterface {
   /**
    * Instantiate a FeedsConfigurable object.
    *
-   * Don't use directly, use feeds_instance() instead.
+   * Don't use directly, use feeds_feed_instance() or feeds_plugin_instance()
+   * instead.
    */
   public static function instance($class, $id) {
     // This is useful at least as long as we're developing.
@@ -366,16 +367,15 @@ class Feed extends FeedsConfigurable {
    * @param $plugin_key
    *   A fetcher, parser or processor plugin.
    *
-   * @todo: error handling.
+   * @todo: error handling, handle setting to the same plugin.
    */
   public function setPlugin($plugin_key) {
     // $plugin_type can be either 'fetcher', 'parser' or 'processor'
     if ($plugin_type = feeds_plugin_type($plugin_key)) {
-      if ($class = feeds_load_plugin_class($plugin_key)) {
-        // Remove existing pointer to object.
+      if ($plugin = feeds_plugin_instance($plugin_key, $this->id)) {
+        // Unset existing plugin, switch to new plugin.
         unset($this->$plugin_type);
-        // Instantiate object.
-        $this->$plugin_type = feeds_instance($class, $this->id);
+        $this->$plugin_type = $plugin;
         // Set configuration information, blow away any previous information on this spot.
         $this->config[$plugin_type] = array('plugin_key' => $plugin_key);
       }
