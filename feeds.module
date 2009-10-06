@@ -428,7 +428,7 @@ function feeds_import($feed, $feed_nid = 0) {
  *   A string that is the id of the object.
  */
 function feeds_feed_instance($id) {
-  feeds_include('feed');
+  feeds_include('Feed');
   return FeedsConfigurable::instance(variable_get('feed_class', 'Feed'), $id);
 }
 
