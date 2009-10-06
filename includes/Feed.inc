@@ -62,8 +62,7 @@ abstract class FeedsResult {
 /**
  * Configurable importer class. This is the main hub for Feeds module's functionality.
  *
- * @todo: rename to FeedsConfig? "Feed" remains a very elusive concept. When doing this,
- * rename feed.inc to feeds.inc.
+ * @todo: rename to FeedsFeedConfig.
  */
 class Feed extends FeedsConfigurable {
 
