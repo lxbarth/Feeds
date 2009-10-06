@@ -29,6 +29,7 @@ function feeds_schema() {
         'default' => '',
         'description' => 'Id of the fields object.',
       ),
+      // @todo: remove this, not needed any more.
       'class' => array(
         'type' => 'varchar',
         'length' => '255',
