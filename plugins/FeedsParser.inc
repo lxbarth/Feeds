@@ -18,6 +18,8 @@ class FeedsParserResult extends FeedsResult {
 
 /**
  * Abstract class, defines interface for parsers.
+ *
+ * @todo: make implement FeedsSourceInterface
  */
 abstract class FeedsParser extends FeedsConfigurable {
 

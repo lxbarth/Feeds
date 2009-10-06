@@ -19,7 +19,8 @@ class FeedsFetcherResult extends FeedsResult {
  */
 abstract class FeedsFetcher extends FeedsConfigurable implements FeedsSourceInterface {
 
-  // Holds source information.
+  // Holds source information, extending classes should always
+  // go through setters and getters.
   private $source_config;
 
   /**
@@ -43,7 +44,6 @@ abstract class FeedsFetcher extends FeedsConfigurable implements FeedsSourceInte
    * Implementation of FeedsSourceInterface::setSourceConfig().
    */
   public function setSourceConfig($config) {
-    dsm($config);
     $this->source_config = $config;
   }
 

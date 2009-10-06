@@ -3,6 +3,8 @@
 
 /**
  * Abstract class, defines interface for processors.
+ *
+ * @todo: make implement FeedsSourceInterface
  */
 abstract class FeedsProcessor extends FeedsConfigurable {
 

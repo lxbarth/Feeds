@@ -474,6 +474,7 @@ class FeedsSource extends FeedsConfigurable {
     $this->feed_nid = $feed_nid;
     $this->feed = $feed;
     parent::__construct($feed->id);
+    $this->load();
   }
 
   /**
@@ -501,7 +502,7 @@ class FeedsSource extends FeedsConfigurable {
       // @todo: patch CTools to move constants from export.inc to ctools.module.
       ctools_include('export');
       $this->export_type = EXPORT_IN_DATABASE;
-      $this->config = unserialize($config->config);
+      $this->config = unserialize($config);
 
       // Invoke setter to set all members.
       $this->setConfig($this->config);
@@ -542,6 +543,7 @@ class FeedsSource extends FeedsConfigurable {
     foreach (array('fetcher', 'parser', 'processor') as $type) {
       if ($this->feed->$type instanceof FeedsSourceInterface) {
         // @todo: invoke getSourceDefaults() if getSourceConfig() does not yield results?
+        // @todo: key in class name, otherwise inconsistent values may occur
         $this->config[$type] = $this->feed->$type->getSourceConfig();
       }
     }
