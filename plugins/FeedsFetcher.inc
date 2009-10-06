@@ -105,7 +105,8 @@ abstract class FeedsFetcher extends FeedsConfigurable {
       'source' => $source['feeds_source'], // This is the same key that we defined in sourceForm().
     );
     // Make sure a source record is present at all time, try to update first, then insert.
-    if (SAVED_UPDATED != drupal_write_record('feeds_source', $object, array('id', 'feed_nid'))) {
+    drupal_write_record('feeds_source', $object, array('id', 'feed_nid'));
+    if (!db_affected_rows()) {
       drupal_write_record('feeds_source', $object);
     }
   }

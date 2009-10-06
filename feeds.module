@@ -178,7 +178,7 @@ function feeds_nodeapi($node, $op) {
         // Node module magically moved $form['feeds'] to $node->feeds.
         // Save feed source and refresh feed.
         $feed->fetcher->saveSource($node->feeds, $node->nid);
-        $feed->import();
+        $feed->import($node->nid);
         // Add feed to scheduler.
         feeds_include('scheduler');
         feeds_scheduler_add($feed, $node->nid);
@@ -384,7 +384,9 @@ function feeds_load_all() {
   $configs = ctools_export_load_object('feeds_config', 'conditions', array('class' => 'Feed'));
   $feeds = array();
   foreach ($configs as $config) {
-    $feeds[$config->id] = feeds_instance('Feed', $config->id);
+    if ($config->id) {
+      $feeds[$config->id] = feeds_instance('Feed', $config->id);
+    }
   }
   return $feeds;
 }
@@ -419,6 +421,8 @@ function feeds_plugin_instance($plugin, $id) {
 
 /**
  * Get a feed configuration by content type.
+ *
+ * @todo: speed this up by caching the result.
  *
  * @param $content_type
  *   A node type string.
