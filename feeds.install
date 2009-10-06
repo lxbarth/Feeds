@@ -58,30 +58,22 @@ function feeds_schema() {
         'default' => '',
         'description' => 'Id of the feed configuration.',
       ),
-      'class' => array(
-        'type' => 'varchar',
-        'length' => '255',
-        'not null' => TRUE,
-        'default' => '',
-        'description' => 'Class name of the feeds plugin.',
-      ),
       'feed_nid' => array(
         'type' => 'int',
         'not null' => FALSE,
         'unsigned' => TRUE,
         'description' => 'Node nid if this particular source is attached to a feed node.',
       ),
-      'source' => array(
+      'config' => array(
         'type' => 'text',
         'not null' => FALSE,
-        'description' => 'Definition of the source.',
+        'description' => 'Configuration of the source.',
         'serialize' => TRUE,
       ),
     ),
     'indexes' => array(
         'id' => array('id'),
         'feed_nid' => array('feed_nid'),
-        'class' => array('class'),
       ),
   );
   $schema['feeds_schedule'] = array(

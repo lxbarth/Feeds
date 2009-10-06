@@ -62,10 +62,12 @@ abstract class FeedsResult {
  * @todo: comment methods.
  */
 interface FeedsConfigurableInterface {
+  // @todo: don't pass trough $form_state.
   public function configForm(&$form_state);
   public function getConfig();
   public function setConfig($config);
   public function addConfig($config);
+  // @todo: rename to getConfigDefaults()
   public function getDefaultConfig();
 }
 
@@ -76,8 +78,20 @@ interface FeedsConfigurableInterface {
  * of FeedsConfigurableInterface and a static method to generate singletons.
  */
 class FeedsConfigurable implements FeedsConfigurableInterface {
+
+  // Holds the actual configuration information.
   protected $config;
+
+  // A unique identifier for the configuration.
   protected $id;
+
+  // Export type can be one of
+  // FEEDS_EXPORT_NONE - the configurable only exists in memory
+  // EXPORT_IN_DATABASE - the configurable is defined in the database.
+  // EXPORT_IN_CODE - the configurable is defined in code.
+  // EXPORT_IN_CODE | EXPORT_IN_DATABASE -
+  // - the configurable is defined in code, but overridden in the database.
+  protected $export_type;
 
   /**
    * Instantiate a FeedsConfigurable object.
@@ -101,7 +115,13 @@ class FeedsConfigurable implements FeedsConfigurableInterface {
    * Constructor, set id and load default configuration.
    */
   protected function __construct($id) {
+    // Set this object's id.
     $this->id = $id;
+
+    // Per default we assume that a Feeds object is not saved to
+    // database nor is it exported to code.
+    $this->export_type = FEEDS_EXPORT_NONE;
+
     // Make sure configuration is populated.
     $this->config = $this->getDefaultConfig();
   }
@@ -115,6 +135,8 @@ class FeedsConfigurable implements FeedsConfigurableInterface {
 
   /**
    * Return default configuration.
+   *
+   * @todo: rename to getConfigDefaults().
    *
    * @return
    *   Array where keys are the variable names of the configuration elements and
@@ -177,7 +199,8 @@ class FeedsConfigurable implements FeedsConfigurableInterface {
 /**
  * Configurable importer class. This is the main hub for Feeds module's functionality.
  *
- * @todo: rename to FeedsConfig. "Feed" remains a very elusive concept.
+ * @todo: rename to FeedsConfig? "Feed" remains a very elusive concept. When doing this,
+ * rename feed.inc to feeds.inc.
  */
 class Feed extends FeedsConfigurable {
 
@@ -185,19 +208,12 @@ class Feed extends FeedsConfigurable {
   // These variable names match the possible return values of feeds_plugin_type().
   protected $fetcher, $parser, $processor;
 
-  // Export type can be one of
-  protected $export_type;
-
   /**
    * Instantiate class variables, initialize and configure
    * plugins.
    */
   protected function __construct($id) {
     parent::__construct($id);
-
-    // Per default we assume that a Feeds object is not saved to
-    // database nor is it exported to code.
-    $this->export_type = FEEDS_EXPORT_NONE;
 
     // Try to load information from database.
     $this->load();
@@ -221,6 +237,7 @@ class Feed extends FeedsConfigurable {
     $save->id = $this->id;
     $save->class = get_class($this);
     $save->config = $this->getConfig();
+    // @todo: don't delete, then insert.
     $this->delete();
     drupal_write_record('feeds_config', $save);
   }
@@ -381,6 +398,161 @@ class Feed extends FeedsConfigurable {
       }
     }
   }
+}
+
+/**
+ * Describes a class that defines default values and form descriptions for
+ * a FeedSource.
+ *
+ * @todo: comment.
+ */
+interface FeedsSourceInterface {
+  public function setSource();
+  public function getSourceDefaults();
+  public function sourceForm();
+  public function sourceFormValidate($form, &$values);
+  public function sourceFormSubmit($form, &$values);
+}
+
+/**
+ * This class encapsulates a source of a feed. While a Feed object contains
+ * a feed import configuration, a FeedsSource object is what passes through
+ * such an import configuration, holds information about the feed's source
+ * (e. g. the URL) and provides all the information for proper fetching,
+ * parsing and processing of a feed source.
+ *
+ * As with Feed, the idea with FeedsSource is that it can be used without
+ * actually saving the object to the database.
+ */
+class FeedsSource extends FeedsConfigurable {
+
+  // Contains the node id of the feed this source info object is attached to.
+  // If not attached to any node, contains 0 - i. e. if used on a
+  // standalone import form within Feeds or by other API users.
+  protected $feed_nid;
+
+  // The Feed object that this source is expected to be used with.
+  protected $feed;
+
+  /**
+   * Instantiate a unique object per class/id/feed_nid. Don't use
+   * directly, use feeds_source_instance() instead.
+   */
+  public static function instance($class, $feed, $feed_nid = 0) {
+    // This is useful at least as long as we're developing.
+    if (empty($id)) {
+      throw new Exception('Empty configuration identifier.');
+    }
+    static $instances = array();
+    if (!isset($instances[$class][$id][$feed_nid])) {
+      $instances[$class][$id][$feed_nid] = new $class($id, $feed_nid);
+    }
+    return $instances[$class][$id][$feed_nid];
+  }
+
+  /**
+   * Constructor.
+   */
+  protected function __construct($feed, $feed_nid) {
+    $this->feed_nid = $feed_nid;
+    $this->feed = $feed;
+    parent::__construct($feed->id);
+  }
+
+  /**
+   * Save configuration.
+   */
+  public function save() {
+    $object = array(
+      'id' => $this->id,
+      'feed_nid' => $this->feed_nid,
+      'config' => $this->config,
+    );
+    // Make sure a source record is present at all time, try to update first, then insert.
+    drupal_write_record('feeds_source', $object, array('id', 'feed_nid'));
+    if (!db_affected_rows()) {
+      drupal_write_record('feeds_source', $object);
+    }
+  }
+
+  /**
+   * Load configuration and unpack.
+   */
+  public function load() {
+    if ($config = db_result(db_query('SELECT config FROM {feeds_source} WHERE id = "%s" AND feed_nid = %d', $this->id, $this->feed_nid))) {
+      // While FeedsSource cannot be exported, we still use CTool's export.inc export definitions.
+      // @todo: patch CTools to move constants from export.inc to ctools.module.
+      ctools_include('export');
+      $this->export_type = EXPORT_IN_DATABASE;
+      $this->config = unserialize($config->config);
+
+      // Set configuration of all implementers of FeedsSourceInterface.
+      foreach (array('fetcher', 'parser', 'processor') as $type) {
+        if (isset($this->config['type']) && $this->$type instanceof FeedsSourceInterface) {
+          $this->$type->setSource($this->config['type']);
+        }
+      }
+    }
+  }
+
+  /**
+   * Delete configuration. Removes configuration information
+   * from database, does not delete configuration itself.
+   */
+  public function delete() {
+    db_query('DELETE FROM {feeds_source} WHERE id = "%s" AND feed_nid = %d', $this->id, $this->feed_nid);
+  }
+
+  /**
+   * Return defaults for feed configuration.
+   */
+  public function getDefaultConfig() {
+    // Collect information from plugins.
+    foreach (array('fetcher', 'parser', 'processor') as $type) {
+      if ($this->feed->$type instanceof FeedsSourceInterface) {
+        $this->config[$type] = $this->feed->$type->getSourceDefaults();
+      }
+    }
+  }
+
+  /**
+   * Override parent::configForm().
+   */
+  public function configForm(&$form_state) {
+    // Collect information from plugins.
+    foreach (array('fetcher', 'parser', 'processor') as $type) {
+      if ($this->feed->$type instanceof FeedsSourceInterface) {
+        $form[$type] = $this->feed->$type->sourceForm();
+        $form[$type]['#tree'] = TRUE;
+      }
+    }
+    return $form;
+  }
+
+  /**
+   * Override parent::configFormValidate().
+   */
+  public function configFormSubmit($form, &$form_state) {
+    foreach ($form_state['values'] as $type => $values) {
+      $this->feed->$type->sourceFormValidate($form, $form_state['values'][$type]);
+    }
+  }
+
+  /**
+   * Override parent::configFormSubmit().
+   */
+  public function configFormSubmit($form, &$form_state) {
+    foreach ($form_state['values'] as $type => $values) {
+      $this->feed->$type->sourceFormSubmit($form, $form_state['values'][$type]);
+    }
+  }
+}
+
+// For testing purposes
+function feeds_import($id, $feed_nid) {
+  $feed = feeds_feed_instance($id);
+  $source = feeds_source_instance($feed, $feed_nid);
+  $feed->import($source);
 }
 
 /**

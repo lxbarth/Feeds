@@ -22,3 +22,7 @@ array in your settings.php file.
 Name: feed_class
 Default: 'Feed'
 Description: The class to use for handling feed configurations.
+
+Name: source_class
+Default: 'FeedsSource'
+Description: The class to use for handling feed sources.

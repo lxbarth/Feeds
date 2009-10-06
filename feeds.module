@@ -394,8 +394,6 @@ function feeds_load_all() {
 /**
  * Get an instance of Feed object.
  *
- * @param $class
- *   A string that is the name of the class to instantiate.
  * @param $id
  *   A string that is the id of the object.
  */
@@ -405,9 +403,22 @@ function feeds_feed_instance($id) {
 }
 
 /**
+ * Get an instance of a source object.
+ *
+ * @param $feed
+ *   A Feed object.
+ * @param $feed_nid
+ *   The node id of a feed node if the source is attached to a feed node.
+ */
+function feeds_source_instance($feed, $feed_nid = 0) {
+  feeds_include('feed');
+  return FeedsConfigurable::instance(variable_get('source_class', 'FeedsSource'), $feed, $feed_nid);
+}
+
+/**
  * Get an instance of a class for a given plugin and id.
  *
- * @param $class
+ * @param $plugin
  *   A string that is the key of the plugin to load.
  * @param $id
  *   A string that is the id of the object.
