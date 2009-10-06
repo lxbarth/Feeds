@@ -46,8 +46,6 @@ function feeds_perm() {
 
 /**
  * Implementation of hook_forms().
- *
- * @todo: move down below hook implementations and callbacks.
  */
 function feeds_forms() {
   // Declare form callbacks for all known classes derived from FeedsConfigurable.
@@ -111,7 +109,6 @@ function feeds_menu() {
       );
     }
   }
-
   if (count($items)) {
     $items['import'] = array(
       'title' => 'Import content',
@@ -251,7 +248,7 @@ function feeds_form_alter(&$form, $form_state, $form_id) {
 
       // For some reason I cannot pass on the feed object, pass on id.
       $form['#feed_id'] = $feed->id;
-      // Only set validation handler. Save object on 'insert'
+      // Only set validation handler. Save object on hook_nodeapi('insert')
       $form['#validate'][] = 'feeds_import_form_validate';
     }
   }
@@ -464,7 +461,7 @@ function feeds_plugin_instance($plugin, $id) {
 /**
  * Get a feed configuration by content type.
  *
- * @todo: speed this up by caching the result.
+ * @todo: speed this up by DB caching the result.
  *
  * @param $content_type
  *   A node type string.
@@ -561,9 +558,7 @@ function feeds_plugin_type($plugin_key) {
 }
 
 /**
- * Export a feed configuration.
- *
- * It actually seems that export.inc does not support multi-field keys.
+ * Export a feed configuration to code.
  */
 function feeds_export($feed_id, $indent = '') {
   ctools_include('export');
