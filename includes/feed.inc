@@ -407,7 +407,7 @@ class Feed extends FeedsConfigurable {
  * @todo: comment.
  */
 interface FeedsSourceInterface {
-  public function setSource();
+  public function setSource($source);
   public function getSourceDefaults();
   public function sourceForm();
   public function sourceFormValidate($form, &$values);
@@ -446,10 +446,12 @@ class FeedsSource extends FeedsConfigurable {
   /**
    * Instantiate a unique object per class/id/feed_nid. Don't use
    * directly, use feeds_source_instance() instead.
+   *
+   * @todo: I thought overriding static functions would not work in PHP.
    */
   public static function instance($class, $feed, $feed_nid = 0) {
     // This is useful at least as long as we're developing.
-    if (empty($id)) {
+    if (empty($feed)) {
       throw new Exception('Empty configuration identifier.');
     }
     static $instances = array();
@@ -540,8 +542,12 @@ class FeedsSource extends FeedsConfigurable {
 
   /**
    * Override parent::configFormValidate().
+   *
+   * @todo: make configFormValidate($form, &$values);
+   * @todo: push declaration into FeedsConfigurableInterface
+   * @todo: make FeedsConfigurable an abstract class by declaring stubs of these functions.
    */
-  public function configFormSubmit($form, &$form_state) {
+  public function configFormValidate($form, &$form_state) {
     foreach (array('fetcher', 'parser', 'processor') as $type) {
       if (isset($form_state['values'][$type]) && $this->feed->$type instanceof FeedsSourceInterface) {
         $this->feed->$type->sourceFormValidate($form, $form_state['values'][$type]);

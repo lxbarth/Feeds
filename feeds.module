@@ -268,7 +268,7 @@ function feeds_import_form_validate($form, &$form_state) {
   $feed = feeds_feed_instance($form['#feed_id']);
   $source = feeds_source_instance($feed);
   // @todo: this may be a problem here, as we don't have a feed_nid at this point.
-  $source->validate($form, $form_state['values']['feeds']);
+  $source->configFormValidate($form, $form_state['values']['feeds']);
 }
 
 /**
@@ -285,7 +285,7 @@ function feeds_import_form_submit($form, &$form_state) {
   $source = feeds_source_instance($feed);
 
   // Save source and import.
-  $source->setConfig($node->feeds);
+  $source->configFormSubmit($form, $form_state['values']['feeds']);
   $source->save();
   $feed->import($source);
 
@@ -442,7 +442,7 @@ function feeds_feed_instance($id) {
  */
 function feeds_source_instance($feed, $feed_nid = 0) {
   feeds_include('feed');
-  return FeedsConfigurable::instance(variable_get('source_class', 'FeedsSource'), $feed, $feed_nid);
+  return FeedsSource::instance(variable_get('source_class', 'FeedsSource'), $feed, $feed_nid);
 }
 
 /**
