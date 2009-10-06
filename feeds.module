@@ -445,8 +445,7 @@ function feeds_feed_instance($id) {
  */
 function feeds_source_instance($feed, $feed_nid = 0) {
   feeds_include('Feed');
-  // @todo: move class name retrieval into FeedsSource.
-  return FeedsSource::instance(variable_get('feeds_source_class', 'FeedsSource'), $feed, $feed_nid);
+  return FeedsSource::instance($feed, $feed_nid);
 }
 
 /**

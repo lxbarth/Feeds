@@ -67,11 +67,15 @@ class FeedsSource extends FeedsConfigurable {
    *
    * @todo: I thought overriding static functions would not work in PHP.
    */
-  public static function instance($class, $feed, $feed_nid = 0) {
+  public static function instance($feed, $feed_nid = 0) {
     // This is useful at least as long as we're developing.
     if (empty($feed)) {
-      throw new Exception('Empty configuration identifier.');
+      throw new Exception('Empty feed.');
     }
+
+    // Let others override which class to instantiate.
+    $class = variable_get('feeds_source_class', 'FeedsSource');
+
     static $instances = array();
     if (!isset($instances[$class][$id][$feed_nid])) {
       $instances[$class][$id][$feed_nid] = new $class($feed, $feed_nid);
