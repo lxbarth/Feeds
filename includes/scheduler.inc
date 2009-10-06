@@ -9,8 +9,8 @@
 /**
  * Refreshes scheduled feeds.
  *
- * If drupal_queue is present, only moves refresh tasks to queue and returns.
- * If not, works off tasks.
+ * If drupal_queue is present, only moves refresh tasks to drupal queue and
+ * returns. If drupal_queue is not available, works off tasks.
  */
 function feeds_scheduler_cron() {
 
