@@ -105,7 +105,6 @@ function feeds_ui_create_form_submit($form, &$form_state) {
   menu_rebuild();
 }
 
-
 /**
  * Delete configuration form.
  */
@@ -124,7 +123,7 @@ function feeds_ui_delete_form(&$form_state, $feed) {
  * Submit handler for feeds_ui_delete_form().
  */
 function feeds_ui_delete_form_submit($form, &$form_state) {
-  feeds_delete($form['#feed']->id);
+  $form['#feed']->delete();
   // Clear cache, deleting a configuration may have an affect on menu tree.
   menu_rebuild();
 }
@@ -167,7 +166,7 @@ function feeds_ui_edit_page($feed, $active = 'help', $plugin_key = '') {
     case 'parser':
     case 'processor':
       $active_container['title'] = t('Select a !plugin_type', array('!plugin_type' => $active));
-      $active_container['body'] = _feeds_ui_list_plugins_by_type($feed, $active, $config[$active]);
+      $active_container['body'] = _feeds_ui_list_plugins_by_type($feed, $active, $config[$active]['plugin_key']);
       break;
     case 'settings':
       if ($plugin_key == 'Feed') {
@@ -213,10 +212,10 @@ function feeds_ui_edit_page($feed, $active = 'help', $plugin_key = '') {
   $config_info[] = $info;
 
   // Fetcher.
-  $fetcher = $plugins[$config['fetcher']];
+  $fetcher = $plugins[$config['fetcher']['plugin_key']];
   $actions = array();
   if (feeds_get_config_form($feed->fetcher)) {
-    $actions = array(l(t('Settings'), $path .'settings/'. $config['fetcher']));
+    $actions = array(l(t('Settings'), $path .'settings/'. $config['fetcher']['plugin_key']));
   }
   $info['title'] = t('Fetcher');
   $info['body'] = array(
@@ -230,10 +229,10 @@ function feeds_ui_edit_page($feed, $active = 'help', $plugin_key = '') {
   $config_info[] = $info;
 
   // Parser.
-  $parser = $plugins[$config['parser']];
+  $parser = $plugins[$config['parser']['plugin_key']];
   $actions = array();
   if (feeds_get_config_form($feed->parser)) {
-    $actions = array(l(t('Settings'), $path .'settings/'. $config['parser']));
+    $actions = array(l(t('Settings'), $path .'settings/'. $config['parser']['plugin_key']));
   }
   $info['title'] = t('Parser');
   $info['body'] = array(
@@ -247,10 +246,10 @@ function feeds_ui_edit_page($feed, $active = 'help', $plugin_key = '') {
   $config_info[] = $info;
 
   // Processor.
-  $processor = $plugins[$config['processor']];
+  $processor = $plugins[$config['processor']['plugin_key']];
   $actions = array();
   if (feeds_get_config_form($feed->processor)) {
-    $actions[] = l(t('Settings'), $path .'settings/'. $config['processor']);
+    $actions[] = l(t('Settings'), $path .'settings/'. $config['processor']['plugin_key']);
   }
   // @todo: We assume that every processor supports mapping - that's not necessarily the case.
   $actions[] = l(t('Mapping'), $path .'mapping/'. $processor);

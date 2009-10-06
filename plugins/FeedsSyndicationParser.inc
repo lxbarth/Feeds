@@ -25,7 +25,7 @@ class FeedsSyndicationParser extends FeedsParser {
   /**
    * Return mapping sources.
    *
-   * @todo: at a future point, we could expose data type information here,
+   * At a future point, we could expose data type information here,
    * storage systems like Data module could use this information to store
    * parsed data automatically in fields with a correct field type.
    */

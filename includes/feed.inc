@@ -59,33 +59,26 @@ abstract class FeedsResult {
  * Note how a configurable does not need to implement any DB persistence
  * methods like load(), save() or delete().
  *
- * @todo: revisit this, we may want to make plugins implementers of
- * FeedsConfigurableInterface and not extenders of FeedsConfigurable and
- * then move the responsibility of storing configuration to the
- * Feeds class.
- *
- * @todo: we may want to define an explicit getConfig(), right now we use
- * the magic method __get().
- *
  * @todo: comment methods.
  */
 interface FeedsConfigurableInterface {
   public function configForm(&$form_state);
+  public function getConfig();
   public function setConfig($config);
   public function addConfig($config);
   public function getDefaultConfig();
 }
 
 /**
- * Base class for configurable, peristent objects.
+ * Base class for configurable objects.
  *
- * Note: setters don't save results. A configurable can be used without actually creating
- * a record in the database. Only when save() is being called, a configurable is being
- * written to the database. Thus configurables can be used as temporary objects.
+ * Contains some common variables and functionality for implementers
+ * of FeedsConfigurableInterface and a static method to generate singletons.
  */
 class FeedsConfigurable implements FeedsConfigurableInterface {
   protected $config;
   protected $id;
+  protected $configurables;
 
   /**
    * Instantiate a FeedsConfigurable object.
@@ -105,56 +98,19 @@ class FeedsConfigurable implements FeedsConfigurableInterface {
   }
 
   /**
-   * Constructor.
-   *
-   * @param $id
-   *   String identifier of this object.
-   * @param $config
-   *   Configuration of this object. If not available, will attempt to load from database.
+   * Constructor, set id and load default configuration.
    */
   protected function __construct($id) {
     $this->id = $id;
-    if (!$this->load()) {
-      // Make sure configuration is populated.
-      $this->config = $this->getDefaultConfig();
-    }
+    // Make sure configuration is populated.
+    $this->config = $this->getDefaultConfig();
   }
 
   /**
-   * Save configuration.
+   * Implementation of getConfig().
    */
-  public function save() {
-    $save = new stdClass();
-    $save->id = $this->id;
-    $save->class = get_class($this);
-    $save->config = $this->config;
-    db_query('DELETE FROM {feeds_config} WHERE id = "%s" AND class = "%s"', $save->id, $save->class);
-    drupal_write_record('feeds_config', $save);
-  }
-
-  /**
-   * Load configuration and unpack.
-   */
-  public function load() {
-    ctools_include('export');
-    if ($config = ctools_export_load_object('feeds_config', 'conditions', array('id' => $this->id, 'class' => get_class($this)))) {
-      $config = array_shift($config);
-      $this->config = $config->config;
-      return TRUE;
-    }
-    return FALSE;
-  }
-
-  /**
-   * Return this configurable's protected variables.
-   *
-   * Called automatically when accessing protected variables from outside.
-   * e. g. print $object->id;
-   *
-   * @see http://us2.php.net/__get
-   */
-  public function __get($name) {
-    return $this->$name;
+  public function getConfig() {
+    return $this->config;
   }
 
   /**
@@ -172,7 +128,6 @@ class FeedsConfigurable implements FeedsConfigurableInterface {
 
   /**
    * Set configuration.
-   * @todo: save() automatically?
    *
    * @param $config
    *   Array containing configuration information. Will be filtered by the keys returned by
@@ -216,14 +171,14 @@ class FeedsConfigurable implements FeedsConfigurableInterface {
    */
   public function configFormSubmit($form, &$form_state) {
     $this->addConfig($form_state['values']);
-    // Save here. Manipulation through form assumes that the FeedsConfigurable
-    // object is persistent (DB or code).
-    $this->save();
   }
 }
 
 /**
  * Configurable importer class. This is the main hub for Feeds module's functionality.
+ *
+ * @todo: rename to FeedsImportConfig or similar? "Feed" remains a very elusive concept
+ * in this module.
  */
 class Feed extends FeedsConfigurable {
 
@@ -232,14 +187,79 @@ class Feed extends FeedsConfigurable {
   protected $fetcher, $parser, $processor;
 
   /**
-   * Instantiate class variables.
+   * Instantiate class variables, initialize and configure
+   * plugins.
    */
   protected function __construct($id) {
     parent::__construct($id);
 
-    $this->fetcher = feeds_plugin_instance($this->config['fetcher'], $id);
-    $this->parser = feeds_plugin_instance($this->config['parser'], $id);
-    $this->processor = feeds_plugin_instance($this->config['processor'], $id);
+    // Try to load information from database.
+    $this->load();
+
+    // Instantiate fetcher, parser and processor, set their configuration if
+    // stored info is available.
+    foreach (array('fetcher', 'parser', 'processor') as $type) {
+      $plugin = feeds_plugin_instance($this->config[$type]['plugin_key'], $this->id);
+      if (isset($this->config[$type]['config'])) {
+        $plugin->setConfig($this->config[$type]['config']);
+      }
+      $this->$type = $plugin;
+    }
+  }
+
+  /**
+   * Save configuration.
+   */
+  public function save() {
+    $save = new stdClass();
+    $save->id = $this->id;
+    $save->class = get_class($this);
+    $save->config = $this->getConfig();
+    $this->delete();
+    drupal_write_record('feeds_config', $save);
+  }
+
+  /**
+   * Load configuration and unpack.
+   */
+  public function load() {
+    ctools_include('export');
+    if ($config = ctools_export_load_object('feeds_config', 'conditions', array('id' => $this->id, 'class' => get_class($this)))) {
+      $config = array_shift($config);
+      $this->config = $config->config;
+      return TRUE;
+    }
+    return FALSE;
+  }
+
+  /**
+   * Delete configuration. Removes configuration information
+   * from database, does not delete configuration itself.
+   */
+  public function delete() {
+    db_query('DELETE FROM {feeds_config} WHERE id = "%s" AND class = "%s"', $this->id, get_class($this));
+  }
+
+  /**
+   * Override magic method __get(). Make sure that $this->config goes
+   * through getConfig()
+   */
+  public function __get($name) {
+    if ($name == 'config') {
+      return $this->getConfig();
+    }
+    return $this->$name;
+  }
+
+  /**
+   * Get configuration of this feed.
+   */
+  public function getConfig() {
+    // Collect information from plugins.
+    foreach (array('fetcher', 'parser', 'processor') as $type) {
+      $this->config[$type]['config'] = $this->$type->getConfig();
+    }
+    return $this->config;
   }
 
   /**
@@ -248,9 +268,15 @@ class Feed extends FeedsConfigurable {
   public function getDefaultConfig() {
     return array(
       'name' => '',
-      'fetcher' => 'FeedsHttpFetcher',
-      'parser' => 'FeedsSyndicationParser',
-      'processor' => 'FeedsNodeProcessor',
+      'fetcher' => array(
+        'plugin_key' => 'FeedsHttpFetcher',
+      ),
+      'parser' => array(
+        'plugin_key' => 'FeedsSyndicationParser',
+      ),
+      'processor' => array(
+        'plugin_key' => 'FeedsNodeProcessor',
+      ),
       'content_type' => '',
       'update' => 0,
       'refresh_period' => FEEDS_SCHEDULE_NEVER_REFRESH,
@@ -342,10 +368,10 @@ class Feed extends FeedsConfigurable {
       if ($class = feeds_load_plugin_class($plugin_key)) {
         // Remove existing pointer to object.
         unset($this->$plugin_type);
-        // Set configuration information.
-        $this->config[$plugin_type] = $plugin_key;
-        // Update pointer to object.
+        // Instantiate object.
         $this->$plugin_type = feeds_instance($class, $this->id);
+        // Set configuration information, blow away any previous information on this spot.
+        $this->config[$plugin_type] = array('plugin_key' => $plugin_key);
       }
     }
   }
@@ -357,6 +383,8 @@ class Feed extends FeedsConfigurable {
  *
  * @param
  *   FeedsConfigurable object.
+ * @param
+ *   The parent object to perform the save on.
  *
  * @return
  *   Rendered config form, if available. Empty string otherwise.
@@ -376,6 +404,8 @@ function feeds_get_config_form($configurable) {
  *   FormAPI $form_state.
  * @param
  *   FeedsConfigurable object.
+ * @param
+ *   The object to perform the save() operation on.
  */
 function feeds_config_form(&$form_state, $configurable) {
   $form = $configurable->configForm($form_state);
@@ -401,4 +431,5 @@ function feeds_config_form_validate($form, &$form_state) {
  */
 function feeds_config_form_submit($form, &$form_state) {
   $form['#configurable']->configFormSubmit($form, $form_state);
+  $form['#configurable']->save();
 }

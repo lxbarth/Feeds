@@ -120,4 +120,14 @@ abstract class FeedsFetcher extends FeedsConfigurable {
    * @todo: Define format of return value?
    */
   public abstract function fetch($feed_nid = NULL);
+
+  /**
+   * Save changes to the configuration of this object.
+   * Delegate saving to parent Feed which will collect
+   * information from this object and store it.
+   */
+  public function save() {
+    $feed = feeds_instance('Feed', $this->id);
+    $feed->save();
+  }
 }

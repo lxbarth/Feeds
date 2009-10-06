@@ -504,13 +504,6 @@ function feeds_get_by_content_type($content_type) {
 }
 
 /**
- * Delete a feed.
- */
-function feeds_delete($id) {
-  db_query('DELETE FROM {feeds_config} WHERE id = "%s"', $id);
-}
-
-/**
  * Includes a feeds module include file.
  *
  * @param $file
@@ -586,13 +579,9 @@ function feeds_plugin_type($plugin_key) {
 /**
  * Export a feed configuration.
  *
- * @todo: export attached plugin configuration. Decide wether plugin config should
- * be actually stored with feed.
- *
  * It actually seems that export.inc does not support multi-field keys.
  */
 function feeds_export($feed_id, $indent = '') {
-  drupal_set_message('@todo: This export is not complete.', 'error');
   ctools_include('export');
   $result = ctools_export_load_object('feeds_config', 'names', array('id' => $feed_id));
   if (isset($result[$feed_id])) {

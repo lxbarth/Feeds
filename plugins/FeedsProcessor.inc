@@ -121,4 +121,14 @@ abstract class FeedsProcessor extends FeedsConfigurable {
   public function existingItemId($item, $feed_nid) {
     return FALSE;
   }
+
+  /**
+   * Save changes to the configuration of this object.
+   * Delegate saving to parent Feed which will collect
+   * information from this object and store it.
+   */
+  public function save() {
+    $feed = feeds_instance('Feed', $this->id);
+    $feed->save();
+  }
 }

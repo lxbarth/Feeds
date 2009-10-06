@@ -152,8 +152,8 @@ class FeedsUITestCase extends DrupalWebTestCase {
     while ($row = db_fetch_object($result)) {
       $config[$row->class] = unserialize($row->config);
     }
-    $this->assertEqual($config['Feed']['fetcher'], $fetcher, 'Correct fetcher');
-    $this->assertEqual($config['Feed']['parser'], $parser, 'Correct parser');
-    $this->assertEqual($config['Feed']['processor'], $processor, 'Correct processor');
+    $this->assertEqual($config['Feed']['fetcher']['plugin_key'], $fetcher, 'Correct fetcher');
+    $this->assertEqual($config['Feed']['parser']['plugin_key'], $parser, 'Correct parser');
+    $this->assertEqual($config['Feed']['processor']['plugin_key'], $processor, 'Correct processor');
   }
 }
