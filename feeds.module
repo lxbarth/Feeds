@@ -428,7 +428,6 @@ function feeds_import($feed, $feed_nid = 0) {
  */
 function feeds_feed_instance($id) {
   feeds_include('Feed');
-  // @todo: move class name retrieval into FeedsConfigurable.
   return FeedsConfigurable::instance(variable_get('feed_class', 'Feed'), $id);
 }
 
