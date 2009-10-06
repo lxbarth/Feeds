@@ -197,7 +197,7 @@ function feeds_nodeapi($node, $op) {
         feeds_include('scheduler');
         // Remove feed from scheduler and delete source.
         feeds_scheduler_remove($feed, $node->nid);
-        $feed->fetcher->deleteSource($node->nid);
+        feeds_source_instance($feed)->delete();
       }
       break;
   }
