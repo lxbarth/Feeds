@@ -1,5 +1,6 @@
 <?php
-// $Id: parser_csv_parser.inc,v 1.1.2.4 2009/02/22 16:32:15 alexb Exp $
+// $Id$
+
 /**
  * Contains CSV Parser.
  * Functions in this file are independent of the Feeds specific implementation.

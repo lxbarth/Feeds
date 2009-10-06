@@ -1,5 +1,6 @@
 <?php
 // $Id: FeedsHttpFetcher.inc,v 1.1 2009/09/16 17:58:13 alexb Exp $
+
 /**
  * @file
  * Home of the FeedsHttpFetcher.

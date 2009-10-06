@@ -1,5 +1,6 @@
 <?php
 // $Id: FeedsNodeProcessor.inc,v 1.2 2009/09/19 15:52:46 alexb Exp $
+
 /**
  * @file
  * Class definition of FeedsNodeProcessor.
