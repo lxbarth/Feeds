@@ -146,7 +146,38 @@ class FeedsNodeProcessor extends FeedsProcessor {
    */
   public function getDefaultConfig() {
     $types = node_get_types('names');
-    return array('content_type' => key($types), 'update_existing' => FALSE, 'mappings' => array());
+    $type = isset($types['story']) ? 'story' : key($types);
+    return array(
+      'content_type' => $type,
+      'update_existing' => 0,
+      'mappings' => array(
+        '0' => array(
+          'source' => 'title',
+          'target' => 'title',
+          'unique' => FALSE,
+        ),
+        '1' => array(
+          'source' => 'description',
+          'target' => 'body',
+          'unique' => FALSE,
+        ),
+        '2' => array(
+          'source' => 'timestamp',
+          'target' => 'created',
+          'unique' => FALSE,
+        ),
+        '3' => array(
+          'source' => 'url',
+          'target' => 'url',
+          'unique' => TRUE,
+        ),
+        '4' => array(
+          'source' => 'guid',
+          'target' => 'guid',
+          'unique' => TRUE,
+        ),
+      ),
+    );
   }
 
   /**
