@@ -421,6 +421,10 @@ function feeds_import($feed, $feed_nid = 0) {
  *
  * @param $id
  *   A string that is the id of the object.
+ *
+ * @return
+ *   A Feed object or an object of a class defined by the Drupal variable
+ *   'feed_class'.
  */
 function feeds_feed_instance($id) {
   feeds_include('Feed');
@@ -435,18 +439,23 @@ function feeds_feed_instance($id) {
  *   A Feed object.
  * @param $feed_nid
  *   The node id of a feed node if the source is attached to a feed node.
+ *
+ * @return
+ *   A FeedsSource object or an object of a class defiend by the Drupal
+ *   variable 'source_class'.
  */
 function feeds_source_instance($feed, $feed_nid = 0) {
   feeds_include('Feed');
   // @todo: move class name retrieval into FeedsSource.
-  return FeedsSource::instance(variable_get('source_class', 'FeedsSource'), $feed, $feed_nid);
+  return FeedsSource::instance(variable_get('feeds_source_class', 'FeedsSource'), $feed, $feed_nid);
 }
 
 /**
  * Get a scheduler instance.
  *
  * @return
- *   An object that implements IFeedsScheduler interface.
+ *   A FeedsScheduler object or an object of a class defined by the Drupal
+ *   variable 'feeds_scheduler_class'.
  */
 function feeds_scheduler_instance() {
   feeds_include('Feed');
@@ -460,6 +469,10 @@ function feeds_scheduler_instance() {
  *   A string that is the key of the plugin to load.
  * @param $id
  *   A string that is the id of the object.
+ *
+ * @return
+ *   If plugin can be loaded, an object that is a FeedsPlugin,
+ *   NULL otherwise.
  */
 function feeds_plugin_instance($plugin, $id) {
   feeds_include('feed');

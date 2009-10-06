@@ -23,6 +23,14 @@ Name: feed_class
 Default: 'Feed'
 Description: The class to use for handling feed configurations.
 
-Name: source_class
+Name: feeds_source_class
 Default: 'FeedsSource'
 Description: The class to use for handling feed sources.
+
+Name: feeds_scheduler_class
+Default: 'FeedsScheduler'
+Descriptoin: The class to use for scheduling feed refresh.
+
+Name: feeds_worker_time
+Default: 60
+Execution time to give a queue worker.
