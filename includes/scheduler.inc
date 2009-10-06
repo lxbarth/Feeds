@@ -13,6 +13,10 @@
  * If not, works off tasks.
  */
 function feeds_scheduler_cron() {
+
+  // Delete all scheduled entries that don't have a valid source record anymore.
+  db_query('DELETE schedule FROM {feeds_schedule} schedule LEFT JOIN {feeds_source} source ON schedule.feed_nid = source.feed_nid WHERE source.feed_nid IS NULL');
+
   if (module_exists('drupal_queue')) {
     // @todo: test.
     $result = db_query('SELECT feed_nid, id FROM {feeds_schedule} WHERE next_refresh_time > %d', FEEDS_REQUEST_TIME);

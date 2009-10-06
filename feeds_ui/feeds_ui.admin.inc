@@ -123,7 +123,9 @@ function feeds_ui_delete_form(&$form_state, $feed) {
  * Submit handler for feeds_ui_delete_form().
  */
 function feeds_ui_delete_form_submit($form, &$form_state) {
+  // Delete feed.
   $form['#feed']->delete();
+
   // Clear cache, deleting a configuration may have an affect on menu tree.
   menu_rebuild();
 }

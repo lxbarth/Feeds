@@ -78,7 +78,6 @@ interface FeedsConfigurableInterface {
 class FeedsConfigurable implements FeedsConfigurableInterface {
   protected $config;
   protected $id;
-  protected $configurables;
 
   /**
    * Instantiate a FeedsConfigurable object.
@@ -186,12 +185,19 @@ class Feed extends FeedsConfigurable {
   // These variable names match the possible return values of feeds_plugin_type().
   protected $fetcher, $parser, $processor;
 
+  // Export type can be one of
+  protected $export_type;
+
   /**
    * Instantiate class variables, initialize and configure
    * plugins.
    */
   protected function __construct($id) {
     parent::__construct($id);
+
+    // Per default we assume that a Feeds object is not saved to
+    // database nor is it exported to code.
+    $this->export_type = FEEDS_EXPORT_NONE;
 
     // Try to load information from database.
     $this->load();
@@ -226,6 +232,7 @@ class Feed extends FeedsConfigurable {
     ctools_include('export');
     if ($config = ctools_export_load_object('feeds_config', 'conditions', array('id' => $this->id, 'class' => get_class($this)))) {
       $config = array_shift($config);
+      $this->export_type = $config->export_type;
       $this->config = $config->config;
       return TRUE;
     }

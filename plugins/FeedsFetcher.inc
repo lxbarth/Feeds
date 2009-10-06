@@ -13,6 +13,13 @@ class FeedsFetcherResult extends FeedsResult {
 }
 
 /**
+ * This exception gets thrown when no source is available
+ * for a given feed_nid
+ */
+class FeedsNoSourceException extends Exception {
+}
+
+/**
  * Abstract class, defines interface for fetchers.
  *
  * Not using interfaces because we need a simple inheritence tree for determining the
@@ -65,7 +72,7 @@ abstract class FeedsFetcher extends FeedsConfigurable {
    */
   public function loadSource($feed_nid = NULL) {
     if (empty($feed_nid)) {
-      $result = db_query('SELECT * FROM {feeds_source} WHERE id = "%s" AND class = "%s"', $this->id, get_class($this));
+      $result = db_query('SELECT * FROM {feeds_source} WHERE id = "%s" AND class = "%s" AND feed_nid = 0', $this->id, get_class($this));
     }
     else {
       $result = db_query('SELECT * FROM {feeds_source} WHERE id = "%s" AND class = "%s" AND feed_nid = %d', $this->id, get_class($this), $feed_nid);
@@ -73,7 +80,7 @@ abstract class FeedsFetcher extends FeedsConfigurable {
     if ($source = db_fetch_object($result)) {
       return unserialize($source->source);
     }
-    return FALSE;
+    throw new FeedsNoSourceException('No source found');
   }
 
   /**
@@ -87,14 +94,16 @@ abstract class FeedsFetcher extends FeedsConfigurable {
    *   node id.
    */
   public function saveSource($source, $feed_nid = NULL) {
-    $this->deleteSource($feed_nid);
     $object = array(
       'id' => $this->id,
       'feed_nid' => $feed_nid,
       'class' => get_class($this),
       'source' => $source['feeds_source'], // This is the same key that we defined in sourceForm().
     );
-    drupal_write_record('feeds_source', $object);
+    // Make sure a source record is present at all time, try to update first, then insert.
+    if (SAVED_UPDATED != drupal_write_record('feeds_source', $object, array('id', 'feed_nid'))) {
+      drupal_write_record('feeds_source', $object);
+    }
   }
 
   /**
