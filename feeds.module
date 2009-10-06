@@ -42,7 +42,6 @@ function feeds_cron_queue_info() {
  *   is the node id of feed node.
  */
 function feeds_refresh($feed_info) {
-  //@todo: invoke $feed->import();
   $feed = feeds_instance('Feed', $feed_info['id']);
   try {
     $feed->import($feed_info['feed_nid']);
