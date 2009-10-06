@@ -35,19 +35,27 @@ div.feeds-container.plain {
   div.feeds-container.plain h4 {
     font-size: 1.0em;
     }
-  .item-list ul.container-actions {
+  div.feeds-container-body div.item-list ul {
+    margin: 0;
+    }
+    div.feeds-container-body div.item-list ul li {
+      margin: 0;
+      padding: 0;
+      background-image: none;
+      }
+  div.item-list ul.container-actions {
     font-family: Arial, Helvetica;
     float: right;
     margin: 0;
     }
-    .item-list ul.container-actions li {
+    div.item-list ul.container-actions li {
       text-align: right;
       background-image: none;
       margin: 0;
       padding: 0;
       }
-      .item-list ul.container-actions li form,
-      .item-list ul.container-actions li form input {
+      div.item-list ul.container-actions li form,
+      div.item-list ul.container-actions li form input {
         padding: 0;
         margin: 0;
         display: inline;
