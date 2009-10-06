@@ -14,11 +14,11 @@ interface IFeedsScheduler {
   /**
    * Add a feed to the schedule.
    */
-  public function add(Feed $feed, $feed_nid);
+  public function add(Feed $feed, $feed_nid = 0);
   /**
    * Remove a feed from the schedule.
    */
-  public function remove(Feed $feed, $feed_nid);
+  public function remove(Feed $feed, $feed_nid = 0);
   /**
    * Work off a given feed identified by $feed_info.
    */
