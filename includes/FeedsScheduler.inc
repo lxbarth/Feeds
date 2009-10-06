@@ -13,14 +13,29 @@ interface IFeedsScheduler {
   public function cron();
   /**
    * Add a feed to the schedule.
+   *
+   * @param $feed_id
+   *   Id of a Feed object.
+   * @param $feed_nid
+   *   Feed nid that identifies the source for this configuration.
    */
-  public function add(Feed $feed, $feed_nid = 0);
+  public function add($feed_id, $feed_nid = 0);
   /**
    * Remove a feed from the schedule.
+   *
+   * @param $feed_id
+   *   Id of a Feed object.
+   * @param $feed_nid
+   *   Feed nid that identifies the source for this configuration.
    */
-  public function remove(Feed $feed, $feed_nid = 0);
+  public function remove($feed_id, $feed_nid = 0);
   /**
    * Work off a given feed identified by $feed_info.
+   *
+   * @param $feed_info
+   *   Array where 'feed_id' key is the id of a Feed object,
+   *   and 'feed_nid' is the feed node id that identifies the
+   *   source of a FeedsSource object.
    */
   public function work($feed_info);
 }
@@ -59,17 +74,20 @@ class FeedsScheduler implements IFeedsScheduler {
   public function cron() {
     if (module_exists('drupal_queue')) {
       // @todo: test.
-      // @todo: we'll need to remove items from schedule as we update.
       $result = db_query('SELECT feed_nid, id FROM {feeds_schedule} WHERE next_refresh_time > %d', FEEDS_REQUEST_TIME);
       $queue = drupal_queue_get('feeds_queue');
       while ($feed_info = db_fetch_array($result)) {
-        $queue->createItem($feed_info);
+        if ($queue->createItem($feed_info)) {
+          // Remove item from schedule after adding it to queue.
+          // This will make sure that we don't add an item twice to the queue.
+          $this->remove($feed_info);
+        }
       }
     }
     else {
       $result = db_query_range('SELECT feed_nid, id FROM {feeds_schedule} WHERE next_refresh_time > %d', FEEDS_REQUEST_TIME, 0, 5);
       while ($feed_info = db_fetch_array($result)) {
-        _feeds_scheduler_refresh($feed_info);
+        $this->work($feed_info);
       }
     }
   }
@@ -82,15 +100,13 @@ class FeedsScheduler implements IFeedsScheduler {
    * @todo: better name as this function can also remove a feed from the schedule
    * depending on its configuration.
    * @todo: create an abstract interface for items that can be added?
-   *
-   * @param Feed $feed
-   *   Feed object.
-   * @param $feed_nid
-   *   Feed nid that identifies the source for this configuration.
    */
-  public function add(Feed $feed, $feed_nid = 0) {
+  public function add($feed_id, $feed_nid = 0) {
+    $feed = feeds_feed_instance($feed_id);
+
+    // Remove if the configuration of a feed says it should be never refreshed.
     if ($feed->config['refresh_period'] == FEEDS_SCHEDULE_NEVER_REFRESH) {
-      $this->remove($feed, $feed_nid);
+      $this->remove($feed->id, $feed_nid);
     }
     else {
       $next_refresh = FEEDS_REQUEST_TIME + $feed->config['refresh_period'];
@@ -104,8 +120,8 @@ class FeedsScheduler implements IFeedsScheduler {
   /**
    * Implementation of IFeedsScheduler::remove().
    */
-  public function remove(Feed $feed, $feed_nid = 0) {
-    db_query('DELETE FROM {feeds_schedule} WHERE id = "%s" AND feed_nid = %d', $feed->id, $feed_nid);
+  public function remove($feed_id, $feed_nid = 0) {
+    db_query('DELETE FROM {feeds_schedule} WHERE id = "%s" AND feed_nid = %d', $feed_id, $feed_nid);
   }
 
   /**
@@ -119,7 +135,7 @@ class FeedsScheduler implements IFeedsScheduler {
     // Only refresh if feed is actually in DB or in default configuration,
     // otherwise remove from schedule.
     if ($feed->export_type == FEEDS_EXPORT_NONE) {
-      feeds_scheduler_remove($feed, $feed_info['feed_nid']);
+      $this->remove($feed, $feed_info['feed_nid']);
     }
     else {
       // Add feed to scheduler no matter if successfully worked off or not.
