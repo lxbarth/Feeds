@@ -28,14 +28,13 @@ abstract class FeedsParser extends FeedsConfigurable {
    *
    * @param $fetcherResult
    *   Content returned by fetcher.
-   * @param $feed_nid
-   *   If this configuration is attached to a content type, $feed_nid contains the
-   *   node id of the Feed node.
+   * @param FeedsSource $source
+   *   Source information.
    * @return
    *   A parsed array.
    *   @todo: define this array (object?).
    */
-  public abstract function parse(FeedsFetcherResult $fetcherResult, $feed_nid = NULL);
+  public abstract function parse(FeedsFetcherResult $fetcherResult, FeedsSource $source);
 
   /**
    * Declare the possible mapping sources that this parser produces.

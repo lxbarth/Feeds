@@ -9,7 +9,7 @@ class FeedsCSVParser extends FeedsParser {
   /**
    * Parses a raw string and returns a Feed object from it.
    */
-  public function parse(FeedsFetcherResult $fetcherResult, $feed_nid = NULL) {
+  public function parse(FeedsFetcherResult $fetcherResult, FeedsSource $source) {
     feeds_include('ParserCSV', 'libraries');
 
     if ($fetcherResult->type == 'text/filepath') {

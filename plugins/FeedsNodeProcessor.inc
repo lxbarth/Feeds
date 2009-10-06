@@ -13,11 +13,11 @@ class FeedsNodeProcessor extends FeedsProcessor {
   /**
    * Implementation of FeedsProcessor::process().
    */
-  public function process(FeedsParserResult $parserResult, $feed_nid = NULL) {
+  public function process(FeedsParserResult $parserResult, FeedsSource $source) {
 
     foreach ($parserResult->value['items'] as $item) {
       // If the target item does not exist OR if update_existing is enabled, map and save.
-      if (!$nid = $this->existingItemId($item, $feed_nid) || $this->config['update_existing']) {
+      if (!$nid = $this->existingItemId($item, $source) || $this->config['update_existing']) {
 
         // Map item to a node.
         $node = $this->map($item);
@@ -25,7 +25,7 @@ class FeedsNodeProcessor extends FeedsProcessor {
         // Add some default information.
         $node->feeds_node_item->id = $this->id;
         $node->feeds_node_item->imported = FEEDS_REQUEST_TIME;
-        $node->feeds_node_item->feed_nid = $feed_nid;
+        $node->feeds_node_item->feed_nid = $source->feed_nid;
         if (!empty($nid)) {
           $node->nid = $nid;
         }
@@ -40,8 +40,8 @@ class FeedsNodeProcessor extends FeedsProcessor {
    * Implementation of FeedsProcessor::purge().
    * @todo: use batch API.
    */
-  public function purge($feed_nid = NULL) {
-    $result = db_query('SELECT nid FROM {feeds_node_item} WHERE feed_nid = %d', $feed_nid);
+  public function purge(FeedsSource $source) {
+    $result = db_query('SELECT nid FROM {feeds_node_item} WHERE feed_nid = %d', $source->feed_nid);
     while ($node = db_fetch_object($result)) {
       node_delete($node->nid);
     }
@@ -116,7 +116,7 @@ class FeedsNodeProcessor extends FeedsProcessor {
   /**
    * Get nid of an existing feed item node if available.
    */
-  public function existingItemId($source_item, $feed_nid) {
+  public function existingItemId($source_item, FeedsSource $source) {
     $parser = feeds_feed_instance($this->id)->parser;
     $targets = array();
     foreach ($this->config['mappings'] as $mapping) {
@@ -127,10 +127,10 @@ class FeedsNodeProcessor extends FeedsProcessor {
     foreach ($targets as $target => $value) {
       switch ($target) {
         case 'url':
-          $nid = db_result(db_query('SELECT nid FROM {feeds_node_item} WHERE feed_nid = %d AND url = "%s"', $feed_nid, $value));
+          $nid = db_result(db_query('SELECT nid FROM {feeds_node_item} WHERE feed_nid = %d AND url = "%s"', $source->feed_nid, $value));
           break;
         case 'guid':
-          $nid = db_result(db_query('SELECT nid FROM {feeds_node_item} WHERE feed_nid = %d AND guid = "%s"', $feed_nid, $value));
+          $nid = db_result(db_query('SELECT nid FROM {feeds_node_item} WHERE feed_nid = %d AND guid = "%s"', $source->feed_nid, $value));
           break;
       }
       if ($nid) {

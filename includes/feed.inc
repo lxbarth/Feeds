@@ -415,6 +415,15 @@ interface FeedsSourceInterface {
 }
 
 /**
+ * This exception gets thrown when no source is available
+ * for a given feed_nid.
+ *
+ * @todo: don't use internal source loading + exception, but load source
+ * object and pass it into Feed object.
+ */
+class FeedsNoSourceException extends Exception {}
+
+/**
  * This class encapsulates a source of a feed. While a Feed object contains
  * a feed import configuration, a FeedsSource object is what passes through
  * such an import configuration, holds information about the feed's source
@@ -533,8 +542,10 @@ class FeedsSource extends FeedsConfigurable {
    * Override parent::configFormValidate().
    */
   public function configFormSubmit($form, &$form_state) {
-    foreach ($form_state['values'] as $type => $values) {
-      $this->feed->$type->sourceFormValidate($form, $form_state['values'][$type]);
+    foreach (array('fetcher', 'parser', 'processor') as $type) {
+      if (isset($form_state['values'][$type]) && $this->feed->$type instanceof FeedsSourceInterface) {
+        $this->feed->$type->sourceFormValidate($form, $form_state['values'][$type]);
+      }
     }
   }
 
@@ -542,17 +553,12 @@ class FeedsSource extends FeedsConfigurable {
    * Override parent::configFormSubmit().
    */
   public function configFormSubmit($form, &$form_state) {
-    foreach ($form_state['values'] as $type => $values) {
-      $this->feed->$type->sourceFormSubmit($form, $form_state['values'][$type]);
+    foreach (array('fetcher', 'parser', 'processor') as $type) {
+      if (isset($form_state['values'][$type]) && $this->feed->$type instanceof FeedsSourceInterface) {
+        $this->feed->$type->sourceFormSubmit($form, $form_state['values'][$type]);
+      }
     }
   }
-}
-
-// For testing purposes
-function feeds_import($id, $feed_nid) {
-  $feed = feeds_feed_instance($id);
-  $source = feeds_source_instance($feed, $feed_nid);
-  $feed->import($source);
 }
 
 /**

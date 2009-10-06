@@ -13,15 +13,6 @@ class FeedsFetcherResult extends FeedsResult {
 }
 
 /**
- * This exception gets thrown when no source is available
- * for a given feed_nid.
- *
- * @todo: don't use internal source loading + exception, but load source
- * object and pass it into Feed object.
- */
-class FeedsNoSourceException extends Exception {}
-
-/**
  * Abstract class, defines shared functionality between fetchers.
  *
  * Implements FeedsSourceInfoInterface to expose source forms to Feeds.
@@ -95,7 +86,7 @@ abstract class FeedsFetcher extends FeedsConfigurable implements FeedsSourceInte
    *
    * @todo: Define format of return value?
    */
-  public abstract function fetch($feed_nid = NULL);
+  public abstract function fetch(FeedsSource $source);
 
   /**
    * Save changes to the configuration of this object.

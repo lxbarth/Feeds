@@ -58,6 +58,7 @@ function feeds_import_node_form_submit($form, $form_state) {
  */
 function feeds_import_form(&$form_state, $feed_id) {
   $feed = feeds_feed_instance($feed_id);
+  $source = feeds_source_instance($feed, empty($form['nid']['#value']) ? 0 : $form['nid']['#value']);
 
   $form = array();
   $form['#feed_id'] = $feed->id;
@@ -69,7 +70,7 @@ function feeds_import_form(&$form_state, $feed_id) {
     '#title' => t('Feed'),
     '#tree' => TRUE,
   );
-  $form['feeds'] += $feed->fetcher->sourceForm($form['nid']['#value']);
+  $form['feeds'] += $source->configForm($form_state);
   $form['submit'] = array(
     '#type' => 'submit',
     '#value' => t('Import'),

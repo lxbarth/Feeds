@@ -13,19 +13,14 @@ class FeedsFileFetcher extends FeedsFetcher {
   /**
    * Source form.
    */
-  public function sourceForm($feed_nid = NULL) {
-    try {
-      $source = $this->loadSource($feed_nid);
-    }
-    catch (Exception $e) {
-      $source = $this->config['source'];
-    }
+  public function sourceForm() {
     $form = array();
+    // @todo: rename feeds_source to file.
     $form['feeds_source'] = array(
       '#type' => 'textfield',
       '#title' => t('File'),
       '#description' => t('Specify a file in the site\'s file system path or upload a file below.'),
-      '#default_value' => $source,
+      '#default_value' => $this->source['feeds_source'],
     );
     $form['feeds_upload'] = array(
       '#type' => 'file',
@@ -58,9 +53,9 @@ class FeedsFileFetcher extends FeedsFetcher {
    *
    * @todo: support seemless expanding of archives.
    */
-  public function fetch($feed_nid = NULL) {
+  public function fetch(FeedsSource $source) {
     // Just return path to file, contents can be read easily with file_get_contents($file_path);
     // @todo: Create a class definition for this.
-    return new FeedsFetcherResult($this->loadSource(), 'text/filepath');
+    return new FeedsFetcherResult($source->config['feeds_source'], 'text/filepath');
   }
 }

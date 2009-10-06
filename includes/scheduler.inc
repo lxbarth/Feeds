@@ -4,6 +4,8 @@
 /**
  * @file
  * Scheduling refreshing of feeds.
+ *
+ * @todo: bake in class for easier overriding (e. g. for moving scheduling to cloud).
  */
 
 /**
@@ -16,6 +18,7 @@ function feeds_scheduler_cron() {
 
   if (module_exists('drupal_queue')) {
     // @todo: test.
+    // @todo: we'll need to remove items from schedule as we update.
     $result = db_query('SELECT feed_nid, id FROM {feeds_schedule} WHERE next_refresh_time > %d', FEEDS_REQUEST_TIME);
     $queue = drupal_queue_get('feeds_queue');
     while ($feed_info = db_fetch_array($result)) {
@@ -82,7 +85,7 @@ function _feeds_scheduler_refresh($feed_info) {
     // setting.
     feeds_scheduler_add($feed, $feed_info['feed_nid']);
     try {
-      $feed->import($feed_info['feed_nid']);
+      feeds_import($feed, $feed_info['feed_nid']);
     }
     catch (Exception $e) {
       // If source is gone, remove feed from schedule.

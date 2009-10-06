@@ -177,8 +177,11 @@ function feeds_nodeapi($node, $op) {
       if ($feed = feeds_get_by_content_type($node->type)) {
         // Node module magically moved $form['feeds'] to $node->feeds.
         // Save feed source and refresh feed.
-        $feed->fetcher->saveSource($node->feeds, $node->nid);
-        $feed->import($node->nid);
+        $source = feeds_source_instance($feed, $node->nid);
+        $source->setConfig($node->feeds);
+        $source->save();
+        $feed->import($source);
+
         // Add feed to scheduler.
         feeds_include('scheduler');
         feeds_scheduler_add($feed, $node->nid);
@@ -263,7 +266,9 @@ function feeds_form_alter(&$form, $form_state, $form_id) {
  */
 function feeds_import_form_validate($form, &$form_state) {
   $feed = feeds_feed_instance($form['#feed_id']);
-  $feed->fetcher->sourceFormValidate($form, $form_state['values']['feeds']);
+  $source = feeds_source_instance($feed);
+  // @todo: this may be a problem here, as we don't have a feed_nid at this point.
+  $source->validate($form, $form_state['values']['feeds']);
 }
 
 /**
@@ -277,10 +282,12 @@ function feeds_import_form_validate($form, &$form_state) {
  */
 function feeds_import_form_submit($form, &$form_state) {
   $feed = feeds_feed_instance($form['#feed_id']);
+  $source = feeds_source_instance($feed);
 
   // Save source and import.
-  $feed->fetcher->saveSource($form_state['values']['feeds']);
-  $feed->import();
+  $source->setConfig($node->feeds);
+  $source->save();
+  $feed->import($source);
 
   // Add feed to scheduler.
   feeds_include('scheduler');
@@ -389,6 +396,29 @@ function feeds_load_all() {
     }
   }
   return $feeds;
+}
+
+/**
+ * Utility function: import a feed. Expects a stored source.
+ *
+ * Use this when source at the time of call is not present.
+ *
+ * @param $feed
+ *   Feed object.
+ * @param $feed_nid
+ *   The id of the node the source is attached to. Can be 0 if
+ *   the source is not attached to a node at all - e. g. if it
+ *   has been defined on a standalone import form.
+ *
+ * @throws FeedsNoSourceException
+ *   If source cannot be loaded with given information.
+ */
+function feeds_import($feed, $feed_nid = 0) {
+  $source = feeds_source_instance($feed, $feed_nid);
+  if ($source->export_status == FEEDS_EXPORT_NONE) {
+    throw new FeedsNoSourceException('Expected source information in database for '. $feed->id .'/'. $feed_nid .'. Could not find any.');
+  }
+  $feed->import($source);
 }
 
 /**
