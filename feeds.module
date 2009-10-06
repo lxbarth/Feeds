@@ -392,7 +392,7 @@ function feeds_load_all() {
 }
 
 /**
- * Get an instance of a given class for a given id.
+ * Get an instance of Feed object.
  *
  * @param $class
  *   A string that is the name of the class to instantiate.
