@@ -5,13 +5,13 @@
  * Feeds - basic API functions and hook implementations.
  */
 
-// Vague request time. Use as common point of reference and to avoid expensive
+// Vague request time. Use as common point of reference and to avoid costly
 // calls to time().
 define('FEEDS_REQUEST_TIME', time());
-// Designates to not schedule a feed for refresh.
+// Do not schedule a feed for refresh.
 define('FEEDS_SCHEDULE_NEVER_REFRESH', -1);
-// Designates that a feed object is not persistent at all as
-// opposed to EXPORT_IN_DATABASE OR EXPORT_IN_CODE.
+// A feed object is not persistent at all. Compare to EXPORT_IN_DATABASE OR
+// EXPORT_IN_CODE.
 define('FEEDS_EXPORT_NONE', 0);
 
 /**
