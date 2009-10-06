@@ -239,12 +239,15 @@ function _feeds_nodeapi_node_processor($node, $op) {
 function feeds_form_alter(&$form, $form_state, $form_id) {
   if ($form['#id'] == 'node-form') {
     if ($feed = feeds_get_by_content_type($form['type']['#value'])) {
+      $source = feeds_source_instance($feed, empty($form['nid']['#value']) ? 0 : $form['nid']['#value']);
+
+      // Build form.
       $form['feeds'] = array(
         '#type' => 'fieldset',
         '#title' => t('Feed'),
         '#tree' => TRUE,
       );
-      $form['feeds'] += $feed->fetcher->sourceForm($form['nid']['#value']);
+      $form['feeds'] += $source->configForm($form_state);
 
       // For some reason I cannot pass on the feed object, pass on id.
       $form['#feed_id'] = $feed->id;

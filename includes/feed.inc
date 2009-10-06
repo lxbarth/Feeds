@@ -208,6 +208,11 @@ class Feed extends FeedsConfigurable {
   // These variable names match the possible return values of feeds_plugin_type().
   protected $fetcher, $parser, $processor;
 
+  // This array defines the variable names of the plugins above.
+  // @todo: make this static once 5.3.0 has spread enough and __callstatic can be used.
+  // @todo use.
+  protected $types = array('fetcher', 'parser', 'processor');
+
   /**
    * Instantiate class variables, initialize and configure
    * plugins.
@@ -276,17 +281,6 @@ class Feed extends FeedsConfigurable {
   }
 
   /**
-   * Get configuration of this feed.
-   */
-  public function getConfig() {
-    // Collect information from plugins.
-    foreach (array('fetcher', 'parser', 'processor') as $type) {
-      $this->config[$type]['config'] = $this->$type->getConfig();
-    }
-    return $this->config;
-  }
-
-  /**
    * Return defaults for feed configuration.
    */
   public function getDefaultConfig() {
@@ -305,6 +299,16 @@ class Feed extends FeedsConfigurable {
       'update' => 0,
       'refresh_period' => FEEDS_SCHEDULE_NEVER_REFRESH,
     );
+  }
+
+  /**
+   * Get configuration of this feed.
+   */
+  public function getConfig() {
+    foreach (array('fetcher', 'parser', 'processor') as $type) {
+      $this->config[$type]['config'] = $this->$type->getConfig();
+    }
+    return $this->config;// Collect information from plugins.
   }
 
   /**
@@ -432,6 +436,8 @@ class FeedsNoSourceException extends Exception {}
  *
  * As with Feed, the idea with FeedsSource is that it can be used without
  * actually saving the object to the database.
+ *
+ * @todo: Call this FeedsSourceInfo ?
  */
 class FeedsSource extends FeedsConfigurable {
 
@@ -456,7 +462,7 @@ class FeedsSource extends FeedsConfigurable {
     }
     static $instances = array();
     if (!isset($instances[$class][$id][$feed_nid])) {
-      $instances[$class][$id][$feed_nid] = new $class($id, $feed_nid);
+      $instances[$class][$id][$feed_nid] = new $class($feed, $feed_nid);
     }
     return $instances[$class][$id][$feed_nid];
   }
@@ -477,7 +483,7 @@ class FeedsSource extends FeedsConfigurable {
     $object = array(
       'id' => $this->id,
       'feed_nid' => $this->feed_nid,
-      'config' => $this->config,
+      'config' => $this->getConfig(),
     );
     // Make sure a source record is present at all time, try to update first, then insert.
     drupal_write_record('feeds_source', $object, array('id', 'feed_nid'));
@@ -497,12 +503,8 @@ class FeedsSource extends FeedsConfigurable {
       $this->export_type = EXPORT_IN_DATABASE;
       $this->config = unserialize($config->config);
 
-      // Set configuration of all implementers of FeedsSourceInterface.
-      foreach (array('fetcher', 'parser', 'processor') as $type) {
-        if (isset($this->config['type']) && $this->$type instanceof FeedsSourceInterface) {
-          $this->$type->setSourceConfig($this->config['type']);
-        }
-      }
+      // Invoke setter to set all members.
+      $this->setConfig($this->config);
     }
   }
 
@@ -515,15 +517,48 @@ class FeedsSource extends FeedsConfigurable {
   }
 
   /**
+   * Set configuration.
+   *
+   * @param $config
+   *   Array containing configuration information. Will be filtered by the keys returned by
+   *   getDefaultConfig().
+   */
+  public function setConfig($config) {
+    foreach (array('fetcher', 'parser', 'processor') as $type) {
+      if (isset($config[$type]) && $this->feed->$type instanceof FeedsSourceInterface) {
+        $this->feed->$type->setSourceConfig($config[$type]);
+      }
+    }
+  }
+
+  /**
+   * Get configuration, iterate over members and retrieve their configuration.
+   *
+   * Internally, use $this->getConfig() to pull the configuration status of member
+   * objects on $this->feed. External usage of $object->config will be funnelled through
+   * this method by parent::__get().
+   */
+  public function getConfig() {
+    foreach (array('fetcher', 'parser', 'processor') as $type) {
+      if ($this->feed->$type instanceof FeedsSourceInterface) {
+        // @todo: invoke getSourceDefaults() if getSourceConfig() does not yield results?
+        $this->feed->$type->getSourceConfig();
+      }
+    }
+  }
+
+  /**
    * Return defaults for feed configuration.
    */
   public function getDefaultConfig() {
     // Collect information from plugins.
+    $defaults = array();
     foreach (array('fetcher', 'parser', 'processor') as $type) {
       if ($this->feed->$type instanceof FeedsSourceInterface) {
-        $this->config[$type] = $this->feed->$type->getSourceDefaults();
+        $defaults[$type] = $this->feed->$type->getSourceDefaults();
       }
     }
+    return $defaults;
   }
 
   /**
@@ -531,6 +566,7 @@ class FeedsSource extends FeedsConfigurable {
    */
   public function configForm(&$form_state) {
     // Collect information from plugins.
+    $form = array();
     foreach (array('fetcher', 'parser', 'processor') as $type) {
       if ($this->feed->$type instanceof FeedsSourceInterface) {
         $form[$type] = $this->feed->$type->sourceForm();
@@ -543,14 +579,14 @@ class FeedsSource extends FeedsConfigurable {
   /**
    * Override parent::configFormValidate().
    *
-   * @todo: make configFormValidate($form, &$values);
+   * @todo: make configFormValidate($form, &$values) in parent, too.
    * @todo: push declaration into FeedsConfigurableInterface
    * @todo: make FeedsConfigurable an abstract class by declaring stubs of these functions.
    */
-  public function configFormValidate($form, &$form_state) {
+  public function configFormValidate($form, &$values) {
     foreach (array('fetcher', 'parser', 'processor') as $type) {
-      if (isset($form_state['values'][$type]) && $this->feed->$type instanceof FeedsSourceInterface) {
-        $this->feed->$type->sourceFormValidate($form, $form_state['values'][$type]);
+      if (isset($values[$type]) && $this->feed->$type instanceof FeedsSourceInterface) {
+        $this->feed->$type->sourceFormValidate($form, $values[$type]);
       }
     }
   }
@@ -558,10 +594,11 @@ class FeedsSource extends FeedsConfigurable {
   /**
    * Override parent::configFormSubmit().
    */
-  public function configFormSubmit($form, &$form_state) {
+  public function configFormSubmit($form, &$values) {
     foreach (array('fetcher', 'parser', 'processor') as $type) {
-      if (isset($form_state['values'][$type]) && $this->feed->$type instanceof FeedsSourceInterface) {
-        $this->feed->$type->sourceFormSubmit($form, $form_state['values'][$type]);
+      if (isset($values[$type]) && $this->feed->$type instanceof FeedsSourceInterface) {
+        dsm('invoke '.$type);
+        $this->feed->$type->sourceFormSubmit($form, $values[$type]);
       }
     }
   }

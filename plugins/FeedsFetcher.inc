@@ -20,10 +20,7 @@ class FeedsFetcherResult extends FeedsResult {
 abstract class FeedsFetcher extends FeedsConfigurable implements FeedsSourceInterface {
 
   // Holds source information.
-  // @todo: may be implementers of FeedsSourceInterface shouldn't
-  // keep a copy of source configuration but it should be passed in
-  // when necessary.
-  protected $source_config;
+  private $source_config;
 
   /**
    * Constructor.
@@ -32,7 +29,14 @@ abstract class FeedsFetcher extends FeedsConfigurable implements FeedsSourceInte
    */
   protected function __construct($id) {
     parent::__construct($id);
-    $this->source = $this->getSourceDefaults();
+    $this->source_config = $this->getSourceDefaults();
+  }
+
+  /**
+   * Implementation of FeedsSourceInterface::getSourceConfig().
+   */
+  public function getSourceConfig() {
+    return $this->source_config;
   }
 
   /**
@@ -77,7 +81,9 @@ abstract class FeedsFetcher extends FeedsConfigurable implements FeedsSourceInte
   /**
    * Submit handler for sourceForm.
    */
-  public function sourceFormSubmit($form, &$values) {}
+  public function sourceFormSubmit($form, &$values) {
+    $this->source_config['url'] = $values['url'];
+  }
 
   /**
    * Fetch content from a source and return it.
