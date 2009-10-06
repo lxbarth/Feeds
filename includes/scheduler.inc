@@ -14,9 +14,6 @@
  */
 function feeds_scheduler_cron() {
 
-  // Delete all scheduled entries that don't have a valid source record anymore.
-  db_query('DELETE schedule FROM {feeds_schedule} schedule LEFT JOIN {feeds_source} source ON schedule.feed_nid = source.feed_nid WHERE source.feed_nid IS NULL');
-
   if (module_exists('drupal_queue')) {
     // @todo: test.
     $result = db_query('SELECT feed_nid, id FROM {feeds_schedule} WHERE next_refresh_time > %d', FEEDS_REQUEST_TIME);
@@ -34,13 +31,20 @@ function feeds_scheduler_cron() {
 }
 
 /**
- * Add a feed to the schedule.
+ * Add a feed to schedule if its refresh_period is set.
+ *
+ * @todo: better name as this function can also remove a feed from the schedule
+ * depending on its configuration.
+ * @todo: create an abstract interface for items that can be added?
  *
  * @param $feed
  *   Feed object.
  */
 function feeds_scheduler_add($feed, $feed_nid = 0) {
-  if ($feed->config['refresh_period'] != FEEDS_SCHEDULE_NEVER_REFRESH) {
+  if ($feed->config['refresh_period'] == FEEDS_SCHEDULE_NEVER_REFRESH) {
+    feeds_scheduler_remove($feed, $feed_nid);
+  }
+  else {
     $next_refresh = FEEDS_REQUEST_TIME + $feed->config['refresh_period'];
     db_query('UPDATE {feeds_schedule} SET id = "%s", feed_nid = %d, next_refresh_time = %d',  $feed->id, $feed_nid, $next_refresh);
     if (!db_affected_rows()) {
@@ -52,6 +56,6 @@ function feeds_scheduler_add($feed, $feed_nid = 0) {
 /**
  * Remove a feed from the schedule.
  */
-function feeds_scheduler_remove($feed) {
-  db_query('DELETE FROM {feeds_schedule} WHERE feed_nid = %d, id = "%s"', FEEDS_REQUEST_TIME);
+function feeds_scheduler_remove($feed, $feed_nid = 0) {
+  db_query('DELETE FROM {feeds_schedule} WHERE id = "%s" AND feed_nid = %d', $feed->id, $feed_nid);
 }
