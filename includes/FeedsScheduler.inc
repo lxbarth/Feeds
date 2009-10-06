@@ -83,12 +83,12 @@ class FeedsScheduler implements IFeedsScheduler {
    * depending on its configuration.
    * @todo: create an abstract interface for items that can be added?
    *
-   * @param $feed
+   * @param Feed $feed
    *   Feed object.
    * @param $feed_nid
    *   Feed nid that identifies the source for this configuration.
    */
-  public function add($feed, $feed_nid = 0) {
+  public function add(Feed $feed, $feed_nid = 0) {
     if ($feed->config['refresh_period'] == FEEDS_SCHEDULE_NEVER_REFRESH) {
       $this->remove($feed, $feed_nid);
     }
