@@ -51,7 +51,7 @@ abstract class FeedsFetcher extends FeedsConfigurable implements FeedsSourceInte
    * Implementation of FeedsSourceInterface::getSourceDefaults().
    */
   public function getSourceDefaults() {
-    $values = array_keys($this->sourceForm());
+    $values = array_flip(array_keys($this->sourceForm()));
     foreach ($values as $k => $v) {
       $values[$k] = '';
     }
@@ -83,8 +83,7 @@ abstract class FeedsFetcher extends FeedsConfigurable implements FeedsSourceInte
    * Submit handler for sourceForm.
    */
   public function sourceFormSubmit($form, &$values) {
-    dsm($values);
-    $this->source_config['url'] = $values['url'];
+    $this->setSourceConfig($values);
   }
 
   /**

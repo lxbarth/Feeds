@@ -600,7 +600,6 @@ class FeedsSource extends FeedsConfigurable {
   public function configFormSubmit($form, &$values) {
     foreach (array('fetcher', 'parser', 'processor') as $type) {
       if (isset($values[$type]) && $this->feed->$type instanceof FeedsSourceInterface) {
-        dsm('invoke '.$type);
         $this->feed->$type->sourceFormSubmit($form, $values[$type]);
       }
     }
