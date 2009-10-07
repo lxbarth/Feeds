@@ -127,14 +127,4 @@ abstract class FeedsProcessor extends FeedsPlugin {
   public function existingItemId($source_item, FeedsSource $source) {
     return FALSE;
   }
-
-  /**
-   * Save changes to the configuration of this object.
-   * Delegate saving to parent Feed which will collect
-   * information from this object and store it.
-   */
-  public function save() {
-    $feed = feeds_feed_instance($this->id);
-    $feed->save();
-  }
 }

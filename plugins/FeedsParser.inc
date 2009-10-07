@@ -65,14 +65,4 @@ abstract class FeedsParser extends FeedsPlugin {
   public function getSourceElement($item, $element_key) {
     return $item[$element_key];
   }
-
-  /**
-   * Save changes to the configuration of this object.
-   * Delegate saving to parent Feed which will collect
-   * information from this object and store it.
-   */
-  public function save() {
-    $feed = feeds_feed_instance($this->id);
-    $feed->save();
-  }
 }

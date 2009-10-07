@@ -31,6 +31,16 @@ abstract class FeedsPlugin extends FeedsConfigurable implements FeedsSourceInter
   }
 
   /**
+   * Save changes to the configuration of this object.
+   * Delegate saving to parent (= Feed) which will collect
+   * information from this object by way of getConfig() and store it.
+   */
+  public function save() {
+    $feed = feeds_feed_instance($this->id);
+    $feed->save();
+  }
+
+  /**
    * Returns TRUE if $this->sourceForm() returns a form.
    */
   public function hasSourceConfig() {

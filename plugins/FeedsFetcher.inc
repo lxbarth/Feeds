@@ -30,14 +30,4 @@ abstract class FeedsFetcher extends FeedsPlugin {
    * @todo: Define format of return value?
    */
   public abstract function fetch(FeedsSource $source);
-
-  /**
-   * Save changes to the configuration of this object.
-   * Delegate saving to parent Feed which will collect
-   * information from this object and store it.
-   */
-  public function save() {
-    $feed = feeds_feed_instance($this->id);
-    $feed->save();
-  }
 }
