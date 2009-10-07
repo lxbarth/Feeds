@@ -15,13 +15,14 @@ API Overview
 
 @todo, in the meantime:
 
-Start reading code in feeds.module and the Feed class in includes/Feed.inc, take
-a look at feeds.plugins.inc to see how plugins are registered.
+Start reading code in feeds.module and the Feed class in includes/Feed.inc,
+take a look at feeds.plugins.inc to see how plugins are registered.
 
 Performance
 ===========
 
-If you are managing more than ten feeds with this module, use drupal_queue module.
+If you are managing more than ten feeds with this module, use drupal_queue
+module.
 
 Hidden settings
 ===============
@@ -29,22 +30,30 @@ Hidden settings
 Hidden settings are variables that you can define by adding them to the $conf
 array in your settings.php file.
 
-Name: feed_class
-Default: 'Feed'
+Name:        feed_class
+Default:     'Feed'
 Description: The class to use for handling feed configurations.
 
-Name: feeds_source_class
-Default: 'FeedsSource'
+Name:        feeds_source_class
+Default:     'FeedsSource'
 Description: The class to use for handling feed sources.
 
-Name: feeds_scheduler_class
-Default: 'FeedsScheduler'
+Name:        feeds_scheduler_class
+Default:     'FeedsScheduler'
 Description: The class to use for scheduling feed refreshing.
 
-Name: feeds_importer_class
-Default: 'FeedsImporter'
+Name:        feeds_importer_class
+Default:     'FeedsImporter'
 Description: The class to use for importing a feed.
 
-Name: feeds_worker_time
-Default: 60
-Execution time for a queue worker, only effective if used with drupal_queue.
+Name:        feeds_worker_time
+Default:     60
+Description: Execution time for a queue worker, only effective if used with
+             drupal_queue.
+
+Name:        feeds_schedule_num
+Default:     10
+             200 if drupal_queue is enabled
+Description: The number of feeds to refresh on cron time.
+             If drupal_queue is enabled, the maximum number of feeds to move to
+             queue.

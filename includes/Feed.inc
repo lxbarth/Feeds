@@ -209,7 +209,7 @@ class Feed extends FeedsConfigurable {
       '#default_value' => $this->config['content_type'],
     );
     $period = drupal_map_assoc(array(1, 900, 1800, 3600, 10800, 21600, 43200, 86400, 259200, 604800, 2419200), 'format_interval');
-    $period[FEEDS_SCHEDULE_NEVER_REFRESH] = t('Never');
+    $period[FEEDS_SCHEDULE_NEVER] = t('Never');
     $period[1] = t('As often as possible');
     $form['refresh_period'] = array(
       '#type' => 'select',

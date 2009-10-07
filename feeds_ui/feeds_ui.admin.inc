@@ -194,7 +194,7 @@ function feeds_ui_edit_page($feed, $active = 'help', $plugin_key = '') {
   // Basic information.
   $items = array();
   $items[] = t('Attached to: !type', array('!type' => $feed->config['content_type'] ? node_get_types('name', $feed->config['content_type']) : t('[none]')));
-  if ($feed->config['refresh_period'] == FEEDS_SCHEDULE_NEVER_REFRESH) {
+  if ($feed->config['refresh_period'] == FEEDS_SCHEDULE_NEVER) {
     $refresh_period = t('never');
   }
   elseif ($feed->config['refresh_period'] == 1) {

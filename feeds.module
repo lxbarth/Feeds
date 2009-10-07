@@ -10,7 +10,7 @@
 // calls to time().
 define('FEEDS_REQUEST_TIME', time());
 // Do not schedule a feed for refresh.
-define('FEEDS_SCHEDULE_NEVER_REFRESH', -1);
+define('FEEDS_SCHEDULE_NEVER', -1);
 // A feed object is not persistent at all. Compare to EXPORT_IN_DATABASE OR
 // EXPORT_IN_CODE.
 define('FEEDS_EXPORT_NONE', 0);
@@ -411,6 +411,9 @@ function feeds_load_plugin_class($plugin) {
 
 /**
  * Load all feeds.
+ *
+ * @return
+ *   An array of all feed configurations available.
  */
 function feeds_load_all() {
   ctools_include('export');

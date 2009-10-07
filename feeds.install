@@ -81,6 +81,12 @@ function feeds_schema() {
   $schema['feeds_schedule'] = array(
     'description' => t('Contains feeds scheduled for refresh.'),
     'fields' => array(
+      'feed_nid' => array(
+        'type' => 'int',
+        'not null' => FALSE,
+        'unsigned' => TRUE,
+        'description' => 'Node nid if this particular source is attached to a feed node.',
+      ),
       'id' => array(
         'type' => 'varchar',
         'length' => '255',
@@ -88,19 +94,27 @@ function feeds_schema() {
         'default' => '',
         'description' => 'Id of the feed configuration.',
       ),
-      'feed_nid' => array(
-        'type' => 'int',
-        'not null' => FALSE,
-        'unsigned' => TRUE,
-        'description' => 'Node nid if this particular source is attached to a feed node.',
-      ),
-      'next_refresh_time' => array(
+      'last_scheduled_time' => array(
         'type' => 'int',
         'unsigned' => FALSE,
         'default' => 0,
         'not null' => TRUE,
-        'description' => 'Timestamp of the earliest possible next refresh time for this feed.',
+        'description' => 'Timestamp when this feed was last scheduled to be refreshed.',
       ),
+      'scheduled' => array(
+        'type' => 'int',
+        'unsigned' => FALSE,
+        'size' => 'tiny',
+        'default' => 0,
+        'not null' => TRUE,
+        'description' => 'Flags whether a feed is scheduled to be refreshed or not.',
+      ),
+    ),
+    'primary key' => array('feed_nid'),
+    'indexes' => array(
+      'id' => array('id'),
+      'last_scheduled_time' => array('imported'),
+      'scheduled' => array(array('url', 255)),
     ),
   );
   $schema['feeds_node_item'] = array(
@@ -144,7 +158,6 @@ function feeds_schema() {
     ),
     'primary key' => array('nid'),
     'indexes' => array(
-      'nid' => array('nid'),
       'id' => array('id'),
       'feed_nid' => array('feed_nid'),
       'imported' => array('imported'),

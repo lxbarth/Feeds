@@ -46,6 +46,14 @@ interface IFeedsScheduler {
 /**
  * Implementation of IFeedsScheduler.
  *
+ * This scheduler uses the last_scheduled_time paradigm: By storing when a
+ * particular feed was scheduled to be refreshd last rather than storing
+ * when a feed should be _refreshed_ next, we gain two advantages:
+ *
+ * 1) If a feed's refresh_period setting changes, it has immediate effects,
+ *    without batch updating an existing schedule.
+ * 2) The time between refreshs will always be scheduled based on when it
+ *    has been scheduled last. Less drift occurs.
  */
 class FeedsScheduler implements IFeedsScheduler {
 
@@ -68,6 +76,117 @@ class FeedsScheduler implements IFeedsScheduler {
    * Protect constructor.
    */
   protected function __construct() {}
+
+  /**
+   * Implementation of IFeedsScheduler::cron().
+   *
+   * Refreshes scheduled feeds.
+   *
+   * If drupal_queue is present, only moves refresh tasks to drupal queue and
+   * returns. If drupal_queue is not available, works off tasks.
+   */
+  public function cron() {
+
+    // Logging and timeout tracking.
+    if ($this->time() == FEEDS_REQUEST_TIME) {
+      watchdog('FeedsScheduler', 'Start processing schedule - FEEDS_REQUEST_TIME !date !time !', array('!date' => format_date($this->time()), '!time' => $this->time()));
+    }
+    else {
+      watchdog('FeedsScheduler', 'Start processing schedule - debug time !date !time !', array('!date' => format_date($this->time()), '!time' => $this->time()));
+    }
+    if (variable_get('feeds_scheduler_cron', FALSE)) {
+      watchdog('FeedsScheduler', 'Last cron process did not finish.', array(), WATCHDOG_ERROR);
+    }
+    variable_set('feeds_scheduler_cron', TRUE);
+
+    // Get feeds configuration, check whether drupal_queue is present and set parameters accordingly.
+    if ($feeds = feeds_load_all()) {
+      $use_queue = module_exists('drupal_queue');
+      $num = variable_get('feeds_schedule_num', $use_queue ? 200 / count($feeds) : 10 / count($feeds));
+      $num = $num ? $num : 1;
+
+      // Iterate over feed configurations, push to queue or refresh feeds.
+      foreach ($feeds as $feed) {
+        if ($feed->config['refresh_period'] != FEEDS_SCHEDULE_NEVER) {
+
+          // Refresh feeds that have a refresh time older than now - refresh period.
+          $time = $this->time() - $feed->config['refresh_period'];
+          $result = db_query_range('SELECT feed_nid, id AS feed_id FROM {feeds_schedule} WHERE scheduled = 0 AND last_scheduled_time > %d ORDER BY last_scheduled_time DESC', $time, 0, $num);
+          while ($feed_info = db_fetch_array($result)) {
+
+            // If drupal_queue is present, add to queue, otherwise work off immediately.
+            if ($use_queue) {
+              if ($queue->createItem($feed_info)) {
+                $this->mark($feed_info['feed_nid'], 1);
+              }
+            }
+            else {
+              $this->mark($feed_info['feed_nid'], 1);
+              $this->work($feed_info);
+            }
+          }
+        }
+      }
+    }
+
+    // Post a message that we're done.
+    watchdog('FeedsScheduler', 'Finished processing schedule after !time.', format_interval(array('!time' => time() - $this->time())));
+  }
+
+  /**
+   * Implementation of IFeedsScheduler::add().
+   *
+   * Add a feed to schedule if its refresh_period is set.
+   *
+   * @todo: better name as this function can also remove a feed from the schedule
+   * depending on its configuration.
+   * @todo: create an abstract interface for items that can be added?
+   */
+  public function add($feed_id, $feed_nid = 0) {
+    $object = array(
+      'id' => $feed_id,
+      'feed_nid' => $feed_nid,
+      'last_scheduled_time' => 0,
+      'scheduled' => 0, // Means NOT scheduled at the moment.
+    );
+    drupal_write_record('feeds_schedule', $object, 'feed_nid');
+    if (!db_affected_rows()) {
+      drupal_write_record('feeds_schedule', $object);
+    }
+  }
+
+  /**
+   * Implementation of IFeedsScheduler::remove().
+   */
+  public function remove($feed_nid = 0) {
+    db_query('DELETE FROM {feeds_schedule} WHERE feed_nid = %d', $feed_nid);
+  }
+
+  /**
+   * Implementation of IFeedsScheduler::work().
+   *
+   * Refresh a feed.
+   *
+   * Used as worker callback invoked from feeds_scheduler_refresh() or
+   * if drupal_queue is not enabled, directly from $this->cron().
+   */
+  public function work($feed_info) {
+    $feed = feeds_feed_instance($feed_info['feed_id']);
+
+    // Only refresh if feed is actually in DB or in default configuration.
+    if ($feed->export_type != FEEDS_EXPORT_NONE) {
+
+      // Remove scheduled flag, if we fail after this we'd like to try again next time.
+      $this->unmark($feed['feed_nid']);
+
+      try {
+        feeds_import($feed, $feed_info['feed_nid']);
+      }
+      catch (Exception $e) {
+        watchdog('feeds_refresh', $e->getMessage(), array(), WATCHDOG_ERROR);
+      }
+    }
+  }
 
   /**
    * Set the internal time of FeedsScheduler.
@@ -96,127 +215,28 @@ class FeedsScheduler implements IFeedsScheduler {
   }
 
   /**
-   * Implementation of IFeedsScheduler::cron().
+   * Helper function to mark a feed scheduled.
    *
-   * Refreshes scheduled feeds.
+   * This function sets the feed's scheduled bit to 1 and updates
+   * last_scheduled_time to $this->time().
    *
-   * If drupal_queue is present, only moves refresh tasks to drupal queue and
-   * returns. If drupal_queue is not available, works off tasks.
+   * @param $feed_nid
+   *   Identifier of the feed.
    */
-  public function cron() {
-    // Logging and timeout tracking.
-    if ($this->time() == FEEDS_REQUEST_TIME) {
-      watchdog('FeedsScheduler', 'Start processing schedule - FEEDS_REQUEST_TIME !date !time !', array('!date' => format_date($this->time()), '!time' => $this->time()));
-    }
-    else {
-      watchdog('FeedsScheduler', 'Start processing schedule - debug time !date !time !', array('!date' => format_date($this->time()), '!time' => $this->time()));
-    }
-    if (variable_get('feeds_scheduler_cron', FALSE)) {
-      watchdog('FeedsScheduler', 'Last cron process did not finish.', array(), WATCHDOG_ERROR);
-    }
-    variable_set('feeds_scheduler_cron', TRUE);
-
-    // Do the actual work. If Drupal Queue module exists, just move tasks to
-    // the queue and return. Otherwise pass the task to $this->work().
-    if (module_exists('drupal_queue')) {
-      $result = db_query('SELECT feed_nid, id FROM {feeds_schedule} WHERE next_refresh_time > %d', $this->time());
-      $queue = drupal_queue_get('feeds_queue');
-      while ($feed_info = db_fetch_array($result)) {
-        if ($queue->createItem($feed_info)) {
-          // Remove item from schedule after adding it to queue.
-          // This will make sure that we don't add an item twice to the queue.
-          // @todo: There is a chance that we remove and never add again. This
-          // could happen if PHP dies between the Queue dispatching a task and
-          // the worker adding this task again to the queue.
-          // @see $this->add() in $this->work().
-          // Solution: don't remove feeds but flag them as queued and pick them up manually.
-          $this->remove($feed_info['feed_id'], $feed_info['feed_nid']);
-        }
-      }
-    }
-    else {
-      $result = db_query_range('SELECT feed_nid, id FROM {feeds_schedule} WHERE next_refresh_time > %d', $this->time(), 0, 5);
-      while ($feed_info = db_fetch_array($result)) {
-        $this->work($feed_info);
-      }
-    }
-    watchdog('FeedsScheduler', 'Finished processing schedule after !time.', format_interval(array('!time' => time() - $this->time())));
+  protected function mark($feed_nid) {
+    db_query('UPDATE {feeds_schedule} SET last_scheduled_time = %d AND scheduled = 1 WHERE feed_nid = %d', $this->time(), $feed_nid);
   }
 
   /**
-   * Implementation of IFeedsScheduler::add().
+   * Helper function to mark a feed unscheduled.
    *
-   * Add a feed to schedule if its refresh_period is set.
+   * This function sets the feed's scheduled bit to 0 and thus makes
+   * it eligible for being added to the queue again.
    *
-   * @todo: better name as this function can also remove a feed from the schedule
-   * depending on its configuration.
-   * @todo: create an abstract interface for items that can be added?
+   * @param $feed_nid
+   *   Identifier of the feed.
    */
-  public function add($feed_id, $feed_nid = 0) {
-    $feed = feeds_feed_instance($feed_id);
-
-    // Remove if the configuration of a feed says it should be never refreshed.
-    if ($feed->config['refresh_period'] == FEEDS_SCHEDULE_NEVER_REFRESH) {
-      $this->remove($feed->id, $feed_nid);
-    }
-    else {
-      $next_refresh = $this->time() + $feed->config['refresh_period'];
-      db_query('UPDATE {feeds_schedule} SET id = "%s", feed_nid = %d, next_refresh_time = %d',  $feed->id, $feed_nid, $next_refresh);
-      if (!db_affected_rows()) {
-        db_query('INSERT INTO {feeds_schedule}(id, feed_nid, next_refresh_time) VALUES("%s", %d, %d)',  $feed->id, $feed_nid, $next_refresh);
-      }
-    }
-  }
-
-  /**
-   * Implementation of IFeedsScheduler::remove().
-   */
-  public function remove($feed_id, $feed_nid = 0) {
-    db_query('DELETE FROM {feeds_schedule} WHERE id = "%s" AND feed_nid = %d', $feed_id, $feed_nid);
-  }
-
-  /**
-   * Implementation of IFeedsScheduler::work().
-   *
-   * Refresh a feed. Worker callback invoked from feeds_scheduler_refresh().
-   */
-  public function work($feed_info) {
-    $feed = feeds_feed_instance($feed_info['id']);
-
-    // Only refresh if feed is actually in DB or in default configuration,
-    // otherwise remove from schedule.
-    if ($feed->export_type == FEEDS_EXPORT_NONE) {
-      $this->remove($feed, $feed_info['feed_nid']);
-    }
-    else {
-
-      // Add feed to scheduler no matter if successfully worked off or not.
-      // This serves as a protection from feeds that don't return before
-      // script timeout.
-      //
-      // @todo: reschedule stuck feeds earlier than their refresh_period
-      // setting.
-      //
-      // @todo: right now, we are setting the next refresh time to now +
-      // refresh period. This could drift badly as feeds are getting slower
-      // and slower updated. better would be
-      // last_scheduled_time + refresh_period
-      $this->add($feed, $feed_info['feed_nid']);
-
-      try {
-        feeds_import($feed, $feed_info['feed_nid']);
-      }
-      catch (Exception $e) {
-        // If source is gone, remove feed from schedule.
-        if (get_class($e) == 'FeedsNoSourceException') {
-          feeds_scheduler_remove($feed, $feed_info['feed_nid']);
-          watchdog('feeds_refresh', 'Removed '. implode('/'. $feed_info .' from schedule.'), array(), WATCHDOG_NOTICE);
-        }
-        // Log all other errors in a generic way.
-        else {
-          watchdog('feeds_refresh', $e->getMessage(), array(), WATCHDOG_ERROR);
-        }
-      }
-    }
+  protected function unmark($feed_nid) {
+    db_query('UPDATE {feeds_schedule} SET scheduled = 0 WHERE feed_nid = %d', $feed_nid);
   }
 }
