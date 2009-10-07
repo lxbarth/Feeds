@@ -117,6 +117,8 @@ class FeedsUserInterfaceTestCase extends FeedsWebTestCase {
     // Assert DB status, there should be 10 again.
     $count = db_result(db_query('SELECT COUNT(*) FROM {feeds_node_item}'));
     $this->assertEqual($count, 10, 'Accurate number of items in database.');
+
+    // @todo: log out, create user without create/delete story permissions, test again.
   }
 }
 
