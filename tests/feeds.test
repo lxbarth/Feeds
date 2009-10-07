@@ -36,7 +36,7 @@ class FeedsUserInterfaceTestCase extends FeedsWebTestCase {
     $this->drupalLogin(
       $this->drupalCreateUser(
         array(
-          'administer feeds', 'use feeds', 'create story content', 'create page content', 'delete own story content',
+          'administer feeds', 'use feeds', 'create story content', 'administer nodes',
         )
       )
     );
@@ -118,7 +118,33 @@ class FeedsUserInterfaceTestCase extends FeedsWebTestCase {
     $count = db_result(db_query('SELECT COUNT(*) FROM {feeds_node_item}'));
     $this->assertEqual($count, 10, 'Accurate number of items in database.');
 
-    // @todo: log out, create user without create/delete story permissions, test again.
+    // Log out, log in with a user with only 'create story content' permissions.
+    $this->drupalLogout();
+    $this->drupalLogin(
+      $this->drupalCreateUser(
+        array(
+          'administer feeds', 'use feeds', 'create story content',
+        )
+      )
+    );
+    // Navigate to feed node, there should be only "Import" tab visible.
+    $this->drupalGet('node/'. $nid);
+    $this->assertRaw('node/'. $nid .'/import');
+    $this->assertNoRaw('node/'. $nid .'/delete-items');
+
+    // Log out, log in with a user with administer nodes permissions but no use feeds permission.
+    $this->drupalLogout();
+    $this->drupalLogin(
+      $this->drupalCreateUser(
+        array(
+          'administer feeds', 'administer nodes',
+        )
+      )
+    );
+    // Navigate to feed node, there should be no Feeds tabs visible.
+    $this->drupalGet('node/'. $nid);
+    $this->assertNoRaw('node/'. $nid .'/import');
+    $this->assertNoRaw('node/'. $nid .'/delete-items');
   }
 }
 
