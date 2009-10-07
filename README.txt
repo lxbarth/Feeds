@@ -1,6 +1,7 @@
 $Id: README.txt,v 1.1 2009/09/16 17:58:12 alexb Exp $
 
 FEEDS
+=====
 
 The new incarnation of FeedAPI. Work in progress.
 
