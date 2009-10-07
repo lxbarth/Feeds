@@ -48,13 +48,13 @@ interface IFeedsScheduler {
 /**
  * Implementation of IFeedsScheduler.
  *
- * This scheduler uses the last_scheduled_time paradigm: By storing when a
- * particular feed was scheduled to be refreshd last rather than storing
- * when a feed should be _refreshed_ next, we gain two advantages:
+ * This scheduler uses the last_scheduled_time paradigm: By storing the time
+ * when a particular feed was scheduled to be refreshed last rather than
+ * storing when a feed should be _refreshed_ next, we gain two advantages:
  *
- * 1) If a feed's refresh_period setting changes, it has immediate effects,
+ * 1) If a feed's refresh_period setting changes, it has immediate effects -
  *    without batch updating an existing schedule.
- * 2) The time between refreshs will always be scheduled based on when it
+ * 2) The time between refreshes will always be scheduled based on when it
  *    has been scheduled last. Less drift occurs.
  */
 class FeedsScheduler implements IFeedsScheduler {
@@ -132,7 +132,7 @@ class FeedsScheduler implements IFeedsScheduler {
     }
 
     // Post a message that we're done.
-    watchdog('FeedsScheduler', 'Finished processing schedule after !time.', format_interval(array('!time' => time() - $this->time())));
+    watchdog('FeedsScheduler', 'Finished processing schedule after !time.', array('!time' => format_interval(time() - $this->time())));
   }
 
   /**
