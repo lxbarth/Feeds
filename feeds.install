@@ -113,8 +113,8 @@ function feeds_schema() {
     'primary key' => array('feed_nid'),
     'indexes' => array(
       'id' => array('id'),
-      'last_scheduled_time' => array('imported'),
-      'scheduled' => array(array('url', 255)),
+      'last_scheduled_time' => array('last_scheduled_time'),
+      'scheduled' => array('scheduled'),
     ),
   );
   $schema['feeds_node_item'] = array(
