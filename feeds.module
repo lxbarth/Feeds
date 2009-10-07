@@ -199,7 +199,11 @@ function feeds_nodeapi($node, $op) {
         $source = feeds_source_instance($feed, $node->nid);
         $source->setConfig($node->feeds);
         $source->save();
-        feeds_importer_instance()->import($feed, $source);
+
+        // Refresh feed if import on create is selected.
+        if ($feed->config['import_on_create']) {
+          feeds_importer_instance()->import($feed, $source);
+        }
 
         // Add feed to scheduler.
         feeds_scheduler_instance()->add($feed->id, $node->nid);
@@ -307,7 +311,11 @@ function feeds_import_form_submit($form, &$form_state) {
   // Save source and import.
   $source->configFormSubmit($form, $form_state['values']['feeds']);
   $source->save();
-  feeds_importer_instance()->import($feed, $source);
+
+  // Refresh feed if import on create is selected.
+  if ($feed->config['import_on_create']) {
+    feeds_importer_instance()->import($feed, $source);
+  }
 
   // Add feed to scheduler.
   feeds_scheduler_instance()->add($feed->id);

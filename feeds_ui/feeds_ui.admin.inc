@@ -204,6 +204,8 @@ function feeds_ui_edit_page($feed, $active = 'help', $plugin_key = '') {
     $refresh_period = t('every !interval', array('!interval' => format_interval($feed->config['refresh_period'])));
   }
   $items[] = t('Refresh: !refresh_period', array('!refresh_period' => $refresh_period));
+  $items[] = $feed->config['import_on_create'] ? t('Import on create') : t('Do not import on create');
+
   $info['title'] = t('Basic settings');
   $info['body'] = array(
     array(

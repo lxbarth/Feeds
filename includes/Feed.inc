@@ -172,7 +172,8 @@ class Feed extends FeedsConfigurable {
       ),
       'content_type' => 'page', // @todo: provide default content type feed.
       'update' => 0,
-      'refresh_period' => FEEDS_SCHEDULE_NEVER_REFRESH,
+      'refresh_period' => 1800, // Refresh every 30 minutes by default.
+      'import_on_create' => TRUE, // Import on create.
     );
   }
 
@@ -214,6 +215,12 @@ class Feed extends FeedsConfigurable {
       '#options' => $period,
       '#description' => t('This is the minimum time that must elapse before a feed may be refreshed automatically.'),
       '#default_value' => $this->config['refresh_period'],
+    );
+    $form['import_on_create'] = array(
+      '#type' => 'checkbox',
+      '#title' => t('Import on create'),
+      '#description' => t('Check if content should be imported at the moment of feed submission.'),
+      '#default_value' => $this->config['import_on_create'],
     );
     return $form;
   }

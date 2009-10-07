@@ -36,7 +36,7 @@ class FeedsUserInterfaceTestCase extends FeedsWebTestCase {
     $this->drupalLogin(
       $this->drupalCreateUser(
         array(
-          'administer feeds', 'use feeds', 'create story content', 'administer nodes',
+          'administer feeds', 'use feeds', 'administer nodes',
         )
       )
     );
@@ -48,23 +48,11 @@ class FeedsUserInterfaceTestCase extends FeedsWebTestCase {
   public function testFeedNodeCreation() {
 
     // Create a feed.
-    $this->createFeedConfiguration('Syndication feed', 'syndication');
+    $this->createFeedConfiguration();
 
-    // Create a feed node.
-    $edit = array(
-      'title' => 'Development Seed',
-      'feeds[FeedsHttpFetcher][url]' => $GLOBALS['base_url'] .'/'. drupal_get_path('module', 'feeds') .'/tests/feeds/developmentseed.rss2',
-      );
-    $this->drupalPost('node/add/page', $edit, 'Save');
+    $nid = $this->createFeedNode();
+    // Assert 10 items aggregated after creation of the node.
     $this->assertText('Created 10 story nodes.');
-    $this->assertText('Page Development Seed has been created.');
-
-    // Get the URL and node id.
-    $url = $this->getUrl();
-    $matches = array();
-    preg_match('/node\/(\d+?)$/', $this->getUrl(), $matches);
-    $nid = $matches[1];
-    $this->assertTrue(is_numeric($nid), 'Found node id ('. $nid .').');
 
     // Assert accuracy of aggregated information.
     $this->drupalGet('node');
@@ -153,7 +141,7 @@ class FeedsUserInterfaceTestCase extends FeedsWebTestCase {
  *
  * @todo.
  */
-class FeedsSchedulerTestCase extends DrupalWebTestCase {
+class FeedsSchedulerTestCase extends FeedsWebTestCase {
 
   /**
    * Describe this test.
@@ -161,7 +149,7 @@ class FeedsSchedulerTestCase extends DrupalWebTestCase {
   public function getInfo() {
     return array(
       'name' => t('Feeds Scheduler'),
-      'description' => t('Unit tests for feeds scheduler.'),
+      'description' => t('Tests for feeds scheduler.'),
       'group' => t('Feeds'),
     );
   }
@@ -170,12 +158,12 @@ class FeedsSchedulerTestCase extends DrupalWebTestCase {
    * Set up test.
    */
   public function setUp() {
-    parent::setUp('feeds', 'ctools');
+    parent::setUp('feeds', 'feeds_ui', 'ctools');
 
     $this->drupalLogin(
       $this->drupalCreateUser(
         array(
-          'administer feeds', 'use feeds', 'create story content', 'create page content',
+          'administer feeds', 'use feeds', 'administer nodes',
         )
       )
     );
@@ -185,5 +173,24 @@ class FeedsSchedulerTestCase extends DrupalWebTestCase {
    * Test scheduling on cron.
    */
   public function testScheduling() {
+    // Create default configuration, turn off refresh on creation.
+    $this->createFeedConfiguration();
+
+    // Create 10 feed nodes. Turn off import on create before doing that.
+    $edit = array(
+      'import_on_create' => FALSE,
+    );
+    $this->drupalPost('admin/build/feeds/edit/syndication/settings/Feed', $edit, 'Save');
+    $this->assertText('Do not import on create');
+
+    $nids = $this->createFeedNodes(10);
+    // This implicitly tests the import_on_create node setting.
+    $this->assertEqual(count(array_diff($nids, array(1, 2, 3, 4, 5, 6, 7, 8, 9, 10))), 0, '10 node ids between 1 and 10.');
+
+    // Log out and run cron, check update times.
+    $result = db_query('select feed_nid, next_refresh_time from {feeds_schedule}');
+    while ($row = db_fetch_object($result)) {
+      $schedule[$row->feed_nid] = $row->next_refresh_time;
+    }
   }
 }
