@@ -140,6 +140,8 @@ class FeedsScheduler implements IFeedsScheduler {
    *
    * Add a feed to the scheduler.
    *
+   * @todo: Create optional parameter $last_scheduled_time to pass in.
+   *        Set this value if a feed is refreshed on creation.
    * @todo: create an abstract interface for items that can be added?
    */
   public function add($feed_id, $feed_nid = 0) {

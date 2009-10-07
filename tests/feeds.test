@@ -187,10 +187,10 @@ class FeedsSchedulerTestCase extends FeedsWebTestCase {
     // This implicitly tests the import_on_create node setting.
     $this->assertEqual(count(array_diff($nids, array(1, 2, 3, 4, 5, 6, 7, 8, 9, 10))), 0, '10 node ids between 1 and 10.');
 
-    // Log out and run cron, check update times.
-    $result = db_query('select feed_nid, next_refresh_time from {feeds_schedule}');
+    // Log out and run cron, check scheduled values.
+    $result = db_query('select feed_nid, last_scheduled_time, scheduled from {feeds_schedule}');
     while ($row = db_fetch_object($result)) {
-      $schedule[$row->feed_nid] = $row->next_refresh_time;
+      $schedule[$row->feed_nid] = $row;
     }
   }
 }

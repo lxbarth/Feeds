@@ -72,7 +72,8 @@ class FeedsWebTestCase extends DrupalWebTestCase {
     // Check whether feed got properly added to scheduler.
     $this->assertEqual(1, db_result(db_query('select COUNT(*) from {feeds_schedule} WHERE id = "syndication" AND feed_nid = %d', $nid)));
     $schedule = db_fetch_object(db_query('select * from {feeds_schedule} WHERE id = "syndication" AND feed_nid = %d', $nid));
-    $this->assert($schedule->next_refresh_time > time(), 'Next refresh time is in future.');
+    $this->assertEqual($schedule->scheduled, 0, 'Feed is not set scheduled.');
+    $this->assertEqual($schedule->last_scheduled_time, 0, 'Last scheduled time is 0.');
 
     return $nid;
   }
