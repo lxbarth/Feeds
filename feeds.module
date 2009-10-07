@@ -93,7 +93,8 @@ function feeds_menu() {
         'title' => 'Import',
         'page callback' => 'drupal_get_form',
         'page arguments' => array('feeds_import_node_form', 1),
-        'access arguments' => array('use feeds'),
+        'access callback' => 'feeds_import_access',
+        'access arguments' => array(1),
         'file' => 'feeds.pages.inc',
         'type' => MENU_LOCAL_TASK,
         'weight' => 10,
@@ -103,7 +104,8 @@ function feeds_menu() {
         'page callback' => 'drupal_get_form',
         'page arguments' => array('feeds_delete_items_form', NULL, 1),
         'type' => MENU_LOCAL_TASK,
-        'access arguments' => array('use feeds'),
+        'access callback' => 'feeds_delete_items_access',
+        'access arguments' => array(1),
         'file' => 'feeds.pages.inc',
         'weight' => 11,
       );
@@ -136,6 +138,26 @@ function feeds_theme() {
       'file' => 'feeds.pages.inc',
     ),
   );
+}
+
+/**
+ * Menu access callback.
+ */
+function feeds_import_access($node) {
+  if ($feed = feeds_get_by_content_type($node->type)) {
+    return $feed->access('import');
+  }
+  return FALSE;
+}
+
+/**
+ * Menu access callback.
+ */
+function feeds_delete_items_access($node) {
+  if ($feed = feeds_get_by_content_type($node->type)) {
+    return $feed->access('purge');
+  }
+  return FALSE;
 }
 
 /**

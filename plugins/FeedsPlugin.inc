@@ -31,6 +31,22 @@ abstract class FeedsPlugin extends FeedsConfigurable implements FeedsSourceInter
   }
 
   /**
+   * Determine whether sufficient permissions are present for a given action.
+   * When implementing, only implement checks for the immediate plugin. General
+   * permission checks are handled in Feeds::access().
+   *
+   * @see Feeds::access($action, $account).
+   *
+   * @param $action
+   *   One of 'import', 'purge'.
+   * @param $account
+   *   User to check for. If not given, current user will be checked.
+   */
+  public function access($action, $account) {
+    return TRUE;
+  }
+
+  /**
    * Save changes to the configuration of this object.
    * Delegate saving to parent (= Feed) which will collect
    * information from this object by way of getConfig() and store it.

@@ -12,6 +12,24 @@
 class FeedsNodeProcessor extends FeedsProcessor {
 
   /**
+   * Override access method. Check whether user has sufficient permissions to
+   * create and delete the type of node that this processor generates.
+   */
+  public function access($action, $account) {
+    switch ($action) {
+      case 'import':
+        return node_access('create', $this->config['content_type'], $account);
+      case 'purge':
+        // We can't use node_access here. We're in for a hard fail if a user
+        // can't delete nodes with these permissions.
+        return user_access('delete '. $this->config['content_type'] .' content', $account) |
+          user_access('administer nodes');
+    }
+    // Fine for potential other actions.
+    return TRUE;
+  }
+
+  /**
    * Implementation of FeedsProcessor::process().
    */
   public function process(FeedsParserResult $parserResult, FeedsSource $source) {

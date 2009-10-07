@@ -98,6 +98,29 @@ class Feed extends FeedsConfigurable {
   }
 
   /**
+   * Determine whether sufficient permissions are present for a
+   * given action.
+   *
+   * @param $action
+   *   One of 'import', 'purge'.
+   * @param $account
+   *   User to check for. If not given, current user will be checked.
+   */
+  public function access($action, $account = NULL) {
+    global $user;
+    if (!$account) {
+      $account = $user;
+    }
+    if (!user_access('use feeds')) {
+      return FALSE;
+    }
+    // Delegate access to plugins.
+    return $this->fetcher->access($action, $account) &
+      $this->parser->access($action, $account) &
+      $this->processor->access($action, $account);
+  }
+
+  /**
    * Save configuration.
    */
   public function save() {
