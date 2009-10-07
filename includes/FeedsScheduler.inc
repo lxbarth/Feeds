@@ -10,10 +10,12 @@
  * Describe a scheduler.
  */
 interface IFeedsScheduler {
+
   /**
    * Run Drupal cron.
    */
   public function cron();
+
   /**
    * Add a feed to the schedule.
    *
@@ -23,15 +25,15 @@ interface IFeedsScheduler {
    *   Feed nid that identifies the source for this configuration.
    */
   public function add($feed_id, $feed_nid = 0);
+
   /**
    * Remove a feed from the schedule.
    *
-   * @param $feed_id
-   *   Id of a Feed object.
    * @param $feed_nid
    *   Feed nid that identifies the source for this configuration.
    */
-  public function remove($feed_id, $feed_nid = 0);
+  public function remove($feed_nid = 0);
+
   /**
    * Work off a given feed identified by $feed_info.
    *
@@ -136,10 +138,8 @@ class FeedsScheduler implements IFeedsScheduler {
   /**
    * Implementation of IFeedsScheduler::add().
    *
-   * Add a feed to schedule if its refresh_period is set.
+   * Add a feed to the scheduler.
    *
-   * @todo: better name as this function can also remove a feed from the schedule
-   * depending on its configuration.
    * @todo: create an abstract interface for items that can be added?
    */
   public function add($feed_id, $feed_nid = 0) {
