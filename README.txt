@@ -4,7 +4,8 @@ FEEDS
 
 The new incarnation of FeedAPI. Work in progress.
 
-See http://drupal.org/project/issues/feeds for planned features / outstanding tasks.
+See http://drupal.org/project/issues/feeds for planned features / outstanding
+tasks.
 
 Contact alex_b http://drupal.org/user/53995 for details.
 
@@ -13,7 +14,8 @@ API Overview
 
 @todo, in the meantime:
 
-Start reading code in feeds.module and the Feed class in includes/Feed.inc :-)
+Start reading code in feeds.module and the Feed class in includes/Feed.inc, take
+a look at feeds.plugins.inc to see how plugins are registered.
 
 Performance
 ===========
