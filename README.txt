@@ -8,6 +8,11 @@ See http://drupal.org/project/issues/feeds for planned features / outstanding ta
 
 Contact alex_b http://drupal.org/user/53995 for details.
 
+API Overview
+============
+
+@todo
+
 Performance
 ===========
 
@@ -37,4 +42,4 @@ Description: The class to use for importing a feed.
 
 Name: feeds_worker_time
 Default: 60
-Execution time to give a queue worker.
+Execution time for a queue worker, only effective if used with drupal_queue.
