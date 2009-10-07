@@ -39,7 +39,7 @@ Description: The class to use for handling feed sources.
 
 Name: feeds_scheduler_class
 Default: 'FeedsScheduler'
-Description: The class to use for scheduling feed refreshs.
+Description: The class to use for scheduling feed refreshing.
 
 Name: feeds_importer_class
 Default: 'FeedsImporter'
