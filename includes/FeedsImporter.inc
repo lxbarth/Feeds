@@ -6,21 +6,10 @@
  * FeedsImporter class and related.
  */
 
-interface IFeedsImporter {
-  /**
-   * Import FeedsSource with Feed.
-   */
-  public function import(Feed $feed, FeedsSource $source);
-  /**
-   * Remove all items for a FeedsSource of Feed configuration.
-   */
-  public function purge(Feed $feed, FeedsSource $source);
-}
-
 /**
  * Implementation of IFeedsImporter.
  */
-class FeedsImporter implements IFeedsImporter {
+class FeedsImporter {
 
   /**
    * Create a single instance of FeedsImporter.
@@ -40,10 +29,12 @@ class FeedsImporter implements IFeedsImporter {
   protected function __construct() {}
 
   /**
-   * Implementation of IFeedsImporter::import().
+   * Import a feed: execute, fetching, parsing and processing stage.
    *
    * @throws Exception
    *   If a problem with fetching, parsing or processing occured.
+   *   @todo: Iron out and document potential Exceptions.
+   *   @todo: Support batching.
    */
   public function import(Feed $feed, FeedsSource $source) {
     $result = $feed->fetcher->fetch($source);
@@ -52,7 +43,9 @@ class FeedsImporter implements IFeedsImporter {
   }
 
   /**
-   * Implementation of IFeedsImporter::purge().
+   * Remove all Items from a feed.
+   *
+   * @todo: Run purge on fetcher parser and processor.
    */
   public function purge(Feed $feed, FeedsSource $source) {
     $feed->processor->purge($source);
