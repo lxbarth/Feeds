@@ -128,9 +128,11 @@ class Feed extends FeedsConfigurable {
     $save->id = $this->id;
     $save->class = get_class($this);
     $save->config = $this->getConfig();
-    // @todo: don't delete, then insert.
-    $this->delete();
-    drupal_write_record('feeds_config', $save);
+    // Make sure a source record is present at all time, try to update first, then insert.
+    drupal_write_record('feeds_config', $save, 'id');
+    if (!db_affected_rows()) {
+      drupal_write_record('feeds_config', $save);
+    }
   }
 
   /**
