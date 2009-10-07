@@ -91,10 +91,10 @@ class FeedsScheduler implements IFeedsScheduler {
 
     // Logging and timeout tracking.
     if ($this->time() == FEEDS_REQUEST_TIME) {
-      watchdog('FeedsScheduler', 'Start processing schedule - FEEDS_REQUEST_TIME !date !time !', array('!date' => format_date($this->time()), '!time' => $this->time()));
+      watchdog('FeedsScheduler', 'Start - !date (FEEDS_REQUEST_TIME, !time)', array('!date' => format_date($this->time(), 'small'), '!time' => $this->time()));
     }
     else {
-      watchdog('FeedsScheduler', 'Start processing schedule - debug time !date !time !', array('!date' => format_date($this->time()), '!time' => $this->time()));
+      watchdog('FeedsScheduler', 'Start - !date (debug time !time)', array('!date' => format_date($this->time(), 'small'), '!time' => $this->time()));
     }
     if (variable_get('feeds_scheduler_cron', FALSE)) {
       watchdog('FeedsScheduler', 'Last cron process did not finish.', array(), WATCHDOG_ERROR);
@@ -107,23 +107,26 @@ class FeedsScheduler implements IFeedsScheduler {
       $num = variable_get('feeds_schedule_num', $use_queue ? 200 / count($feeds) : 10 / count($feeds));
       $num = $num ? $num : 1;
 
-      // Iterate over feed configurations, push to queue or refresh feeds.
+      // Iterate over feed configurations, pick $num feeds for each configuration, push to queue or refresh feeds.
       foreach ($feeds as $feed) {
         if ($feed->config['refresh_period'] != FEEDS_SCHEDULE_NEVER) {
 
           // Refresh feeds that have a refresh time older than now - refresh period.
           $time = $this->time() - $feed->config['refresh_period'];
-          $result = db_query_range('SELECT feed_nid, id AS feed_id FROM {feeds_schedule} WHERE scheduled = 0 AND last_scheduled_time > %d ORDER BY last_scheduled_time DESC', $time, 0, $num);
-          while ($feed_info = db_fetch_array($result)) {
 
+          $result = db_query_range('SELECT feed_nid, id AS feed_id, last_scheduled_time FROM {feeds_schedule} WHERE scheduled = 0 AND (last_scheduled_time < %d OR last_scheduled_time = 0) ORDER BY last_scheduled_time DESC', $time, 0, $num);
+          while ($feed_info = db_fetch_array($result)) {
             // If drupal_queue is present, add to queue, otherwise work off immediately.
             if ($use_queue) {
               if ($queue->createItem($feed_info)) {
-                $this->mark($feed_info['feed_nid'], 1);
+                $this->mark($feed_info['feed_nid']);
+              }
+              else {
+                watchdog('FeedsScheduler', 'Error adding item to queue.', WATCHDOG_ALERT);
               }
             }
             else {
-              $this->mark($feed_info['feed_nid'], 1);
+              $this->mark($feed_info['feed_nid']);
               $this->work($feed_info);
             }
           }
@@ -131,7 +134,8 @@ class FeedsScheduler implements IFeedsScheduler {
       }
     }
 
-    // Post a message that we're done.
+    // Unflag and post a message that we're done.
+    variable_set('feeds_scheduler_cron', FALSE);
     watchdog('FeedsScheduler', 'Finished processing schedule after !time.', array('!time' => format_interval(time() - $this->time())));
   }
 
@@ -145,15 +149,15 @@ class FeedsScheduler implements IFeedsScheduler {
    * @todo: create an abstract interface for items that can be added?
    */
   public function add($feed_id, $feed_nid = 0) {
-    $object = array(
+    $save = array(
       'id' => $feed_id,
       'feed_nid' => $feed_nid,
       'last_scheduled_time' => 0,
       'scheduled' => 0, // Means NOT scheduled at the moment.
     );
-    drupal_write_record('feeds_schedule', $object, 'feed_nid');
+    drupal_write_record('feeds_schedule', $save, 'feed_nid');
     if (!db_affected_rows()) {
-      drupal_write_record('feeds_schedule', $object);
+      drupal_write_record('feeds_schedule', $save);
     }
   }
 
@@ -179,13 +183,13 @@ class FeedsScheduler implements IFeedsScheduler {
     if ($feed->export_type != FEEDS_EXPORT_NONE) {
 
       // Remove scheduled flag, if we fail after this we'd like to try again next time.
-      $this->unmark($feed['feed_nid']);
+      $this->unmark($feed_info['feed_nid']);
 
       try {
         feeds_import($feed, $feed_info['feed_nid']);
       }
       catch (Exception $e) {
-        watchdog('feeds_refresh', $e->getMessage(), array(), WATCHDOG_ERROR);
+        watchdog('feeds_refresh', $e->getMessage() ."\n\n". $e->getTrace(), array(), WATCHDOG_ERROR);
       }
     }
   }
@@ -226,7 +230,12 @@ class FeedsScheduler implements IFeedsScheduler {
    *   Identifier of the feed.
    */
   protected function mark($feed_nid) {
-    db_query('UPDATE {feeds_schedule} SET last_scheduled_time = %d AND scheduled = 1 WHERE feed_nid = %d', $this->time(), $feed_nid);
+    $save = array(
+      'feed_nid' => $feed_nid,
+      'last_scheduled_time' => $this->time(),
+      'scheduled' => 1,
+    );
+    drupal_write_record('feeds_schedule', $save, 'feed_nid');
   }
 
   /**
@@ -239,6 +248,10 @@ class FeedsScheduler implements IFeedsScheduler {
    *   Identifier of the feed.
    */
   protected function unmark($feed_nid) {
-    db_query('UPDATE {feeds_schedule} SET scheduled = 0 WHERE feed_nid = %d', $feed_nid);
+    $save = array(
+      'feed_nid' => $feed_nid,
+      'scheduled' => 0,
+    );
+    drupal_write_record('feeds_schedule', $save, 'feed_nid');
   }
 }

@@ -184,17 +184,24 @@ class FeedsSchedulerTestCase extends FeedsWebTestCase {
     $this->assertText('Do not import on create');
 
     $nids = $this->createFeedNodes(20);
-    // This implicitly tests the import_on_create node setting.
-    $this->assertEqual(count(array_diff($nids, array(1, 2, 3, 4, 5, 6, 7, 8, 9, 10))), 0, '10 node ids between 1 and 10.');
+    // This implicitly tests the import_on_create node setting being 0.
+    $this->assertTrue($nids[0] == 1 && $nids[1] == 2, 'Node ids sequential.');
 
     // Record status quo.
     $result = db_query('select feed_nid, last_scheduled_time, scheduled from {feeds_schedule}');
     while ($row = db_fetch_object($result)) {
       $schedule[$row->feed_nid] = $row;
     }
+    $this->error(print_r($schedule, TRUE));
 
     // Log out and run cron, check scheduled values.
     $this->drupalLogout();
     $this->drupalGet($GLOBALS['base_url'] .'/cron.php');
+
+    $result = db_query('select feed_nid, last_scheduled_time, scheduled from {feeds_schedule}');
+    while ($row = db_fetch_object($result)) {
+      $schedule[$row->feed_nid] = $row;
+    }
+    $this->error(print_r($schedule, TRUE));
   }
 }
