@@ -11,7 +11,9 @@ Contact alex_b http://drupal.org/user/53995 for details.
 API Overview
 ============
 
-@todo
+@todo, in the meantime:
+
+Start reading code in feeds.module and the Feed class in includes/Feed.inc :-)
 
 Performance
 ===========
