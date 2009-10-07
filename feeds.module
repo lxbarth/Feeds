@@ -201,7 +201,7 @@ function feeds_nodeapi($node, $op) {
         $source->save();
 
         // Refresh feed if import on create is selected.
-        if ($feed->config['import_on_create']) {
+        if ($op == 'insert' && $feed->config['import_on_create']) {
           feeds_importer_instance()->import($feed, $source);
         }
 
