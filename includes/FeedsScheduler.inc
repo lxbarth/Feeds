@@ -111,7 +111,7 @@ class FeedsScheduler implements IFeedsScheduler {
       foreach ($feeds as $feed) {
         if ($feed->config['refresh_period'] != FEEDS_SCHEDULE_NEVER) {
 
-          // Refresh feeds that have a refresh time older than now - refresh period.
+          // Refresh feeds that have a refresh time older than now minus refresh period.
           $time = $this->time() - $feed->config['refresh_period'];
 
           $result = db_query_range('SELECT feed_nid, id AS feed_id, last_scheduled_time FROM {feeds_schedule} WHERE scheduled = 0 AND (last_scheduled_time < %d OR last_scheduled_time = 0) ORDER BY last_scheduled_time DESC', $time, 0, $num);
@@ -189,7 +189,7 @@ class FeedsScheduler implements IFeedsScheduler {
         feeds_import($feed, $feed_info['feed_nid']);
       }
       catch (Exception $e) {
-        watchdog('feeds_refresh', $e->getMessage() ."\n\n". $e->getTrace(), array(), WATCHDOG_ERROR);
+        watchdog('feeds_refresh', $e->getMessage() .'<br /><pre>'. $e->getTraceAsString() .'</pre>', array(), WATCHDOG_ERROR);
       }
     }
   }

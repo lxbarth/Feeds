@@ -13,7 +13,7 @@ define('FEEDS_REQUEST_TIME', time());
 define('FEEDS_SCHEDULE_NEVER', -1);
 // A feed object is not persistent at all. Compare to EXPORT_IN_DATABASE OR
 // EXPORT_IN_CODE.
-define('FEEDS_EXPORT_NONE', 0);
+define('FEEDS_EXPORT_NONE', 0x0);
 
 /**
  * Implementation of hook_cron().
@@ -444,7 +444,7 @@ function feeds_load_all() {
  */
 function feeds_import($feed, $feed_nid = 0) {
   $source = feeds_source_instance($feed, $feed_nid);
-  if ($source->export_status == FEEDS_EXPORT_NONE) {
+  if ($source->export_status & FEEDS_EXPORT_NONE) {
     throw new FeedsNoSourceException('Expected source information in database for '. $feed->id .'/'. $feed_nid .'. Could not find any.');
   }
   feeds_importer_instance()->import($feed, $source);
