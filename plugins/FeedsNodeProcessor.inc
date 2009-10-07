@@ -22,8 +22,9 @@ class FeedsNodeProcessor extends FeedsProcessor {
       case 'purge':
         // We can't use node_access here. We're in for a hard fail if a user
         // can't delete nodes with these permissions.
-        return user_access('delete '. $this->config['content_type'] .' content', $account) |
-          user_access('administer nodes');
+        return user_access('administer nodes', $account) |
+          user_access('delete own '. $this->config['content_type'] .' content', $account) |
+          user_access('delete any '. $this->config['content_type'] .' content', $account);
     }
     // Fine for potential other actions.
     return TRUE;
