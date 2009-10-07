@@ -147,7 +147,7 @@ class Feed extends FeedsConfigurable {
       'processor' => array(
         'plugin_key' => 'FeedsNodeProcessor',
       ),
-      'content_type' => '',
+      'content_type' => 'page', // @todo: provide default content type feed.
       'update' => 0,
       'refresh_period' => FEEDS_SCHEDULE_NEVER_REFRESH,
     );

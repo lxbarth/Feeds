@@ -5,18 +5,21 @@
  * Tests for Feeds Admin UI module.
  */
 
+// Require FeedsWebTestCase class definition.
+require_once(dirname(__FILE__) .'/../../tests/feeds.test.inc');
+
 /**
  * Test basic Data API functionality.
  */
-class FeedsUIUserInterfaceTestCase extends DrupalWebTestCase {
+class FeedsUIUserInterfaceTestCase extends FeedsWebTestCase {
 
   /**
    * Describe this test.
    */
   public function getInfo() {
     return array(
-      'name' => t('Feeds UI'),
-      'description' => t('Tests Feeds UI module\'s GUI.'),
+      'name' => t('Feeds UI user interface'),
+      'description' => t('Tests Feeds Admin UI module\'s GUI.'),
       'group' => t('Feeds'),
     );
   }
@@ -122,38 +125,5 @@ class FeedsUIUserInterfaceTestCase extends DrupalWebTestCase {
     $this->assertText('Page Development Seed has been created.');
 
     // @todo: refreshing/deleting feed items. Needs to live in feeds.test
-  }
-
-  /**
-   * Create feed config.
-   */
-  public function createFeedConfiguration($name, $id) {
-    // Create new feed configuration.
-    $this->drupalGet('admin/build/feeds');
-    $this->clickLink('New configuration');
-    $edit = array(
-      'name' => $name,
-      'id' => $id,
-    );
-    $this->drupalPost('admin/build/feeds/create', $edit, 'Create');
-
-    // Assert message and presence of default plugins.
-    $this->assertText('Your feed has been created with default settings.');
-    $this->assertPlugins('test_feed', 'FeedsHttpFetcher', 'FeedsSyndicationParser', 'FeedsNodeProcessor');
-  }
-
-  /**
-   * Assert a feeds configuration's plugins.
-   */
-  public function assertPlugins($id, $fetcher, $parser, $processor) {
-    // Assert actual configuration.
-    $result = db_query('SELECT * FROM {feeds_config} WHERE id = "%s"', $id);
-    $config = array();
-    while ($row = db_fetch_object($result)) {
-      $config[$row->class] = unserialize($row->config);
-    }
-    $this->assertEqual($config['Feed']['fetcher']['plugin_key'], $fetcher, 'Correct fetcher');
-    $this->assertEqual($config['Feed']['parser']['plugin_key'], $parser, 'Correct parser');
-    $this->assertEqual($config['Feed']['processor']['plugin_key'], $processor, 'Correct processor');
   }
 }

@@ -16,6 +16,9 @@ class FeedsNodeProcessor extends FeedsProcessor {
    */
   public function process(FeedsParserResult $parserResult, FeedsSource $source) {
 
+    // Count number of created and updated nodes.
+    $created  = $updated = 0;
+
     foreach ($parserResult->value['items'] as $item) {
       // If the target item does not exist OR if update_existing is enabled, map and save.
       if (!$nid = $this->existingItemId($item, $source) || $this->config['update_existing']) {
@@ -33,7 +36,25 @@ class FeedsNodeProcessor extends FeedsProcessor {
 
         // Save the node.
         node_save($node);
+
+        if ($nid) {
+          $updated++;
+        }
+        else {
+          $created++;
+        }
       }
+    }
+
+    // Set messages.
+    if ($created) {
+      drupal_set_message(t('Created !number !type nodes.', array('!number' => $created, '!type' => $this->config['content_type'])));
+    }
+    elseif ($updated) {
+      drupal_set_message(t('Updated !number !type nodes.', array('!number' => $updated, '!type' => $this->config['content_type'])));
+    }
+    else {
+      drupal_set_message(t('There is no new content.'));
     }
   }
 
@@ -42,9 +63,21 @@ class FeedsNodeProcessor extends FeedsProcessor {
    * @todo: use batch API.
    */
   public function purge(FeedsSource $source) {
+    // Count number of deleted nodes.
+    $deleted = 0;
+
     $result = db_query('SELECT nid FROM {feeds_node_item} WHERE feed_nid = %d', $source->feed_nid);
     while ($node = db_fetch_object($result)) {
       node_delete($node->nid);
+      $deleted++;
+    }
+
+    // Set message.
+    if ($deleted) {
+      drupal_set_message(t('Deleted !number nodes.', array('!number' => $deleted)));
+    }
+    else {
+      drupal_set_message(t('There is no content to be deleted.'));
     }
   }
 
@@ -149,7 +182,7 @@ class FeedsNodeProcessor extends FeedsProcessor {
     $types = node_get_types('names');
     $type = isset($types['story']) ? 'story' : key($types);
     return array(
-      'content_type' => $type,
+      'content_type' => $type, // @todo: provide default content type feed_item.
       'update_existing' => 0,
       'mappings' => array(
         '0' => array(

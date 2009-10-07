@@ -5,6 +5,77 @@
     <description></description>
     <language>en</language>
           <item>
+    <title>Open Atrium Translation Workflow: Two Way Translation Updates</title>
+    <link>http://developmentseed.org/blog/2009/oct/06/open-atrium-translation-workflow-two-way-updating</link>
+    <description>&lt;div class=&quot;field field-type-text field-field-subtitle&quot;&gt;
+    &lt;div class=&quot;field-items&quot;&gt;
+            &lt;div class=&quot;field-item odd&quot;&gt;
+                    &lt;p&gt;A new translation process for Open Atrium and integration with Localize Drupal&lt;/p&gt;        &lt;/div&gt;
+        &lt;/div&gt;
+&lt;/div&gt;
+&lt;div class=&#039;node-body&#039;&gt;&lt;p&gt;The &lt;a href=&quot;http://openatrium.com/&quot;&gt;Open Atrium&lt;/a&gt; &lt;a href=&quot;http://developmentseed.org/blog/2009/jul/16/open-atrium-solving-translation-puzzle&quot;&gt;translation infrastructure&lt;/a&gt; (and Drupal translations in general) are progressing quickly. For Open Atrium to be well translated we first need Drupal&#039;s modules to be translated, so I am splitting efforts at the moment between helping with &lt;a href=&quot;http://localize.drupal.org&quot;&gt;Localize Drupal&lt;/a&gt; and improving &lt;a href=&quot;https://translate.openatrium.com&quot;&gt;Open Atrium Translate&lt;/a&gt;. Already, it is much easier to automatically download your language, get updates from a translation server, protect locally translated strings, and scale the translation system so that translation servers can talk to each other.&lt;/p&gt;
+
+&lt;h1&gt;Automatically download your language&lt;/h1&gt;
+
+&lt;p&gt;&lt;img src=&quot;http://farm3.static.flickr.com/2496/3984689117_57559c74eb.jpg&quot; alt=&quot;Magical translation install&quot; /&gt;&lt;/p&gt;
+
+&lt;p&gt;For more than a month now you have been able to install Open Atrium, select one of its 20+ languages, and have the translation automatically downloaded and installed on your site. While this has been working for awhile now, we are still refining the process. One change we&#039;ve already made is that now translations are downloaded in multiple smaller packages, rather than a single large one.&lt;/p&gt;
+
+&lt;p&gt;Once your translation is installed, you can use tools like the &lt;a href=&quot;http://drupal.org/project/l10n_client&quot;&gt;Localization client&lt;/a&gt;, which comes bundled in the Open Atrium install, to translate page strings and then optionally contribute them back to the localization server, automatically. This flow of translations goes both ways, so your site gets the latest updates from the server just as you can send your latest updates to the server.&lt;/p&gt;
+
+&lt;h1&gt;Two way translation updates&lt;/h1&gt;
+
+&lt;p&gt;&lt;em&gt;But what happens with my locally translated strings, which I like more than the ones that come out of the box, when I update from the server?&lt;/em&gt;&lt;/p&gt;
+
+&lt;p&gt;&lt;img src=&quot;http://farm3.static.flickr.com/2442/3984689343_e9b7c32718.jpg&quot; alt=&quot;Two ways translation updates&quot; /&gt;&lt;/p&gt;
+
+&lt;p&gt;In a word, nothing. There has been a major improvement on this front. Now your translations are tracked and won&#039;t be overwritten by someone else&#039;s translations when you update, unless you choose for them to be. This means that you can contribute your translations, benefit from others contributing theirs, and make the world a better (translated) place, without loosing any custom work that you want. Let the translations flow!&lt;/p&gt;&lt;/div&gt;</description>
+     <comments>http://developmentseed.org/blog/2009/oct/06/open-atrium-translation-workflow-two-way-updating#comments</comments>
+ <category domain="http://developmentseed.org/tags/drupal">Drupal</category>
+ <category domain="http://developmentseed.org/tags/localization">localization</category>
+ <category domain="http://developmentseed.org/tags/localization-client">localization client</category>
+ <category domain="http://developmentseed.org/tags/localization-server">localization server</category>
+ <category domain="http://developmentseed.org/tags/open-atrium">open atrium</category>
+ <category domain="http://developmentseed.org/tags/translation">translation</category>
+ <category domain="http://developmentseed.org/tags/translation-server">translation server</category>
+ <category domain="http://developmentseed.org/channel/drupal-planet">Drupal planet</category>
+ <pubDate>Tue, 06 Oct 2009 15:21:48 +0000</pubDate>
+ <dc:creator>Development Seed</dc:creator>
+ <guid isPermaLink="false">974 at http://developmentseed.org</guid>
+  </item>
+  <item>
+    <title>Week in DC Tech: October 5th Edition</title>
+    <link>http://developmentseed.org/blog/2009/oct/05/week-dc-tech-october-5th-edition</link>
+    <description>&lt;div class=&quot;field field-type-text field-field-subtitle&quot;&gt;
+    &lt;div class=&quot;field-items&quot;&gt;
+            &lt;div class=&quot;field-item odd&quot;&gt;
+                    &lt;p&gt;Drupal, PHP, and Mapping This Week in Washington, DC&lt;/p&gt;        &lt;/div&gt;
+        &lt;/div&gt;
+&lt;/div&gt;
+&lt;div class=&#039;node-body&#039;&gt;&lt;p&gt;&lt;img src=&quot;http://developmentseed.org/sites/developmentseed.org/files/dctech2_0_0.png&quot; alt=&quot;Week in DC Tech&quot; /&gt;&lt;/p&gt;
+
+&lt;p&gt;There are some great technology events happening this week in Washington, DC, so if you&#039;re looking to talk code, help map the city, or just hear about some neat projects and ideas, you&#039;re in luck. Below are the events that caught our eye, and you can find a full list of technology events happening this week at &lt;a href=&quot;http://www.dctechevents.com/&quot;&gt;DC Tech Events&lt;/a&gt;. Have a great week!&lt;/p&gt;
+
+&lt;h1&gt;Wednesday, October 7&lt;/h1&gt;
+
+&lt;p&gt;6:30 pm&lt;/p&gt;
+
+&lt;p&gt;&lt;a href=&quot;http://drupal.meetup.com/21/calendar/11332695/&quot;&gt;&lt;strong&gt;NOVA Drupal Meetup&lt;/strong&gt;&lt;/a&gt;: Are you a Drupal developer, use a Drupal site, or just want to learn more about the open source content management system? Come out for this meetup to meet other Drupal fans and hear how people are using the CMS.&lt;/p&gt;
+
+&lt;p&gt;6:30 pm&lt;/p&gt;
+
+&lt;p&gt;&lt;a href=&quot;http://groups.google.com/group/washington-dcphp-group/browse_thread/thread/716d4a625287fef5?hl=en&quot;&gt;&lt;strong&gt;DC PHP Beverage Subgroup&lt;/strong&gt;&lt;/a&gt;: If you&#039;re looking to talk code with PHP developers who share your interest, come out for this casual meetup to chat over beers.&lt;/p&gt;
+
+&lt;p&gt;7:00 pm&lt;/p&gt;
+
+&lt;p&gt;&lt;a href=&quot;http://hacdc.org/&quot;&gt;&lt;strong&gt;Mapping DC Meeting&lt;/strong&gt;&lt;/a&gt;: Come out for this meetup if you want to help create high quality, free maps of Washington, DC. The &lt;a href=&quot;http://wiki.openstreetmap.org/wiki/MappingDC&quot;&gt;Mapping DC&lt;/a&gt; group is doing this, starting with creating a detailed map of the National Zoo.&lt;/p&gt;&lt;/div&gt;</description>
+     <comments>http://developmentseed.org/blog/2009/oct/05/week-dc-tech-october-5th-edition#comments</comments>
+ <category domain="http://developmentseed.org/tags/washington-dc">Washington DC</category>
+ <pubDate>Mon, 05 Oct 2009 15:27:40 +0000</pubDate>
+ <dc:creator>Development Seed</dc:creator>
+ <guid isPermaLink="false">973 at http://developmentseed.org</guid>
+  </item>
+  <item>
     <title>Mapping Innovation at the World Bank with Open Atrium</title>
     <link>http://developmentseed.org/blog/2009/oct/02/mapping-innovation-world-bank-open-atrium</link>
     <description>&lt;div class=&quot;field field-type-text field-field-subtitle&quot;&gt;
@@ -68,7 +139,7 @@
                     &lt;p&gt;Healthcare 2.0, iPhone Development, Online Storytelling, and More This Week in Washington, DC&lt;/p&gt;        &lt;/div&gt;
         &lt;/div&gt;
 &lt;/div&gt;
-&lt;div class=&#039;node-body&#039;&gt;&lt;p&gt;&lt;img src=&quot;http://developmentseed.org/sites/default/files/dctech2_0.png&quot; alt=&quot;Week in DC Tech&quot; /&gt;&lt;/p&gt;
+&lt;div class=&#039;node-body&#039;&gt;&lt;p&gt;&lt;img src=&quot;http://developmentseed.org/sites/developmentseed.org/files/dctech2_0_0.png&quot; alt=&quot;Week in DC Tech&quot; /&gt;&lt;/p&gt;
 
 &lt;p&gt;Looking to geek out this week? There are a bunch of interesting technology events happening in Washington, DC this week, including a look at how social media is impacting healthcare, a screening of online clips from a journalist/filmmaker, and lightning talks on all kinds of geekery by the HacDC folks. Below are the events that caught our eye, and you can find a full list of what&#039;s happening this week in technology over at &lt;a href=&quot;http://www.dctechevents.com/&quot;&gt;DC Tech Events&lt;/a&gt;. Have a great week!&lt;/p&gt;
 
@@ -223,50 +294,6 @@
  <pubDate>Fri, 18 Sep 2009 14:31:23 +0000</pubDate>
  <dc:creator>Development Seed</dc:creator>
  <guid isPermaLink="false">966 at http://developmentseed.org</guid>
-  </item>
-  <item>
-    <title>Applying Drupal Security Updates with Aegir: Screencast</title>
-    <link>http://developmentseed.org/blog/2009/sep/16/applying-drupal-security-updates-aegir-open-atrium</link>
-    <description>&lt;div class=&#039;node-body&#039;&gt;&lt;p&gt;We manage a cluster of &lt;a href=&quot;http://openatrium.com/&quot;&gt;Open Atrium&lt;/a&gt; sites for clients using &lt;a href=&quot;http://www.developmentseed.org/blog/2009/jul/09/rapidly-deploy-atrium-sites-aegir&quot;&gt;Aegir&lt;/a&gt;. To get a sense of how powerful Aegir is for running a hosted service &lt;a href=&quot;http://vimeo.com/6618252&quot;&gt;here is an under 3 minute video&lt;/a&gt; of Jeff and I applying today&#039;s Drupal security patch to all of our sites.&lt;/p&gt;
-
-&lt;p&gt;&lt;object width=&quot;525&quot; height=&quot;298&quot;&gt;&lt;param name=&quot;allowfullscreen&quot; value=&quot;true&quot; /&gt;&lt;param name=&quot;allowscriptaccess&quot; value=&quot;always&quot; /&gt;&lt;param name=&quot;movie&quot; value=&quot;http://vimeo.com/moogaloop.swf?clip_id=6618252&amp;amp;server=vimeo.com&amp;amp;show_title=1&amp;amp;show_byline=1&amp;amp;show_portrait=0&amp;amp;color=ff9933&amp;amp;fullscreen=1&quot; /&gt;&lt;embed src=&quot;http://vimeo.com/moogaloop.swf?clip_id=6618252&amp;amp;server=vimeo.com&amp;amp;show_title=1&amp;amp;show_byline=1&amp;amp;show_portrait=0&amp;amp;color=ff9933&amp;amp;fullscreen=1&quot; type=&quot;application/x-shockwave-flash&quot; allowfullscreen=&quot;true&quot; allowscriptaccess=&quot;always&quot; width=&quot;525&quot; height=&quot;298&quot;&gt;&lt;/embed&gt;&lt;/object&gt;&lt;/p&gt;
-
-&lt;h2&gt;A Little More Background&lt;/h2&gt;
-
-&lt;p&gt;A few hours ago, a critical Drupal core security vulnerability that allowed cross site scripting in Drupal 6 core OpenID and a possible apache file executable issue with the File API was &lt;a href=&quot;http://drupal.org/node/579482&quot;&gt;identified and fixed by Drupal&#039;s Security team&lt;/a&gt;. Since &lt;a href=&quot;http://openatrium.com/node/29&quot;&gt;Open Atrium Beta 2.1&lt;/a&gt; was running on Drupal 6.13 core, our Open Atrium sites were potentially vulnerable to this security release and we needed to &lt;a href=&quot;http://drupal.org/drupal-6.14&quot;&gt;patch our sites with Drupal 6.14&lt;/a&gt;. The Open Atrium team &lt;a href=&quot;http://openatrium.com/node/30&quot;&gt;released Beta 3&lt;/a&gt; less than two hours after the security announcement, and we were good to run the upgrades.&lt;/p&gt;&lt;/div&gt;</description>
-     <comments>http://developmentseed.org/blog/2009/sep/16/applying-drupal-security-updates-aegir-open-atrium#comments</comments>
- <category domain="http://developmentseed.org/tags/aegir">Aegir</category>
- <category domain="http://developmentseed.org/tags/drupal">Drupal</category>
- <category domain="http://developmentseed.org/tags/open-atrium">open atrium</category>
- <category domain="http://developmentseed.org/tags/security">Security</category>
- <category domain="http://developmentseed.org/channel/drupal-planet">Drupal planet</category>
- <pubDate>Wed, 16 Sep 2009 23:46:51 +0000</pubDate>
- <dc:creator>Development Seed</dc:creator>
- <guid isPermaLink="false">965 at http://developmentseed.org</guid>
-  </item>
-  <item>
-    <title>Open Atrium Gets a Community and Learns to Eat Its Own Dog Food</title>
-    <link>http://developmentseed.org/blog/2009/sep/16/open-atrium-gets-community-and-learns-eat-its-own-dog-food</link>
-    <description>&lt;div class=&quot;field field-type-text field-field-subtitle&quot;&gt;
-    &lt;div class=&quot;field-items&quot;&gt;
-            &lt;div class=&quot;field-item odd&quot;&gt;
-                    &lt;p&gt;Community Site Has a Collaborative Documentation Space and a Better Case Tracker&lt;/p&gt;        &lt;/div&gt;
-        &lt;/div&gt;
-&lt;/div&gt;
-&lt;div class=&#039;node-body&#039;&gt;&lt;p&gt;We&#039;ve just launched &lt;a href=&quot;http://community.openatrium.com&quot;&gt;community.openatrium.com&lt;/a&gt;, a new hub for the Open Atrium community. From the day we released Open Atrium, we knew that we&#039;d need a proper place for users and developers to go to collaborate. Until now, we&#039;ve been using the issue tracker and wiki features on GitHub, but we decided it was time to eat our own dog food. Yep, the new &lt;a href=&quot;http://community.openatrium.com&quot;&gt;community.openatrium.com&lt;/a&gt; site is powered by &lt;a href=&quot;http://community.openatrium.com&quot;&gt;Open Atrium&lt;/a&gt;.&lt;/p&gt;
-
-&lt;p&gt;&lt;img src=&quot;http://farm3.static.flickr.com/2428/3926034219_41f39f2231.jpg&quot; alt=&quot;community.openatrium.com&quot; /&gt;&lt;/p&gt;
-
-&lt;p&gt;This new site is designed to address two fundamental needs that our community has. First, we need documentation so people can learn what Open Atrium does and how they can use it. In line with this, we also need help writing that documentation. On the community site there&#039;s a collaborative space that we hope meets this need. It&#039;s a place where the Open Atrium community can come together to create documentation, and community administrators can help moderate, highlight, and curate the content to make sure that it serves the entire Open Atrium user base to the fullest extent possible.&lt;/p&gt;&lt;/div&gt;</description>
-     <comments>http://developmentseed.org/blog/2009/sep/16/open-atrium-gets-community-and-learns-eat-its-own-dog-food#comments</comments>
- <category domain="http://developmentseed.org/tags/documentation">documentation</category>
- <category domain="http://developmentseed.org/tags/drupal">Drupal</category>
- <category domain="http://developmentseed.org/tags/knowledge-management">knowledge management</category>
- <category domain="http://developmentseed.org/tags/open-atrium">open atrium</category>
- <category domain="http://developmentseed.org/channel/drupal-planet">Drupal planet</category>
- <pubDate>Wed, 16 Sep 2009 18:20:07 +0000</pubDate>
- <dc:creator>Development Seed</dc:creator>
- <guid isPermaLink="false">963 at http://developmentseed.org</guid>
   </item>
   </channel>
 </rss>
