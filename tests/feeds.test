@@ -36,7 +36,7 @@ class FeedsUserInterfaceTestCase extends FeedsWebTestCase {
     $this->drupalLogin(
       $this->drupalCreateUser(
         array(
-          'administer feeds', 'use feeds', 'create story content', 'create page content',
+          'administer feeds', 'use feeds', 'create story content', 'create page content', 'delete own story content',
         )
       )
     );
