@@ -37,7 +37,7 @@ function feeds_page() {
 /**
  * Render a feeds import form on node/id/import pages.
  */
-function feeds_import_node_form(&$form_state, $node) {
+function feeds_import_tab_form(&$form_state, $node) {
   $feed = feeds_get_by_content_type($node->type);
 
   $form = array();
@@ -47,9 +47,9 @@ function feeds_import_node_form(&$form_state, $node) {
 }
 
 /**
- * Submit handler for feeds_import_node_form().
+ * Submit handler for feeds_import_tab_form().
  */
-function feeds_import_node_form_submit($form, $form_state) {
+function feeds_import_tab_form_submit($form, $form_state) {
   $feed = feeds_feed_instance($form['#feed_id']);
   $source = feeds_source_instance($feed, $form['#feed_nid']);
   feeds_importer_instance()->import($feed, $source);
@@ -120,7 +120,7 @@ function feeds_import_form_submit($form, &$form_state) {
  * Used on both node pages and configuration pages.
  * Therefore either $feed_id or $node may be missing.
  */
-function feeds_delete_items_form(&$form_state, $feed_id, $node = NULL) {
+function feeds_delete_tab_form(&$form_state, $feed_id, $node = NULL) {
   if (empty($node)) {
     $feed = feeds_feed_instance($feed_id);
   }
@@ -134,9 +134,9 @@ function feeds_delete_items_form(&$form_state, $feed_id, $node = NULL) {
 }
 
 /**
- * Submit handler for feeds_delete_items_form().
+ * Submit handler for feeds_delete_tab_form().
  */
-function feeds_delete_items_form_submit($form, &$form_state) {
+function feeds_delete_tab_form_submit($form, &$form_state) {
   $feed = feeds_feed_instance($form['#feed_id']);
   $source = feeds_source_instance($feed, $form['#feed_nid']);
   feeds_importer_instance()->purge($feed, $source);

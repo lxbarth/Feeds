@@ -92,7 +92,7 @@ function feeds_menu() {
       $items['node/%node/import'] = array(
         'title' => 'Import',
         'page callback' => 'drupal_get_form',
-        'page arguments' => array('feeds_import_node_form', 1),
+        'page arguments' => array('feeds_import_tab_form', 1),
         'access callback' => 'feeds_import_access',
         'access arguments' => array(1),
         'file' => 'feeds.pages.inc',
@@ -102,7 +102,7 @@ function feeds_menu() {
       $items['node/%node/delete-items'] = array(
         'title' => 'Delete items',
         'page callback' => 'drupal_get_form',
-        'page arguments' => array('feeds_delete_items_form', NULL, 1),
+        'page arguments' => array('feeds_delete_tab_form', NULL, 1),
         'type' => MENU_LOCAL_TASK,
         'access callback' => 'feeds_delete_items_access',
         'access arguments' => array(1),
