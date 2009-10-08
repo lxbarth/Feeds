@@ -180,7 +180,7 @@ function feeds_ui_edit_page($feed, $active = 'help', $plugin_key = '') {
         $active_container['title'] = t('Basic settings');
         $active_container['body'] = feeds_get_config_form($feed);
       }
-      // @todo: only works because feed has been instantiated previously.
+      // feeds_plugin_instance() returns a correct result because feed has been instantiated previously.
       elseif (in_array($plugin_key, array_keys($plugins)) && $plugin = feeds_plugin_instance($plugin_key, $feed->id)) {
         $active_container['title'] = t('Settings for !plugin', array('!plugin' => $plugins[$plugin_key]['name']));
         $active_container['body'] = feeds_get_config_form($plugin);
