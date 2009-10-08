@@ -5,10 +5,25 @@ FEEDS
 
 The new incarnation of FeedAPI. Work in progress.
 
-See http://drupal.org/project/issues/feeds for planned features / outstanding
-tasks.
+For planned features / outstanding tasks, see:
+http://drupal.org/project/issues/feeds
 
-Contact alex_b http://drupal.org/user/53995 for details.
+Contact alex_b for details:
+http://drupal.org/user/53995
+
+REQUIREMENTS
+============
+
+- CTools 1.x-dev with patch 
+  http://drupal.org/node/599136#comment-2127930
+- Drupal 6.14 or higher.
+
+INSTALLATION
+============
+
+- Check out from github into your modules directory.
+- Navigate to admin/build/feeds.
+- Create at least one feed configuration.
 
 API Overview
 ============
@@ -21,8 +36,8 @@ take a look at feeds.plugins.inc to see how plugins are registered.
 Performance
 ===========
 
-If you are managing more than ten feeds with this module, use drupal_queue
-module.
+Untested. There is support for drupal_queue module in the works.
+http://drupal.org/node/599180
 
 Hidden settings
 ===============
