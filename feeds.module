@@ -209,14 +209,6 @@ function feeds_nodeapi($node, $op) {
         feeds_scheduler_instance()->add($feed->id, $node->nid);
       }
       break;
-    case 'view':
-      if ($feed = feeds_get_by_content_type($node->type)) {
-        module_load_include('inc', 'feeds', 'feeds.pages');
-        // @todo: remove or expand on this approach.
-        $node->content['feeds_info']['#value'] = feeds_control_box($feed);
-        $node->content['feeds_info']['#weight'] = -10;
-      }
-      break;
     case 'delete':
       if ($feed = feeds_get_by_content_type($node->type)) {
         // Remove feed from scheduler and delete source.

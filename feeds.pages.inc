@@ -107,26 +107,3 @@ function feeds_delete_items_form_submit($form, &$form_state) {
   $source = feeds_source_instance($feed, $form['#feed_nid']);
   feeds_importer_instance()->purge($feed, $source);
 }
-
-/**
- * Render a control box.
- */
-function feeds_control_box($feed, $nid = NULL) {
-  if (user_access('administer feeds')) {
-    $rows = array();
-    $rows[] = array(
-      l(t('Reimport feed'), 'node/2/import'),
-      // @todo adjust description by configuration.
-      t('Reads source information, creates items that do not exist and optionally updates existing items.'),
-    );
-    $rows[] = array(
-      l(t('Delete all items'), 'node/2/delete-items'),
-      t('Deletes all content imported by that feed.'),
-    );
-    $element = array(
-      '#title' => t('Feed options'),
-      '#value' => theme('table', array(t('Option'), t('Description')), $rows),
-    );
-    return theme('fieldset', $element);
-  }
-}
