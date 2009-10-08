@@ -10,7 +10,7 @@
 function feeds_ui_help($path, $arg) {
   switch ($path) {
     case 'admin/build/feeds':
-      $output = '<p>'. t('Configure one or more feeds to import content into Drupal. You can use these configurations from the !import_page or - if you attach them to a content type - simply by creating a node from that content type.', array('!import_page' => l(t('Import content page'), 'import'))) .'</p>';
+      $output = '<p>'. t('Create one or more configurations for importing content into Drupal. You can use these configurations from the !import_content page or - if you attach them to a content type - simply by creating a node from that content type.', array('!import_content' => l(t('Import content'), 'import'))) .'</p>';
       return $output;
     case 'admin/content/feeds':
       $output = '<p>'. t('Import content into Drupal.') .'</p>';
