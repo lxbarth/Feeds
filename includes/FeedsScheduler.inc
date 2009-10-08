@@ -84,8 +84,13 @@ class FeedsScheduler implements IFeedsScheduler {
    *
    * Refreshes scheduled feeds.
    *
-   * If drupal_queue is present, only moves refresh tasks to drupal queue and
+   * If drupal_queue is present, only pushes refresh tasks to queue and
    * returns. If drupal_queue is not available, works off tasks.
+   *
+   * @todo: Run cleanup task that
+   * 1) Picks up items that are scheduled and not worked off for more than
+   *    e. g. 6 hours.
+   * 2) Logs these items with watchdog.
    */
   public function cron() {
 
@@ -101,22 +106,27 @@ class FeedsScheduler implements IFeedsScheduler {
     }
     variable_set('feeds_scheduler_cron', TRUE);
 
-    // Get feeds configuration, check whether drupal_queue is present and set parameters accordingly.
+    // Get feeds configuration, check whether drupal_queue is present and set
+    // parameters accordingly.
     if ($feeds = feeds_load_all()) {
       $use_queue = module_exists('drupal_queue');
       $num = variable_get('feeds_schedule_num', $use_queue ? 200 / count($feeds) : 10 / count($feeds));
       $num = $num ? $num : 1;
 
-      // Iterate over feed configurations, pick $num feeds for each configuration, push to queue or refresh feeds.
+      // Iterate over feed configurations, pick $num feeds for each
+      // configuration, push to queue or refresh feeds.
       foreach ($feeds as $feed) {
         if ($feed->config['refresh_period'] != FEEDS_SCHEDULE_NEVER) {
 
-          // Refresh feeds that have a refresh time older than now minus refresh period.
+          // Refresh feeds that have a refresh time older than now minus
+          // refresh period.
           $time = $this->time() - $feed->config['refresh_period'];
 
           $result = db_query_range('SELECT feed_nid, id AS feed_id, last_scheduled_time FROM {feeds_schedule} WHERE scheduled = 0 AND (last_scheduled_time < %d OR last_scheduled_time = 0) ORDER BY last_scheduled_time DESC', $time, 0, $num);
           while ($feed_info = db_fetch_array($result)) {
-            // If drupal_queue is present, add to queue, otherwise work off immediately.
+
+            // If drupal_queue is present, add to queue, otherwise work off
+            // immediately.
             if ($use_queue) {
               if ($queue->createItem($feed_info)) {
                 $this->mark($feed_info['feed_nid']);
@@ -146,7 +156,7 @@ class FeedsScheduler implements IFeedsScheduler {
    *
    * @todo: Create optional parameter $last_scheduled_time to pass in.
    *        Set this value if a feed is refreshed on creation.
-   * @todo: create an abstract interface for items that can be added?
+   * @todo: Create an abstract interface for items that can be added?
    */
   public function add($feed_id, $feed_nid = 0) {
     $save = array(
