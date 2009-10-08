@@ -161,10 +161,9 @@ function feeds_access($action, $param) {
     $feed_id = $param;
   }
   elseif ($param->type) {
-    $feed = feeds_get_by_content_type($param-type);
+    $feed = feeds_get_by_content_type($param->type);
     $feed_id = $feed->id;
   }
-  drupal_set_message($param->type);
   if ($feed_id) {
     if (user_access($action .' '. $feed_id .' feeds')) {
       return TRUE;
