@@ -187,21 +187,80 @@ class FeedsSchedulerTestCase extends FeedsWebTestCase {
     // This implicitly tests the import_on_create node setting being 0.
     $this->assertTrue($nids[0] == 1 && $nids[1] == 2, 'Node ids sequential.');
 
-    // Record status quo.
-    $result = db_query('select feed_nid, last_scheduled_time, scheduled from {feeds_schedule}');
-    while ($row = db_fetch_object($result)) {
-      $schedule[$row->feed_nid] = $row;
-    }
-    $this->error(print_r($schedule, TRUE));
-
-    // Log out and run cron, check scheduled values.
+    // Log out and run cron.
     $this->drupalLogout();
     $this->drupalGet($GLOBALS['base_url'] .'/cron.php');
 
-    $result = db_query('select feed_nid, last_scheduled_time, scheduled from {feeds_schedule}');
+    // There should be feeds_schedule_num (= 10) feeds updated now.
+    $schedule = array();
+    $count = db_result(db_query('select COUNT(*) from {feeds_schedule} WHERE last_scheduled_time != 0'));
+    $this->assertEqual($count, 10, '10 feeds refreshed on cron.');
+
+    // There should be 100 story nodes in the database.
+    $count = db_result(db_query('SELECT COUNT(*) FROM {node} WHERE type = "story"'));
+    $this->assertEqual($count, 100, 'There are 100 story nodes aggregated.');
+
+    // Hit cron again.
+    $this->drupalGet($GLOBALS['base_url'] .'/cron.php');
+
+    // There should be feeds_schedule_num X 2 (= 20) feeds updated now.
+    $schedule = array();
+    $result = db_query('select feed_nid, last_scheduled_time, scheduled from {feeds_schedule} WHERE last_scheduled_time != 0');
     while ($row = db_fetch_object($result)) {
       $schedule[$row->feed_nid] = $row;
     }
-    $this->error(print_r($schedule, TRUE));
+    $this->assertEqual(count($schedule), 20, '20 feeds refreshed on cron.');
+
+    // There should be 200 story nodes in the database.
+    $count = db_result(db_query('SELECT COUNT(*) FROM {node} WHERE type = "story" AND status = 1'));
+    $this->assertEqual($count, 200, 'There are 200 story nodes aggregated.');
+
+    // There shouldn't be any items with scheduled = 1 now, if so, this would
+    // mean they are stuck.
+    $count = db_result(db_query('SELECT COUNT(*) FROM {feeds_schedule} WHERE scheduled = 1'));
+    $this->assertEqual($count, 0, 'All items are unscheduled (schedule flag = 0).');
+
+    // Hit cron again twice.
+    $this->drupalGet($GLOBALS['base_url'] .'/cron.php');
+    $this->drupalGet($GLOBALS['base_url'] .'/cron.php');
+
+    // The refresh_period setting of the feed configuration is 1800, there
+    // shouldn't be any change to the database now.
+    $equal = TRUE;
+    $result = db_query('select feed_nid, last_scheduled_time, scheduled from {feeds_schedule} WHERE last_scheduled_time != 0');
+    while ($row = db_fetch_object($result)) {
+      $equal = $equal && ($row->last_scheduled_time == $schedule[$row->feed_nid]->last_scheduled_time &&
+        $row->scheduled == $schedule[$row->feed_nid]->scheduled);
+    }
+    $this->assertTrue($equal, 'Schedule did not change.');
+
+    // Set refreshing to as often as possible.
+    $edit = array(
+      'refresh_period' => 0,
+    );
+    $this->drupalPost('admin/build/feeds/edit/syndication/settings/Feed', $edit, 'Save');
+    $this->assertText('Refresh: as often as possible');
+
+    // Hit cron again twice.
+    $this->drupalGet($GLOBALS['base_url'] .'/cron.php');
+    $this->drupalGet($GLOBALS['base_url'] .'/cron.php');
+
+    // Refresh period is set to 'as often as possible'. All scheduled times
+    // should have changed now.
+    // There should not be more nodes than before.
+    $equal = FALSE;
+    $result = db_query('select feed_nid, last_scheduled_time, scheduled from {feeds_schedule} WHERE last_scheduled_time != 0');
+    while ($row = db_fetch_object($result)) {
+      $equal = $equal || ($row->last_scheduled_time == $schedule[$row->feed_nid]->last_scheduled_time ||
+        $row->scheduled == $schedule[$row->feed_nid]->scheduled);
+    }
+    $this->assertFalse($equal, 'Every feed schedule time changed.');
+
+    // There should be 200 story nodes in the database.
+    $count = db_result(db_query('SELECT COUNT(*) FROM {node} WHERE type = "story" AND status = 1'));
+    $this->assertEqual($count, 200, 'The total of 200 story nodes has not changed.');
+
+    // @todo: use debug time feature in FeedsScheduler and test behavior in future.
+    // @todo: how do I call an API function on the test system from the test script?
   }
 }
