@@ -197,7 +197,7 @@ function feeds_ui_edit_page($feed, $active = 'help', $plugin_key = '') {
   if ($feed->config['refresh_period'] == FEEDS_SCHEDULE_NEVER) {
     $refresh_period = t('never');
   }
-  elseif ($feed->config['refresh_period'] == 1) {
+  elseif ($feed->config['refresh_period'] == 0) {
     $refresh_period = t('as often as possible');
   }
   else {

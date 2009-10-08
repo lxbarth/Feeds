@@ -229,12 +229,18 @@ class FeedsSchedulerTestCase extends FeedsWebTestCase {
     $equal = TRUE;
     $result = db_query('select feed_nid, last_scheduled_time, scheduled from {feeds_schedule} WHERE last_scheduled_time != 0');
     while ($row = db_fetch_object($result)) {
-      $equal = $equal && ($row->last_scheduled_time == $schedule[$row->feed_nid]->last_scheduled_time &&
-        $row->scheduled == $schedule[$row->feed_nid]->scheduled);
+      $equal = $equal && ($row->last_scheduled_time == $schedule[$row->feed_nid]->last_scheduled_time);
     }
     $this->assertTrue($equal, 'Schedule did not change.');
 
-    // Set refreshing to as often as possible.
+    // Log back in and set refreshing to as often as possible.
+    $this->drupalLogin(
+      $this->drupalCreateUser(
+        array(
+          'administer feeds', 'use feeds', 'administer nodes',
+        )
+      )
+    );
     $edit = array(
       'refresh_period' => 0,
     );
@@ -244,15 +250,16 @@ class FeedsSchedulerTestCase extends FeedsWebTestCase {
     // Hit cron again twice.
     $this->drupalGet($GLOBALS['base_url'] .'/cron.php');
     $this->drupalGet($GLOBALS['base_url'] .'/cron.php');
+    $this->drupalGet($GLOBALS['base_url'] .'/cron.php');
 
     // Refresh period is set to 'as often as possible'. All scheduled times
     // should have changed now.
     // There should not be more nodes than before.
     $equal = FALSE;
+    $output = '';
     $result = db_query('select feed_nid, last_scheduled_time, scheduled from {feeds_schedule} WHERE last_scheduled_time != 0');
     while ($row = db_fetch_object($result)) {
-      $equal = $equal || ($row->last_scheduled_time == $schedule[$row->feed_nid]->last_scheduled_time ||
-        $row->scheduled == $schedule[$row->feed_nid]->scheduled);
+      $equal = $equal || ($row->last_scheduled_time == $schedule[$row->feed_nid]->last_scheduled_time);
     }
     $this->assertFalse($equal, 'Every feed schedule time changed.');
 
