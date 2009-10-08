@@ -187,7 +187,7 @@ class FeedsScheduler implements IFeedsScheduler {
    * if drupal_queue is not enabled, directly from $this->cron().
    */
   public function work($feed_info) {
-    $feed = feeds_feed_instance($feed_info['feed_id']);
+    $feed = feeds_feed($feed_info['feed_id']);
 
     // Only refresh if feed is actually in DB or in default configuration.
     if ($feed->export_type != FEEDS_EXPORT_NONE) {

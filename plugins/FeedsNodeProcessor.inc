@@ -171,7 +171,7 @@ class FeedsNodeProcessor extends FeedsProcessor {
    * Get nid of an existing feed item node if available.
    */
   public function existingItemId($source_item, FeedsSource $source) {
-    $parser = feeds_feed_instance($this->id)->parser;
+    $parser = feeds_feed($this->id)->parser;
     $targets = array();
     foreach ($this->config['mappings'] as $mapping) {
       if ($mapping['unique']) {

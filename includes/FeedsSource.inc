@@ -63,7 +63,7 @@ class FeedsSource extends FeedsConfigurable {
 
   /**
    * Instantiate a unique object per class/id/feed_nid. Don't use
-   * directly, use feeds_source_instance() instead.
+   * directly, use feeds_source() instead.
    *
    * @todo: I thought overriding static functions would not work in PHP.
    */

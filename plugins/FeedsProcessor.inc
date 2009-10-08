@@ -93,7 +93,7 @@ abstract class FeedsProcessor extends FeedsPlugin {
    * Execute mapping on an item.
    */
   public function map($source_item, $target_item = NULL) {
-    $parser = feeds_feed_instance($this->id)->parser;
+    $parser = feeds_feed($this->id)->parser;
     if (empty($target_item)) {
       $target_item = array();
     }
