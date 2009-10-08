@@ -66,11 +66,44 @@ class FeedsDataProcessor extends FeedsProcessor {
   }
 
   /**
+   * Override parent::addMapping() and create a new field for new mapping
+   * targets.
+   *
+   * @see getMappingTargets().
+   */
+  public function addMapping($source, $target, $unique = FALSE) {
+    if (empty($source) || empty($target)) {
+      return;
+    }
+
+    // Create a new field with targets that start with "new:"
+    list($new, $type) = explode(':', $target);
+
+    if ($new == 'new') {
+      // Build a field name from the source key.
+      $field_name = data_safe_name($source);
+      // Get the full schema spec from data.
+      $type = data_get_field_definition($type);
+      // Add the field to the table.
+      $schema = $this->table()->get('table_schema');
+      if (!isset($schema['fields'][$field_name])) {
+        $target = $this->table()->addField($field_name, $type);
+        // Let the user know.
+        drupal_set_message(t('Created new field "!name".', array('!name' => $field_name)));
+      }
+      else {
+        throw new Exception(t('Field !field_name already exists as a mapping target. Remove it from mapping if you would like to map another source to it. Remove it from !data_table table if you would like to change its definition.', array('!field_name' => $field_name, '!data_table' => l($this->table()->get('name'), 'admin/content/data'))));
+      }
+    }
+    parent::addMapping($source, $target, $unique);
+  }
+
+  /**
    * Return available mapping targets.
    */
   public function getMappingTargets() {
     $schema = $this->table()->get('table_schema');
-    $meta = $schema = $this->table()->get('meta');
+    $meta = $this->table()->get('meta');
 
     // Collect all existing fields except id and field_nid and offer them as
     // mapping targets.
@@ -86,7 +119,7 @@ class FeedsDataProcessor extends FeedsProcessor {
     // Now add data field types as mapping targets.
     $field_types = drupal_map_assoc(array_keys(data_get_field_definitions()));
     foreach ($field_types as $k => $v) {
-      $new_fields['new:'. $k] = t('New !type', array('!type' => $v));
+      $new_fields['new:'. $k] = t('[new] !type', array('!type' => $v));
     }
     return $new_fields + $existing_fields;
   }

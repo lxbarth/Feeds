@@ -394,6 +394,10 @@ function feeds_ui_button_form_submit($form, &$form_state) {
 
 /**
  * Edit mapping.
+ *
+ * @todo: completely merge this into config form handling. This is just a
+ *   shared form of configuration, most of the common functionality can live in
+ *   FeedsProcessor, a flag can tell whether mapping is supported or not.
  */
 function feeds_ui_mapping_form(&$form_state, $feed) {
   drupal_add_js(drupal_get_path('module', 'feeds_ui') .'/feeds_ui.js');
@@ -456,8 +460,13 @@ function feeds_ui_mapping_form(&$form_state, $feed) {
  */
 function feeds_ui_mapping_form_submit($form, &$form_state) {
   $feed = $form['#feed'];
-  $feed->processor->addMapping($form_state['values']['source'], $form_state['values']['target']);
-  $feed->processor->save();
+  try {
+    $feed->processor->addMapping($form_state['values']['source'], $form_state['values']['target']);
+    $feed->processor->save();
+  }
+  catch (Exception $e) {
+    drupal_set_message($e->getMessage(), 'error');
+  }
 }
 
 /**
