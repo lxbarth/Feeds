@@ -105,7 +105,7 @@ class FeedsNodeProcessor extends FeedsProcessor {
   public function getMappingTargets() {
     $targets = array(
       'title' => array(
-        'name' => t('Node title'), // @todo: write out.
+        'name' => t('Title'), // @todo: write out.
        ),
       'status' => array(
         'name' => t('Published status'),
@@ -113,8 +113,8 @@ class FeedsNodeProcessor extends FeedsProcessor {
       'created' => array(
         'name' => t('Published date'),
       ),
-      'body' => array(
-        'name' => t('Node body'),
+      'teaser' => array(
+        'name' => t('Body'),
       ),
       'url' => array(
         'name' => t('URL'),
@@ -162,7 +162,7 @@ class FeedsNodeProcessor extends FeedsProcessor {
     if (in_array($target_element, array('url', 'guid'))) {
       $target_node->feeds_node_item->$target_element = $value;
     }
-    elseif (in_array($target_element, array('title', 'body', 'status', 'created'))) {
+    elseif (in_array($target_element, array('title', 'teaser', 'status', 'created'))) {
       $target_node->$target_element = $value;
     }
   }
@@ -212,7 +212,7 @@ class FeedsNodeProcessor extends FeedsProcessor {
         ),
         '1' => array(
           'source' => 'description',
-          'target' => 'body',
+          'target' => 'teaser',
           'unique' => FALSE,
         ),
         '2' => array(
