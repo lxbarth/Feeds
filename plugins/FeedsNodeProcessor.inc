@@ -21,7 +21,7 @@ class FeedsNodeProcessor extends FeedsProcessor {
 
     foreach ($parserResult->value['items'] as $item) {
       // If the target item does not exist OR if update_existing is enabled, map and save.
-      if (!$nid = $this->existingItemId($item, $source) || $this->config['update_existing']) {
+      if (!$nid = $this->existingItem($item, $source) || $this->config['update_existing']) {
 
         // Map item to a node.
         $node = $this->map($item);
@@ -112,6 +112,7 @@ class FeedsNodeProcessor extends FeedsProcessor {
         ),
         */
     );
+    // @todo: document.
     drupal_alter('feeds_node_processor_targets', $targets);
     return $targets;
   }
@@ -131,6 +132,7 @@ class FeedsNodeProcessor extends FeedsProcessor {
     $target_node->feeds_node_item = new stdClass();
     node_object_prepare($target_node);
     // Assign an aggregated node always to anonymous.
+    // @todo: change to feed node uid to keep in line with feedapi.
     $target_node->uid = 0;
 
     // Have parent class do the iterating.
@@ -152,7 +154,7 @@ class FeedsNodeProcessor extends FeedsProcessor {
   /**
    * Get nid of an existing feed item node if available.
    */
-  public function existingItemId($source_item, FeedsSource $source) {
+  public function existingItem($source_item, FeedsSource $source) {
     $parser = feeds_feed($this->id)->parser;
     $targets = array();
     foreach ($this->config['mappings'] as $mapping) {
@@ -222,7 +224,6 @@ class FeedsNodeProcessor extends FeedsProcessor {
   public function configForm(&$form_state) {
     $types = node_get_types('names');
     $form = array();
-    $items = array();
     $form['content_type'] = array(
       '#type' => 'select',
       '#title' => t('Content type'),

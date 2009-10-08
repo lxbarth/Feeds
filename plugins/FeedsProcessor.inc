@@ -124,7 +124,7 @@ abstract class FeedsProcessor extends FeedsPlugin {
    * @param FeedsSource $source
    *   The source information about this import.
    */
-  public function existingItemId($source_item, FeedsSource $source) {
+  public function existingItem($source_item, FeedsSource $source) {
     return FALSE;
   }
 }
