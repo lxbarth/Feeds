@@ -81,6 +81,40 @@ function feeds_import_form(&$form_state, $feed_id) {
 }
 
 /**
+ * Validation handler for node forms and feeds_import_form().
+ *
+ * Has to live in feeds.module, needs to be callable from node form.
+ *
+ * @todo: find a way to move to feeds.pages.inc.
+ */
+function feeds_import_form_validate($form, &$form_state) {
+  $feed = feeds_feed_instance($form['#feed_id']);
+  $source = feeds_source_instance($feed);
+  // @todo: this may be a problem here, as we don't have a feed_nid at this point.
+  $source->configFormValidate($form, $form_state['values']['feeds']);
+}
+
+/**
+ * Submit handler for feeds_import_form().
+ */
+function feeds_import_form_submit($form, &$form_state) {
+  $feed = feeds_feed_instance($form['#feed_id']);
+  $source = feeds_source_instance($feed);
+
+  // Save source and import.
+  $source->configFormSubmit($form, $form_state['values']['feeds']);
+  $source->save();
+
+  // Refresh feed if import on create is selected.
+  if ($feed->config['import_on_create']) {
+    feeds_importer_instance()->import($feed, $source);
+  }
+
+  // Add feed to scheduler.
+  feeds_scheduler_instance()->add($feed->id);
+}
+
+/**
  * Render a feeds delete form.
  *
  * Used on both node pages and configuration pages.

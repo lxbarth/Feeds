@@ -268,49 +268,19 @@ function feeds_form_alter(&$form, $form_state, $form_id) {
       // For some reason I cannot pass on the feed object, pass on id.
       $form['#feed_id'] = $feed->id;
       // Only set validation handler. Save object on hook_nodeapi('insert')
-      $form['#validate'][] = 'feeds_import_form_validate';
+      $form['#validate'][] = 'feeds_node_form_validate';
     }
   }
 }
 
 /**
- * Validation handler for node forms and feeds_import_form().
+ * Additional validation handler for node forms.
  *
- * Has to live in feeds.module, needs to be callable from node form.
- *
- * @todo: find a way to move to feeds.pages.inc.
+ * @see feeds_form_alter().
  */
-function feeds_import_form_validate($form, &$form_state) {
-  $feed = feeds_feed_instance($form['#feed_id']);
-  $source = feeds_source_instance($feed);
-  // @todo: this may be a problem here, as we don't have a feed_nid at this point.
-  $source->configFormValidate($form, $form_state['values']['feeds']);
-}
-
-/**
- * Submit handler for feeds_import_form().
- *
- * Cannot be used for node form, as node form executes all submit handlers in
- * node_form_submit_build_node() /before/ it creates the node and a node nid
- * is known :(
- *
- * @todo: move to feeds.pages.inc.
- */
-function feeds_import_form_submit($form, &$form_state) {
-  $feed = feeds_feed_instance($form['#feed_id']);
-  $source = feeds_source_instance($feed);
-
-  // Save source and import.
-  $source->configFormSubmit($form, $form_state['values']['feeds']);
-  $source->save();
-
-  // Refresh feed if import on create is selected.
-  if ($feed->config['import_on_create']) {
-    feeds_importer_instance()->import($feed, $source);
-  }
-
-  // Add feed to scheduler.
-  feeds_scheduler_instance()->add($feed->id);
+function feeds_node_form_validate($form, &$form_state) {
+  feeds_include('feeds.pages', '.');
+  feeds_import_form_validate($form, $form_state);
 }
 
 /**
