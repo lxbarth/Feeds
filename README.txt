@@ -3,7 +3,7 @@ $Id: README.txt,v 1.1 2009/09/16 17:58:12 alexb Exp $
 FEEDS
 =====
 
-The new incarnation of FeedAPI. Work in progress.
+The new incarnation of FeedAPI and Feed Element Mapper. Work in progress.
 
 For planned features / outstanding tasks, see:
 http://drupal.org/project/issues/feeds
