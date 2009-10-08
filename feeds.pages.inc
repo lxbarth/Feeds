@@ -35,27 +35,6 @@ function feeds_page() {
 }
 
 /**
- * Render a feeds import form on node/id/import pages.
- */
-function feeds_import_tab_form(&$form_state, $node) {
-  $feed = feeds_get_by_content_type($node->type);
-
-  $form = array();
-  $form['#feed_nid'] = $node->nid;
-  $form['#feed_id'] = $feed->id;
-  return confirm_form($form, t('Import all content from feed?'), 'node/'. $node->nid, '', t('Import'), t('Cancel'), 'confirm feeds update');
-}
-
-/**
- * Submit handler for feeds_import_tab_form().
- */
-function feeds_import_tab_form_submit($form, $form_state) {
-  $feed = feeds_feed_instance($form['#feed_id']);
-  $source = feeds_source_instance($feed, $form['#feed_nid']);
-  feeds_importer_instance()->import($feed, $source);
-}
-
-/**
  * Render a feeds import form on import/[config] pages.
  */
 function feeds_import_form(&$form_state, $feed_id) {
@@ -84,8 +63,6 @@ function feeds_import_form(&$form_state, $feed_id) {
  * Validation handler for node forms and feeds_import_form().
  *
  * Has to live in feeds.module, needs to be callable from node form.
- *
- * @todo: find a way to move to feeds.pages.inc.
  */
 function feeds_import_form_validate($form, &$form_state) {
   $feed = feeds_feed_instance($form['#feed_id']);
@@ -112,6 +89,27 @@ function feeds_import_form_submit($form, &$form_state) {
 
   // Add feed to scheduler.
   feeds_scheduler_instance()->add($feed->id);
+}
+
+/**
+ * Render a feeds import form on node/id/import pages.
+ */
+function feeds_import_tab_form(&$form_state, $node) {
+  $feed = feeds_get_by_content_type($node->type);
+
+  $form = array();
+  $form['#feed_nid'] = $node->nid;
+  $form['#feed_id'] = $feed->id;
+  return confirm_form($form, t('Import all content from feed?'), 'node/'. $node->nid, '', t('Import'), t('Cancel'), 'confirm feeds update');
+}
+
+/**
+ * Submit handler for feeds_import_tab_form().
+ */
+function feeds_import_tab_form_submit($form, $form_state) {
+  $feed = feeds_feed_instance($form['#feed_id']);
+  $source = feeds_source_instance($feed, $form['#feed_nid']);
+  feeds_importer_instance()->import($feed, $source);
 }
 
 /**
