@@ -163,6 +163,7 @@ class Feed extends FeedsConfigurable {
   public function getDefaultConfig() {
     return array(
       'name' => '',
+      'description' => '',
       'fetcher' => array(
         'plugin_key' => 'FeedsHttpFetcher',
       ),
@@ -200,6 +201,12 @@ class Feed extends FeedsConfigurable {
       '#description' => t('The name of this configuration.'),
       '#default_value' => $this->config['name'],
       '#required' => TRUE,
+    );
+    $form['description'] = array(
+      '#type' => 'textfield',
+      '#title' => t('Description'),
+      '#description' => t('A description of this configuration.'),
+      '#default_value' => $this->config['description'],
     );
     $form['content_type'] = array(
       '#type' => 'select',

@@ -19,11 +19,11 @@ function feeds_page() {
       }
       elseif (user_access('create '. $feed->config['content_type'] .' content')) {
         $link = 'node/add/'. $feed->config['content_type'];
-        $title = t('!config (attached to !type)', array('!config' => $feed->config['name'], '!type' => $feed->config['content_type']));
+        $title = t('!type (!config)', array('!type' => node_get_types('name', $feed->config['content_type']), '!config' => $feed->config['name']));
       }
       $rows[] = array(
         l($title, $link),
-        '@todo: description.',
+        $feed->config['description'],
       );
     }
   }

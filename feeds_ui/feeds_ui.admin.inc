@@ -70,6 +70,11 @@ function feeds_ui_create_form(&$form_state) {
     '#required' => TRUE,
     '#attributes' => array('class' => 'feed-id'),
   );
+  $form['description'] = array(
+    '#type' => 'textfield',
+    '#title' => t('Description'),
+    '#description' => t('A description of this configuration.'),
+  );
   $form['submit'] = array(
     '#type' => 'submit',
     '#value' => t('Create'),
