@@ -15,8 +15,9 @@ http://drupal.org/user/53995
 Requirements
 ============
 
-- CTools 1.x-dev with patch
-  http://drupal.org/node/599136#comment-2127930
+- CTools 1.x-dev or CTools 1.0 with patches
+  http://drupal.org/node/599136
+  http://drupal.org/node/531522 
 - Drupal 6.14 or higher.
 
 Installation
