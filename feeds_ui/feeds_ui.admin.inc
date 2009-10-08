@@ -187,7 +187,7 @@ function feeds_ui_edit_page($feed, $active = 'help', $plugin_key = '') {
       }
       break;
     case 'mapping':
-      $active_container['title'] = t('Mapping for !processor', array('!processor' => $plugins[$plugin_key]['name']));
+      $active_container['title'] = t('Mapping for !processor', array('!processor' => $plugins[$config['processor']['plugin_key']]['name']));
       $active_container['body'] = drupal_get_form('feeds_ui_mapping_form', $feed);
       break;
   }
@@ -417,7 +417,7 @@ function feeds_ui_mapping_form(&$form_state, $feed) {
         'processor' => $feed->processor,
         'mapping' => $mapping,
       );
-      if ($targets[$mapping['target']]['optional_unique']) {
+      if (!empty($targets[$mapping['target']]['optional_unique'])) {
         $mappings[$i]['unique'] = feeds_ui_get_form('feeds_ui_button_form', $mapping['unique'] ? 'Yes' : 'No', 'feeds_ui_toggle_unique', $param);
       }
       $mappings[$i]['remove'] = feeds_ui_get_form('feeds_ui_button_form', 'Remove', 'feeds_ui_remove_mapping', $param);
@@ -548,7 +548,7 @@ function theme_feeds_ui_container($container) {
   $id = empty($container['id']) ? '': ' id="'. $container['id'] .'"';
   $output = '<div class="feeds-container'. $class .'"'. $id .'>';
 
-  if (count($container['actions'])) {
+  if (isset($container['actions']) && count($container['actions'])) {
     $output .= theme('item_list', $container['actions'], NULL, 'ul', array('class' => 'container-actions'));
   }
 

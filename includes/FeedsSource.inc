@@ -77,10 +77,10 @@ class FeedsSource extends FeedsConfigurable {
     $class = variable_get('feeds_source_class', 'FeedsSource');
 
     static $instances = array();
-    if (!isset($instances[$class][$id][$feed_nid])) {
-      $instances[$class][$id][$feed_nid] = new $class($feed, $feed_nid);
+    if (!isset($instances[$class][$feed->id][$feed_nid])) {
+      $instances[$class][$feed->id][$feed_nid] = new $class($feed, $feed_nid);
     }
-    return $instances[$class][$id][$feed_nid];
+    return $instances[$class][$feed->id][$feed_nid];
   }
 
   /**

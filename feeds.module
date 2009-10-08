@@ -339,7 +339,7 @@ function feeds_get_plugins() {
 
   $result = array();
   foreach ($plugins as $key => $info) {
-    if ($info['hidden'] == TRUE) {
+    if (!empty($info['hidden'])) {
       continue;
     }
     $result[$key] = $info;
