@@ -8,9 +8,11 @@
 
 /**
  * Render a page of available feed configuration.
+ *
+ * @todo: respect permissions.
  */
 function feeds_page() {
-    $rows = array();
+  $rows = array();
   if ($feeds = feeds_load_all()) {
     foreach ($feeds as $feed) {
       if (empty($feed->config['content_type'])) {

@@ -37,11 +37,14 @@ function feeds_cron_queue_info() {
 
 /**
  * Implementation of hook_perm().
- *
- * @todo: add more fine grained permissions for every single configuration.
  */
 function feeds_perm() {
-  return array('use feeds', 'administer feeds');
+  $perms = array('administer feeds');
+  foreach (feeds_load_all() as $feed) {
+    $perms[] = 'import '. $feed->id .' feeds';
+    $perms[] = 'purge '. $feed->id .' feeds';
+  }
+  return $perms;
 }
 
 /**
@@ -71,7 +74,8 @@ function feeds_menu() {
         'title' => $feed->config['name'],
         'page callback' => 'drupal_get_form',
         'page arguments' => array('feeds_import_form', 1),
-        'access arguments' => array('use feeds'),
+        'access callback' => 'feeds_access',
+        'access arguments' => array('import', $feed->id),
         'file' => 'feeds.pages.inc',
       );
       $items['import/'. $feed->id .'/import'] = array(
@@ -84,7 +88,8 @@ function feeds_menu() {
         'page callback' => 'drupal_get_form',
         'page arguments' => array('feeds_delete_items_form', 1),
         'type' => MENU_LOCAL_TASK,
-        'access arguments' => array('use feeds'),
+        'access callback' => 'feeds_access',
+        'access arguments' => array('purge', $feed->id),
         'file' => 'feeds.pages.inc',
       );
     }
@@ -93,8 +98,8 @@ function feeds_menu() {
         'title' => 'Import',
         'page callback' => 'drupal_get_form',
         'page arguments' => array('feeds_import_tab_form', 1),
-        'access callback' => 'feeds_import_access',
-        'access arguments' => array(1),
+        'access callback' => 'feeds_access',
+        'access arguments' => array('import', 1),
         'file' => 'feeds.pages.inc',
         'type' => MENU_LOCAL_TASK,
         'weight' => 10,
@@ -104,8 +109,8 @@ function feeds_menu() {
         'page callback' => 'drupal_get_form',
         'page arguments' => array('feeds_delete_tab_form', NULL, 1),
         'type' => MENU_LOCAL_TASK,
-        'access callback' => 'feeds_delete_items_access',
-        'access arguments' => array(1),
+        'access callback' => 'feeds_access',
+        'access arguments' => array('purge', 1),
         'file' => 'feeds.pages.inc',
         'weight' => 11,
       );
@@ -115,7 +120,7 @@ function feeds_menu() {
     $items['import'] = array(
       'title' => 'Import content',
       'page callback' => 'feeds_page',
-      'access arguments' => array('use feeds'),
+      'access callback' => 'feeds_page_access',
       'file' => 'feeds.pages.inc',
     );
   }
@@ -142,20 +147,46 @@ function feeds_theme() {
 
 /**
  * Menu access callback.
+ *
+ * @param $action
+ *   One of 'import' or 'purge'.
+ * @param $param
+ *   Node object or feed id.
  */
-function feeds_import_access($node) {
-  if ($feed = feeds_get_by_content_type($node->type)) {
-    return $feed->access('import');
+function feeds_access($action, $param) {
+  if (user_access('administer feeds')) {
+    return TRUE;
   }
-  return FALSE;
+  if (is_string($param)) {
+    $feed_id = $param;
+  }
+  elseif ($param->type) {
+    $feed = feeds_get_by_content_type($param-type);
+    $feed_id = $feed->id;
+  }
+  drupal_set_message($param->type);
+  if ($feed_id) {
+    if (user_access($action .' '. $feed_id .' feeds')) {
+      return TRUE;
+    }
+  }
+  return false;
 }
 
 /**
  * Menu access callback.
+ *
+ * @todo: Create cached function that returns available configurations
+ * and use it for enumerating feed configuration ids.
  */
-function feeds_delete_items_access($node) {
-  if ($feed = feeds_get_by_content_type($node->type)) {
-    return $feed->access('purge');
+function feeds_page_access() {
+  if (user_access('administer feeds')) {
+    return TRUE;
+  }
+  foreach (feeds_load_all() as $feed) {
+    if (user_access('import '. $feed->id .' feed')) {
+      return TRUE;
+    }
   }
   return FALSE;
 }

@@ -36,7 +36,7 @@ class FeedsUserInterfaceTestCase extends FeedsWebTestCase {
     $this->drupalLogin(
       $this->drupalCreateUser(
         array(
-          'administer feeds', 'use feeds', 'administer nodes',
+          'administer feeds', 'administer nodes',
         )
       )
     );
@@ -49,6 +49,8 @@ class FeedsUserInterfaceTestCase extends FeedsWebTestCase {
 
     // Create a feed.
     $this->createFeedConfiguration();
+    // Reset permissions cache, check permissions.
+    $this->checkPermissions(array('import syndication feeds', 'purge syndication feeds'), TRUE);
 
     $nid = $this->createFeedNode();
     // Assert 10 items aggregated after creation of the node.
@@ -116,33 +118,38 @@ class FeedsUserInterfaceTestCase extends FeedsWebTestCase {
     $count = db_result(db_query('SELECT COUNT(*) FROM {feeds_node_item}'));
     $this->assertEqual($count, 10, 'Accurate number of items in database.');
 
-    // Log out, log in with a user with only 'create story content' permissions.
-    $this->drupalLogout();
+    // Login with new user with only access content permissions.
     $this->drupalLogin(
-      $this->drupalCreateUser(
-        array(
-          'administer feeds', 'use feeds', 'create story content',
-        )
-      )
-    );
-    // Navigate to feed node, there should be only "Import" tab visible.
-    $this->drupalGet('node/'. $nid);
-    $this->assertRaw('node/'. $nid .'/import');
-    $this->assertNoRaw('node/'. $nid .'/delete-items');
-
-    // Log out, log in with a user with administer nodes permissions but no use feeds permission.
-    $this->drupalLogout();
-    $this->drupalLogin(
-      $this->drupalCreateUser(
-        array(
-          'administer feeds', 'administer nodes',
-        )
-      )
+      $this->drupalCreateUser()
     );
     // Navigate to feed node, there should be no Feeds tabs visible.
     $this->drupalGet('node/'. $nid);
     $this->assertNoRaw('node/'. $nid .'/import');
     $this->assertNoRaw('node/'. $nid .'/delete-items');
+
+    // Login with new user with access content and import syndication feeds permissions.
+    $this->drupalLogout();
+    $this->drupalLogin(
+      $this->drupalCreateUser(array('import syndication feeds'))
+    );
+    // Navigate to feed node, there should be no Feeds tabs visible.
+    // @todo: actually push import.
+    $this->drupalGet('node/'. $nid);
+    $this->assertRaw('node/'. $nid .'/import');
+    $this->assertNoRaw('node/'. $nid .'/delete-items');
+
+    // Login with new user with access content and purge syndication feeds permissions.
+    $this->drupalLogout();
+    $this->drupalLogin(
+      $this->drupalCreateUser(array('purge syndication feeds'))
+    );
+    // Navigate to feed node, there should be no Feeds tabs visible.
+    // @todo: actually push purge.
+    $this->drupalGet('node/'. $nid);
+    $this->assertNoRaw('node/'. $nid .'/import');
+    $this->assertRaw('node/'. $nid .'/delete-items');
+
+    // @todo: Standalone import form testing.
   }
 }
 
@@ -173,7 +180,7 @@ class FeedsSchedulerTestCase extends FeedsWebTestCase {
     $this->drupalLogin(
       $this->drupalCreateUser(
         array(
-          'administer feeds', 'use feeds', 'administer nodes',
+          'administer feeds', 'administer nodes',
         )
       )
     );
@@ -247,7 +254,7 @@ class FeedsSchedulerTestCase extends FeedsWebTestCase {
     $this->drupalLogin(
       $this->drupalCreateUser(
         array(
-          'administer feeds', 'use feeds', 'administer nodes',
+          'administer feeds', 'administer nodes',
         )
       )
     );

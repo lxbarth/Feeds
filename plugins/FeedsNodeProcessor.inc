@@ -12,24 +12,6 @@
 class FeedsNodeProcessor extends FeedsProcessor {
 
   /**
-   * Override access method. Check whether user has sufficient permissions to
-   * create and delete the type of node that this processor generates.
-   */
-  public function access($action, $account) {
-    switch ($action) {
-      case 'import':
-        return node_access('create', $this->config['content_type'], $account);
-      case 'purge':
-        // Only users with administer nodes permissions can delete nodes.
-        // We have no way of knowing the actual content types of the nodes attached to
-        // this feed configuration.
-        return user_access('administer nodes', $account);
-    }
-    // Fine for potential other actions.
-    return TRUE;
-  }
-
-  /**
    * Implementation of FeedsProcessor::process().
    */
   public function process(FeedsParserResult $parserResult, FeedsSource $source) {
@@ -240,10 +222,11 @@ class FeedsNodeProcessor extends FeedsProcessor {
   public function configForm(&$form_state) {
     $types = node_get_types('names');
     $form = array();
+    $items = array();
     $form['content_type'] = array(
       '#type' => 'select',
       '#title' => t('Content type'),
-      '#description' => t('Choose node type to create from this feed.'),
+      '#description' => t('Choose node type to create from this feed. <strong>Note:</strong> Users with "import !feed_id feeds" permissions will be able to <strong>import</strong> nodes of the content type selected here regardless of the node level permissions. However, users with "purge !feed_id permissions" need to have sufficient node level permissions to delete the imported nodes.', array('!feed_id' => $this->id)),
       '#options' => $types,
       '#default_value' => $this->config['content_type'],
     );
