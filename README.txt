@@ -11,14 +11,14 @@ http://drupal.org/project/issues/feeds
 Contact alex_b for details:
 http://drupal.org/user/53995
 
-REQUIREMENTS
+Requirements
 ============
 
 - CTools 1.x-dev with patch 
   http://drupal.org/node/599136#comment-2127930
 - Drupal 6.14 or higher.
 
-INSTALLATION
+Installation
 ============
 
 - Check out from github into your modules directory.
