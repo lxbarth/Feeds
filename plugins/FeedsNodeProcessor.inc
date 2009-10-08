@@ -148,6 +148,8 @@ class FeedsNodeProcessor extends FeedsProcessor {
     $target_node->type = $this->config['content_type'];
     $target_node->feeds_node_item = new stdClass();
     node_object_prepare($target_node);
+    // Assign an aggregated node always to anonymous.
+    $target_node->uid = 0;
 
     // Have parent class do the iterating.
     return parent::map($source_item, $target_node);
