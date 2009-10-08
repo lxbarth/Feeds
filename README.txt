@@ -9,16 +9,13 @@ FEEDS
 
 The new incarnation of FeedAPI and Feed Element Mapper. Work in progress.
 
-For planned features / outstanding tasks, see:
-http://drupal.org/project/issues/feeds
-
 Contact alex_b for details:
 http://drupal.org/user/53995
 
 Requirements
 ============
 
-- CTools 1.x-dev with patch 
+- CTools 1.x-dev with patch
   http://drupal.org/node/599136#comment-2127930
 - Drupal 6.14 or higher.
 
@@ -76,3 +73,12 @@ Default:     10
 Description: The number of feeds to refresh on cron time.
              If drupal_queue is enabled, the maximum number of feeds to move to
              queue.
+
+
+Todos
+=====
+
+- http://drupal.org/project/issues/feeds
+- Revisit @todo tags in code
+- Wrap all exception messages in t()
+- Option for greying out plugins that miss requirements + message to user.
