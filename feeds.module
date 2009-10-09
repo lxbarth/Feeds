@@ -154,22 +154,22 @@ function feeds_theme() {
  *   Node object or feed id.
  */
 function feeds_access($action, $param) {
-  if (user_access('administer feeds')) {
-    return TRUE;
-  }
   if (is_string($param)) {
     $feed_id = $param;
   }
   elseif ($param->type) {
-    $feed = feeds_get_by_content_type($param->type);
-    $feed_id = $feed->id;
+    if ($feed = feeds_get_by_content_type($param->type)) {
+      $feed_id = $feed->id;
+    }
   }
-  if ($feed_id) {
-    if (user_access($action .' '. $feed_id .' feeds')) {
+
+  // Check for permissions if feed id is present, otherwise return FALSE.
+  if (isset($feed_id)) {
+    if (user_access('administer feeds') || user_access($action .' '. $feed_id .' feeds')) {
       return TRUE;
     }
   }
-  return false;
+  return FALSE;
 }
 
 /**
