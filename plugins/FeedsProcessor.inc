@@ -33,6 +33,15 @@ abstract class FeedsProcessor extends FeedsPlugin {
 
   /**
    * Add a mapping to existing mappings.
+   *
+   * @param $source
+   *   A string that identifies a source element.
+   * @param $target
+   *   A string that identifies a target element.
+   * @param $unique
+   *   A boolean that defines whether the target value should be unique. If
+   *   TRUE only one item with a given target value can exist on the local
+   *   system. Compare with existingItemId() and uniqueTargets().
    */
   public function addMapping($source, $target, $unique = FALSE) {
     if (!empty($source) && !empty($target)) {
