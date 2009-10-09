@@ -83,4 +83,5 @@ Todos
 - Revisit @todo tags in code
 - Wrap all exception messages in t()
 - Option for greying out plugins that miss requirements + message to user.
+- Bring methods in similar classes in same order.
 - Revisit get/set naming conventions.
