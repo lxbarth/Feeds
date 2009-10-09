@@ -622,8 +622,8 @@ function theme_feeds_ui_mapping_form($form) {
         $mapping['source'],
         $mapping['target'],
         // @todo: only second form renders correctly. FIX.
+        // + simpletest cannot submit this form.
         '<div style="display:none">'. $mapping['unique'] .'</div>'. $mapping['unique'],
-        // @todo: only second form renders correctly. FIX.
         '<div style="display:none">'. $mapping['remove'] .'</div>'. $mapping['remove'],
       );
     }
