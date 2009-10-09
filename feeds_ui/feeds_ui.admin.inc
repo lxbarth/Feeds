@@ -623,6 +623,7 @@ function theme_feeds_ui_mapping_form($form) {
         $mapping['target'],
         // @todo: only second form renders correctly. FIX.
         // + simpletest cannot submit this form.
+        // http://drupal.org/node/600370
         '<div style="display:none">'. $mapping['unique'] .'</div>'. $mapping['unique'],
         '<div style="display:none">'. $mapping['remove'] .'</div>'. $mapping['remove'],
       );
