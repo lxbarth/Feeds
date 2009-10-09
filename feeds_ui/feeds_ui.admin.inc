@@ -6,14 +6,13 @@
  */
 
 /**
- * Contextual help for build/edit page.
- *
- * @todo: Write.
+ * Introductory help for admin/build/feeds/edit/config page
  */
 function feeds_ui_edit_help() {
   return t('
+    <p>
     You can create as many feed configurations as you would like to. Every one of them can have a distinct purpose like letting your users aggregate RSS feeds or importing a CSV file for content migration. Here are a couple of things that are important to understand in order to get started with Feeds:
-
+    </p>
     <ul>
     <li>
     Every feed configuration consists of basic settings, a fetcher, a parser and a processor and their settings.
@@ -30,7 +29,8 @@ function feeds_ui_edit_help() {
     <li>
     Processors can have <strong>mappings</strong> in addition to settings. Mappings allow you to define what elements of a feed should be mapped to what content fields on a granular level. For instance, you can specify that a feed\'s author should be mapped to a node\'s body.
     </li>
-    </ul>', array('!import' => l(t('Import'), 'import')));
+    </ul>
+    ', array('!import' => l(t('Import'), 'import')));
 }
 
 /**
@@ -180,6 +180,7 @@ function feeds_ui_edit_page($feed, $active = 'help', $plugin_key = '') {
   // Base path for changing the active container.
   $path = 'admin/build/feeds/edit/'. $feed->id .'/';
 
+  $configure = t('!configure - ', array('!configure' => l(t('Configure your feed'), $path)));
   $active_container = array(
     'class' => 'active-container',
   );
@@ -191,22 +192,22 @@ function feeds_ui_edit_page($feed, $active = 'help', $plugin_key = '') {
     case 'fetcher':
     case 'parser':
     case 'processor':
-      $active_container['title'] = t('Select a !plugin_type', array('!plugin_type' => $active));
+      $active_container['title'] = $configure . t('select a !plugin_type', array('!plugin_type' => $active));
       $active_container['body'] = _feeds_ui_list_plugins_by_type($feed, $active, $config[$active]['plugin_key']);
       break;
     case 'settings':
       if ($plugin_key == 'Feed') {
-        $active_container['title'] = t('Basic settings');
+        $active_container['title'] = $configure . t('basic settings');
         $active_container['body'] = feeds_get_config_form($feed);
       }
       // feeds_plugin_instance() returns a correct result because feed has been instantiated previously.
       elseif (in_array($plugin_key, array_keys($plugins)) && $plugin = feeds_plugin_instance($plugin_key, $feed->id)) {
-        $active_container['title'] = t('Settings for !plugin', array('!plugin' => $plugins[$plugin_key]['name']));
+        $active_container['title'] = $configure . t('settings for !plugin', array('!plugin' => $plugins[$plugin_key]['name']));
         $active_container['body'] = feeds_get_config_form($plugin);
       }
       break;
     case 'mapping':
-      $active_container['title'] = t('Mapping for !processor', array('!processor' => $plugins[$config['processor']['plugin_key']]['name']));
+      $active_container['title'] = $configure . t('mapping for !processor', array('!processor' => $plugins[$config['processor']['plugin_key']]['name']));
       $active_container['body'] = drupal_get_form('feeds_ui_mapping_form', $feed);
       break;
   }

@@ -35,6 +35,10 @@ div.feeds-container.plain {
   div.feeds-container.plain h4 {
     font-size: 1.0em;
     }
+  div.feeds-container-body p {
+    padding: 5px 0;
+    margin: 0;
+    }
   div.feeds-container-body div.item-list ul {
     margin: 0;
     }
