@@ -86,7 +86,7 @@ function feeds_menu() {
       $items['import/'. $feed->id .'/delete-items'] = array(
         'title' => 'Delete items',
         'page callback' => 'drupal_get_form',
-        'page arguments' => array('feeds_delete_items_form', 1),
+        'page arguments' => array('feeds_delete_tab_form', 1),
         'access callback' => 'feeds_access',
         'access arguments' => array('purge', $feed->id),
         'file' => 'feeds.pages.inc',

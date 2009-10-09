@@ -123,14 +123,16 @@ function feeds_import_tab_form_submit($form, $form_state) {
 function feeds_delete_tab_form(&$form_state, $feed_id, $node = NULL) {
   if (empty($node)) {
     $feed = feeds_feed($feed_id);
+    $path = 'import/'. $feed_id .'/delete-items';
   }
   else {
     $feed = feeds_get_by_content_type($node->type);
     $form['#feed_nid'] = $node->nid;
+    $path = 'node/'. $node->nid;
   }
   // Form cannot pass on feed object.
   $form['#feed_id'] = $feed->id;
-  return confirm_form($form, t('Delete all content from feed?'), 'node/'. $node->nid, '', t('Delete'), t('Cancel'), 'confirm feeds update');
+  return confirm_form($form, t('Delete all content from feed?'), $path, '', t('Delete'), t('Cancel'), 'confirm feeds update');
 }
 
 /**
