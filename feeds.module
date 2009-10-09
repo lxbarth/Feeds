@@ -87,10 +87,10 @@ function feeds_menu() {
         'title' => 'Delete items',
         'page callback' => 'drupal_get_form',
         'page arguments' => array('feeds_delete_items_form', 1),
-        'type' => MENU_LOCAL_TASK,
         'access callback' => 'feeds_access',
         'access arguments' => array('purge', $feed->id),
         'file' => 'feeds.pages.inc',
+        'type' => MENU_LOCAL_TASK,
       );
     }
     else {
@@ -108,10 +108,10 @@ function feeds_menu() {
         'title' => 'Delete items',
         'page callback' => 'drupal_get_form',
         'page arguments' => array('feeds_delete_tab_form', NULL, 1),
-        'type' => MENU_LOCAL_TASK,
         'access callback' => 'feeds_access',
         'access arguments' => array('purge', 1),
         'file' => 'feeds.pages.inc',
+        'type' => MENU_LOCAL_TASK,
         'weight' => 11,
       );
     }
