@@ -229,18 +229,34 @@ class FeedsRSStoDataTest extends FeedsWebTestCase {
       ),
       array(
         'source' => 'timestamp',
-        'target' => 'new:unsigned int',
+        'target' => 'timestamp', // timestamp is an existing target.
+        'unique' => FALSE,
       ),
       array(
         'source' => 'title',
         'target' => 'new:varchar',
+        'unique' => FALSE,
       ),
       array(
         'source' => 'description',
         'target' => 'new:text',
+        'unique' => FALSE,
       ),
     );
-    $this->setMappings('rss', $mappings);
+    $this->addMappings('rss', $mappings);
+
+    // Verify the mapping configuration.
+    $config = unserialize(db_result(db_query('SELECT config FROM {feeds_config} WHERE id = "rss"')));
+    $stored_mappings = $config['processor']['config']['mappings'];
+    foreach ($mappings as $i => $mapping) {
+      $this->assertEqual($mapping['source'], $stored_mappings[$i]['source']);
+      // This is intentional: the target of the stored mapping should have the
+      // same key as the source, this has to do with the fact that feeds data
+      // creates storage as the mapping is created.
+      $this->assertEqual($mapping['source'], $stored_mappings[$i]['target']);
+      $this->assertEqual($mapping['unique'], $stored_mappings[$i]['unique']);
+    }
+
     return;
 
     // Create standard feed node.

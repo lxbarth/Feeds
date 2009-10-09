@@ -124,25 +124,32 @@ class FeedsWebTestCase extends DrupalWebTestCase {
   /**
    * Add mappings to a given configuration.
    *
-   * Stores mappings directly do DB.
-   *
-   * @todo Use UI. Need to fix http://drupal.org/node/600370 first.
-   *
    * @param $mappings
    *   An array of mapping arrays. Each mapping array must have a source and
-   *   an target key and can have a unique key. They mapping array with
-   *   unique = 1 have to be first.
+   *   an target key and can have a unique key.
    *
    * @see FeedsRSStoDataTest class.
    */
-  public function setMappings($id, $mappings) {
+  public function addMappings($id, $mappings) {
 
-    $config = unserialize(db_result(db_query('SELECT config FROM {feeds_config} WHERE id = "%s"', $id)));
-    $config['processor']['config']['mappings'] = $mappings;
-    db_query('UPDATE {feeds_config} SET config = "%s" WHERE id = "%s"', serialize($config), $id);
+    $path = 'admin/build/feeds/edit/'. $id .'/mapping';
 
-    $this->drupalGet('admin/build/feeds/edit/'. $id .'/mapping');
-    $this->error($this->content);
+    // Iterate through all mappings and add the via the form.
+    foreach ($mappings as $i => $mapping) {
 
+      // Get unique flag and unset it - otherwise drupalPost will complain that
+      // there is no form element named "unique".
+      $unique = !empty($mapping['unique']);
+      unset($mapping['unique']);
+      $this->drupalPost($path, $mapping, t('Add'));
+
+      // If unique was set, set the last mapping's unique flag.
+      if ($unique) {
+        $edit = array(
+          'unique_flags['. $i .']' => 1,
+        );
+        $this->drupalPost($path, $edit, t('Save'));
+      }
+    }
   }
 }
