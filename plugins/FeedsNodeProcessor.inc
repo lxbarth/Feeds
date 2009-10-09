@@ -21,7 +21,7 @@ class FeedsNodeProcessor extends FeedsProcessor {
 
     foreach ($parserResult->value['items'] as $item) {
       // If the target item does not exist OR if update_existing is enabled, map and save.
-      if (!$nid = $this->existingItem($item, $source) || $this->config['update_existing']) {
+      if (!$nid = $this->existingItemId($item, $source) || $this->config['update_existing']) {
 
         // Map item to a node.
         $node = $this->map($item);
@@ -154,15 +154,11 @@ class FeedsNodeProcessor extends FeedsProcessor {
   /**
    * Get nid of an existing feed item node if available.
    */
-  public function existingItem($source_item, FeedsSource $source) {
-    $parser = feeds_feed($this->id)->parser;
-    $targets = array();
-    foreach ($this->config['mappings'] as $mapping) {
-      if ($mapping['unique']) {
-        $targets[$mapping['target']] = $parser->getSourceElement($source_item, $mapping['source']);
-      }
-    }
-    foreach ($targets as $target => $value) {
+  protected function existingItemId($source_item, FeedsSource $source) {
+
+    // Iterate through all unique targets and test whether they do already
+    // exist in the database.
+    foreach ($this->uniqueTargets($source_item) as $target => $value) {
       switch ($target) {
         case 'url':
           $nid = db_result(db_query('SELECT nid FROM {feeds_node_item} WHERE feed_nid = %d AND url = "%s"', $source->feed_nid, $value));
@@ -176,7 +172,7 @@ class FeedsNodeProcessor extends FeedsProcessor {
         return $nid;
       }
     }
-    return FALSE;
+    return 0;
   }
 
   /**

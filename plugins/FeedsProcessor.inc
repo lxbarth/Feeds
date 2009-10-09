@@ -117,14 +117,38 @@ abstract class FeedsProcessor extends FeedsPlugin {
   }
 
   /**
-   * Retrieve the target item's existing id if available. Otherwise return FALSE.
+   * Retrieve the target item's existing id if available. Otherwise return 0.
    *
    * @param $source_item
    *   A single item that has been aggregated from a feed.
    * @param FeedsSource $source
    *   The source information about this import.
    */
-  public function existingItem($source_item, FeedsSource $source) {
-    return FALSE;
+  protected function existingItemId($source_item, FeedsSource $source) {
+    return 0;
+  }
+
+  /**
+   * Utility function that iterates over a target array and retrieves all
+   * sources that are unique.
+   *
+   * @param $source_item
+   *   A feed item from a FeedsParserResult.
+   *
+   * @return
+   *   An array where the keys are target field names and the values are the
+   *   elements from the source item mapped to these targets.
+   */
+  protected function uniqueTargets($source_item) {
+    $parser = feeds_feed($this->id)->parser;
+    $targets = array();
+    foreach ($this->config['mappings'] as $mapping) {
+      if ($mapping['unique']) {
+        // Invoke the parser's getSourceElement to retrieve the value for this
+        // mapping's source.
+        $targets[$mapping['target']] = $parser->getSourceElement($source_item, $mapping['source']);
+      }
+    }
+    return $targets;
   }
 }

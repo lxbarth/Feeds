@@ -17,35 +17,28 @@ class FeedsDataProcessor extends FeedsProcessor {
   public function process(FeedsParserResult $parserResult, FeedsSource $source) {
 
     // Count number of created and updated nodes.
-    $created  = $updated = 0;
+    $inserted  = $updated = 0;
 
     foreach ($parserResult->value['items'] as $item) {
-      if (!$existing = $this->existingItemId($item, $source) || $this->config['update_existing']) {
+      if (!$id = $this->existingItemId($item, $source) || $this->config['update_existing']) {
 
         // Map item to a data record.
         $data = $this->map($item);
 
-        // Only pass in $update array if we know we are updating.
-        // Otherwise DataHandler executes an unnecessary check.
-        $update = array();
-        if ($this->config['update_existing']) {
-          $update = $this->uniqueFields();
-        }
-
         // Save data.
-        $this->table()->handler()->save($data, $update);
-
-        if ($existing) {
+        if ($id) {
+          $this->table()->handler()->update($data, 'id');
           $updated++;
         }
         else {
-          $created++;
+          $this->table()->handler()->insert($data, $update);
+          $inserted++;
         }
       }
     }
 
     // Set messages.
-    if ($created) {
+    if ($inserted) {
       drupal_set_message(t('Created !number records in !table.', array('!number' => $created, '!table' => $this->tableName())));
     }
     elseif ($updated) {
@@ -57,12 +50,12 @@ class FeedsDataProcessor extends FeedsProcessor {
   }
 
   /**
-   * Implementation of FeedsProcesor::purge().
+   * Implementation of FeedsProcessor::purge().
    *
-   * @todo
+   * Delete all data records for feed_nid in this table.
    */
   public function purge(FeedsSource $source) {
-
+    $this->table()->delete(array('feed_nid' => $source->feed_nid));
   }
 
   /**
@@ -125,14 +118,16 @@ class FeedsDataProcessor extends FeedsProcessor {
   }
 
   /**
-   * Override setTargetElement to operate on a target item that is a data record.
+   * Iterate through unique targets and try to load existing records.
+   * Return id for the first match.
    */
-  public function setTargetElement($target_item, $target_element, $value) {
-    // @todo.
-  }
-
-  public function existingItemId($source_item, FeedsSource $source) {
-
+  protected function existingItemId($source_item, FeedsSource $source) {
+    foreach ($this->uniqueTargets($source_item) as $target => $value) {
+      if ($record = $this->table()->load(array($target => $value))) {
+        return $record['id'];
+      }
+    }
+    return 0;
   }
 
   /**
@@ -171,7 +166,7 @@ class FeedsDataProcessor extends FeedsProcessor {
    * @throws Exception $e
    *   Throws this exception if a table cannot be found and cannot be created.
    *
-   * @todo: Make *Data module* throw exceptions when table can't be found or
+   * @todo: Make *Data module* throw exception when table can't be found or
    *   can't be created.
    */
   protected function table() {
