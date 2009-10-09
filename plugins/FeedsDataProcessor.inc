@@ -22,8 +22,11 @@ class FeedsDataProcessor extends FeedsProcessor {
     foreach ($parserResult->value['items'] as $item) {
       if (!$id = $this->existingItemId($item, $source) || $this->config['update_existing']) {
 
-        // Map item to a data record.
-        $data = $this->map($item);
+        // Map item to a data record, feed_nid and timestamp are mandatory.
+        $data = array();
+        $data['feed_nid'] = $source->feed_nid;
+        $data['timestamp'] = FEEDS_REQUEST_TIME;
+        $data = $this->map($item, $data);
 
         // Save data.
         if ($id) {
@@ -31,7 +34,7 @@ class FeedsDataProcessor extends FeedsProcessor {
           $updated++;
         }
         else {
-          $this->table()->handler()->insert($data, $update);
+          $this->table()->handler()->insert($data);
           $inserted++;
         }
       }
@@ -39,7 +42,7 @@ class FeedsDataProcessor extends FeedsProcessor {
 
     // Set messages.
     if ($inserted) {
-      drupal_set_message(t('Created !number records in !table.', array('!number' => $created, '!table' => $this->tableName())));
+      drupal_set_message(t('Created !number records in !table.', array('!number' => $inserted, '!table' => $this->tableName())));
     }
     elseif ($updated) {
       drupal_set_message(t('Updated !number records in !table.', array('!number' => $updated, '!table' => $this->tableName())));
@@ -55,7 +58,8 @@ class FeedsDataProcessor extends FeedsProcessor {
    * Delete all data records for feed_nid in this table.
    */
   public function purge(FeedsSource $source) {
-    $this->table()->delete(array('feed_nid' => $source->feed_nid));
+    $num = $this->table()->handler()->delete(array('feed_nid' => $source->feed_nid));
+    drupal_set_message(t('Deleted !number records from !table.', array('!number' => $num, '!table' => $this->tableName())));
   }
 
   /**
@@ -123,7 +127,7 @@ class FeedsDataProcessor extends FeedsProcessor {
    */
   protected function existingItemId($source_item, FeedsSource $source) {
     foreach ($this->uniqueTargets($source_item) as $target => $value) {
-      if ($record = $this->table()->load(array($target => $value))) {
+      if ($record = $this->table()->handler()->load(array($target => $value))) {
         return $record['id'];
       }
     }
