@@ -74,7 +74,7 @@ class FeedsDataProcessor extends FeedsProcessor {
     }
 
     // Create a new field with targets that start with "new:"
-    list($new, $type) = explode(':', $target);
+    @list($new, $type) = explode(':', $target);
 
     if ($new == 'new') {
       // Build a field name from the source key.
