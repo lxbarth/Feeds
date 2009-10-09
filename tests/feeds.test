@@ -190,12 +190,12 @@ class FeedsRSStoDataTest extends FeedsWebTestCase {
   public function setUp() {
     // @todo: once we have default configurations shipping with feeds, we do not
     // need feeds_ui.
-    parent::setUp('feeds', 'feeds_ui', 'ctools', 'data', 'data_ui');
+    parent::setUp('feeds', 'feeds_ui', 'ctools', 'data', 'data_ui', 'views');
 
     $this->drupalLogin(
       $this->drupalCreateUser(
         array(
-          'administer feeds', 'create page content', 'administer data tables',
+          'administer feeds', 'create page content',
         )
       )
     );
@@ -257,8 +257,6 @@ class FeedsRSStoDataTest extends FeedsWebTestCase {
       $this->assertEqual($mapping['unique'], $stored_mappings[$i]['unique']);
     }
 
-    return;
-
     // Create standard feed node.
     $nid = $this->createFeedNode('rss');
     // Assert 10 items aggregated after creation of the node.
@@ -270,105 +268,62 @@ class FeedsRSStoDataTest extends FeedsWebTestCase {
       $this->drupalCreateUser(
         array(
           'administer data tables',
+          'administer feeds',
         )
       )
     );
 
     // Assert accuracy of aggregated information.
     $this->drupalGet('admin/content/data/view/feeds_data_rss');
-    return;
     $this->assertText('Open Atrium Translation Workflow: Two Way Translation Updates');
-    $this->assertText('Tue, 10/06/2009');
     $this->assertText('A new translation process for Open Atrium and integration with Localize Drupal');
     $this->assertText('Week in DC Tech: October 5th Edition');
-    $this->assertText('Mon, 10/05/2009');
     $this->assertText('There are some great technology events happening this week');
     $this->assertText('Mapping Innovation at the World Bank with Open Atrium');
-    $this->assertText('Fri, 10/02/2009');
-    $this->assertText('Open Atrium is being used as a base platform for collaboration');
+    $this->assertText('is being used as a base platform for collaboration at the World Bank because of its feature flexibility');
     $this->assertText('September GeoDC Meetup Tonight');
-    $this->assertText('Wed, 09/30/2009');
     $this->assertText('Today is the last Wednesday of the month');
     $this->assertText('Week in DC Tech: September 28th Edition');
-    $this->assertText('Mon, 09/28/2009');
     $this->assertText('Looking to geek out this week? There are a bunch of');
     $this->assertText('Open Data for Microfinance: The New MIXMarket.org');
-    $this->assertText('Thu, 09/24/2009');
     $this->assertText('There are profiles for every country that the MIX Market is hosting.');
     $this->assertText('Integrating the Siteminder Access System in an Open Atrium-based Intranet');
-    $this->assertText('Tue, 09/22/2009');
     $this->assertText('In addition to authentication, the Siteminder system');
     $this->assertText('Week in DC Tech: September 21 Edition');
-    $this->assertText('Mon, 09/21/2009');
     $this->assertText('an interesting variety of technology events happening in Washington, DC ');
     $this->assertText('s Software Freedom Day: Impressions and Photos');
-    $this->assertText('Mon, 09/21/2009');
     $this->assertText('Presenting on Features in Drupal and Open Atrium');
     $this->assertText('Scaling the Open Atrium UI');
-    $this->assertText('Fri, 09/18/2009');
     $this->assertText('The first major change is switching');
 
     // Assert DB status.
-    $count = db_result(db_query('SELECT COUNT(*) FROM {feeds_node_item}'));
+    $count = db_result(db_query('SELECT COUNT(*) FROM {feeds_data_rss}'));
     $this->assertEqual($count, 10, 'Accurate number of items in database.');
 
     // Import again.
     $this->drupalPost('node/'. $nid .'/import', array(), 'Import');
-    $this->assertText('There is no new content.');
+    $this->assertText('There are no new records.');
 
     // Assert DB status, there still shouldn't be more than 10 items.
-    $count = db_result(db_query('SELECT COUNT(*) FROM {feeds_node_item}'));
+    $count = db_result(db_query('SELECT COUNT(*) FROM {feeds_data_rss}'));
     $this->assertEqual($count, 10, 'Accurate number of items in database.');
 
     // Now delete all items.
     $this->drupalPost('node/'. $nid .'/delete-items', array(), 'Delete');
-    $this->assertText('Deleted 10 nodes.');
+    $this->assertText('Deleted 10 records from feeds_data_rss.');
 
     // Assert DB status, now there should be no items.
     // @todo: fails, is there something cached?
-    $count = db_result(db_query('SELECT COUNT(*) FROM {feeds_node_item}'));
+    $count = db_result(db_query('SELECT COUNT(*) FROM {feeds_data_rss}'));
     $this->assertEqual($count, 0, 'Accurate number of items in database.');
 
     // Import again, we should find new content.
     $this->drupalPost('node/'. $nid .'/import', array(), 'Import');
-    $this->assertText('Created 10 story nodes.');
+    $this->assertText('Created 10 records in feeds_data_rss.');
 
     // Assert DB status, there should be 10 again.
-    $count = db_result(db_query('SELECT COUNT(*) FROM {feeds_node_item}'));
+    $count = db_result(db_query('SELECT COUNT(*) FROM {feeds_data_rss}'));
     $this->assertEqual($count, 10, 'Accurate number of items in database.');
-
-    // Login with new user with only access content permissions.
-    $this->drupalLogin(
-      $this->drupalCreateUser()
-    );
-    // Navigate to feed node, there should be no Feeds tabs visible.
-    $this->drupalGet('node/'. $nid);
-    $this->assertNoRaw('node/'. $nid .'/import');
-    $this->assertNoRaw('node/'. $nid .'/delete-items');
-
-    // Login with new user with access content and import syndication feeds
-    // permissions.
-    $this->drupalLogout();
-    $this->drupalLogin(
-      $this->drupalCreateUser(array('import syndication feeds'))
-    );
-    // Navigate to feed node, there should be no Feeds tabs visible.
-    // @todo: actually push import.
-    $this->drupalGet('node/'. $nid);
-    $this->assertRaw('node/'. $nid .'/import');
-    $this->assertNoRaw('node/'. $nid .'/delete-items');
-
-    // Login with new user with access content and purge syndication feeds
-    // permissions.
-    $this->drupalLogout();
-    $this->drupalLogin(
-      $this->drupalCreateUser(array('purge syndication feeds'))
-    );
-    // Navigate to feed node, there should be no Feeds tabs visible.
-    // @todo: actually push purge.
-    $this->drupalGet('node/'. $nid);
-    $this->assertNoRaw('node/'. $nid .'/import');
-    $this->assertRaw('node/'. $nid .'/delete-items');
 
     // @todo: Standalone import form testing.
     // @todo: Create a second feed and test.

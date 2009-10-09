@@ -12,6 +12,13 @@
 class FeedsWebTestCase extends DrupalWebTestCase {
 
   /**
+   * Utility.
+   */
+  public function show() {
+    $this->error($this->content);
+  }
+
+  /**
    * Create feed config.
    *
    * @param $name
