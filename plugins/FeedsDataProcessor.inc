@@ -92,6 +92,8 @@ class FeedsDataProcessor extends FeedsProcessor {
         throw new Exception(t('Field !field_name already exists as a mapping target. Remove it from mapping if you would like to map another source to it. Remove it from !data_table table if you would like to change its definition.', array('!field_name' => $field_name, '!data_table' => l($this->table()->get('name'), 'admin/content/data'))));
       }
     }
+
+    // Let parent populate the mapping configuration.
     parent::addMapping($source, $target, $unique);
   }
 
