@@ -59,7 +59,7 @@ class FeedsUIUserInterfaceTestCase extends FeedsWebTestCase {
     $this->assertText('Common syndication parser');
     $this->assertText('Processor');
     $this->assertText('Node processor');
-    $this->assertText('Help');
+    $this->assertText('Configure your feed');
     $this->assertRaw('admin/build/feeds/edit/test_feed/settings/Feed');
     $this->assertRaw('admin/build/feeds/edit/test_feed/settings/FeedsNodeProcessor');
     $this->assertRaw('admin/build/feeds/edit/test_feed/fetcher');
@@ -72,15 +72,15 @@ class FeedsUIUserInterfaceTestCase extends FeedsWebTestCase {
     $this->drupalGet('admin/build/feeds/edit/test_feed');
 
     $this->clickLink('Change', 0);
-    $this->assertText('Select a fetcher');
+    $this->assertText('select a fetcher');
     $this->drupalPost('admin/build/feeds/edit/test_feed/fetcher', array(), 'Select');
 
     $this->clickLink('Change', 1);
-    $this->assertText('Select a parser');
+    $this->assertText('select a parser');
     $this->drupalPost('admin/build/feeds/edit/test_feed/parser', array(), 'Select');
 
     $this->clickLink('Change', 2);
-    $this->assertText('Select a processor');
+    $this->assertText('select a processor');
     $this->drupalPost('admin/build/feeds/edit/test_feed/processor', array(), 'Select');
 
     // Assert changed configuration.

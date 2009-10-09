@@ -14,15 +14,15 @@ require_once(dirname(__FILE__) .'/feeds.test.inc');
  * feeds_ui module, feeds module contains UI elements for non-admin
  * functionality.
  */
-class FeedsUserInterfaceTestCase extends FeedsWebTestCase {
+class FeedsRSStoNodesTest extends FeedsWebTestCase {
 
   /**
    * Describe this test.
    */
   public function getInfo() {
     return array(
-      'name' => t('Feeds user interface'),
-      'description' => t('Tests Feeds module\'s GUI.'),
+      'name' => t('Feeds RSS import to nodes'),
+      'description' => t('Tests a feed configuration that is attached to a content type, uses common syndication parser and a node processor.'),
       'group' => t('Feeds'),
     );
   }
@@ -47,7 +47,7 @@ class FeedsUserInterfaceTestCase extends FeedsWebTestCase {
   /**
    * Test node creation, refreshing/deleting feeds and feed items.
    */
-  public function testFeedNodeCreation() {
+  public function test() {
 
     // Create a feed.
     $this->createFeedConfiguration();
@@ -154,6 +154,7 @@ class FeedsUserInterfaceTestCase extends FeedsWebTestCase {
     $this->assertRaw('node/'. $nid .'/delete-items');
 
     // @todo: Standalone import form testing.
+    // @todo: Create a second feed and test.
   }
 }
 
