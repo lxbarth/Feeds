@@ -13,6 +13,14 @@ class FeedsWebTestCase extends DrupalWebTestCase {
 
   /**
    * Create feed config.
+   *
+   * @param $name
+   *   The natural name of the feed.
+   * @param $id
+   *   The persistent id of the feed.
+   * @param $edit
+   *   Optional array that defines the basic settings for the feed in a format
+   *   that can be posted to the feed's basic settings form.
    */
   public function createFeedConfiguration($name = 'Syndication', $id = 'syndication') {
     // Create new feed configuration.
@@ -41,19 +49,24 @@ class FeedsWebTestCase extends DrupalWebTestCase {
    * @return
    *   The node id of the node created.
    */
-  public function createFeedNode($title = NULL, $feed_url = NULL) {
+  public function createFeedNode($id = 'syndication', $title = NULL, $feed_url = NULL) {
     if (empty($title)) {
       $title = 'Development Seed';
     }
     if (empty($feed_url)) {
       $feed_url = $GLOBALS['base_url'] .'/'. drupal_get_path('module', 'feeds') .'/tests/feeds/developmentseed.rss2';
     }
+    // Ask the configuration for the content type to create.
+    $config = unserialize(db_result(db_query('SELECT config FROM {feeds_config} WHERE id = "%s"', $id)));
+    $content_type = $config['content_type'];
+    $this->assertFalse(empty($content_type), 'Valid content type found: '. $content_type);
+
     // Create a feed node.
     $edit = array(
       'title' => $title,
       'feeds[FeedsHttpFetcher][url]' => $feed_url,
     );
-    $this->drupalPost('node/add/page', $edit, 'Save');
+    $this->drupalPost('node/add/'. $content_type, $edit, 'Save');
     $this->assertText('Page '. $title .' has been created.');
 
     // Get the node id from URL.
@@ -64,14 +77,14 @@ class FeedsWebTestCase extends DrupalWebTestCase {
     $this->assertTrue(is_numeric($nid), 'Found node id ('. $nid .').');
 
     // Check whether feed got recorded in feeds_source table.
-    $this->assertEqual(1, db_result(db_query('select COUNT(*) from {feeds_source} WHERE id = "syndication" AND feed_nid = %d', $nid)));
-    $source = db_fetch_object(db_query('select * from {feeds_source} WHERE id = "syndication" AND feed_nid = %d', $nid));
+    $this->assertEqual(1, db_result(db_query('select COUNT(*) from {feeds_source} WHERE id = "%s" AND feed_nid = %d', $id, $nid)));
+    $source = db_fetch_object(db_query('select * from {feeds_source} WHERE id = "%s" AND feed_nid = %d', $id, $nid));
     $config = unserialize($source->config);
     $this->assertEqual($config['FeedsHttpFetcher']['url'], $feed_url, t('URL in DB correct.'));
 
     // Check whether feed got properly added to scheduler.
-    $this->assertEqual(1, db_result(db_query('select COUNT(*) from {feeds_schedule} WHERE id = "syndication" AND feed_nid = %d', $nid)));
-    $schedule = db_fetch_object(db_query('select * from {feeds_schedule} WHERE id = "syndication" AND feed_nid = %d', $nid));
+    $this->assertEqual(1, db_result(db_query('select COUNT(*) from {feeds_schedule} WHERE id = "%s" AND feed_nid = %d', $id, $nid)));
+    $schedule = db_fetch_object(db_query('select * from {feeds_schedule} WHERE id = "%s" AND feed_nid = %d', $id, $nid));
     $this->assertEqual($schedule->scheduled, 0, 'Feed is not set scheduled.');
     $this->assertEqual($schedule->last_scheduled_time, 0, 'Last scheduled time is 0.');
 
@@ -85,10 +98,10 @@ class FeedsWebTestCase extends DrupalWebTestCase {
    * @return
    *   An array of node ids of the nodes created.
    */
-  public function createFeedNodes($num) {
+  public function createFeedNodes($id = 'syndication', $num = 20) {
     $nids = array();
     for ($i = 0; $i < $num; $i++) {
-      $nids[] = $this->createFeedNode($this->randomName());
+      $nids[] = $this->createFeedNode($id, $this->randomName());
     }
     return $nids;
   }
@@ -106,5 +119,30 @@ class FeedsWebTestCase extends DrupalWebTestCase {
     $this->assertEqual($config['Feed']['fetcher']['plugin_key'], $fetcher, 'Correct fetcher');
     $this->assertEqual($config['Feed']['parser']['plugin_key'], $parser, 'Correct parser');
     $this->assertEqual($config['Feed']['processor']['plugin_key'], $processor, 'Correct processor');
+  }
+
+  /**
+   * Add mappings to a given configuration.
+   *
+   * Stores mappings directly do DB.
+   *
+   * @todo Use UI. Need to fix http://drupal.org/node/600370 first.
+   *
+   * @param $mappings
+   *   An array of mapping arrays. Each mapping array must have a source and
+   *   an target key and can have a unique key. They mapping array with
+   *   unique = 1 have to be first.
+   *
+   * @see FeedsRSStoDataTest class.
+   */
+  public function setMappings($id, $mappings) {
+
+    $config = unserialize(db_result(db_query('SELECT config FROM {feeds_config} WHERE id = "%s"', $id)));
+    $config['processor']['config']['mappings'] = $mappings;
+    db_query('UPDATE {feeds_config} SET config = "%s" WHERE id = "%s"', serialize($config), $id);
+
+    $this->drupalGet('admin/build/feeds/edit/'. $id .'/mapping');
+    $this->error($this->content);
+
   }
 }

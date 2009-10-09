@@ -442,7 +442,7 @@ function feeds_ui_mapping_form(&$form_state, $feed) {
         'mapping' => $mapping,
       );
       if (!empty($targets[$mapping['target']]['optional_unique'])) {
-        $mappings[$i]['unique'] = feeds_ui_get_form('feeds_ui_button_form', $mapping['unique'] ? 'Yes' : 'No', 'feeds_ui_toggle_unique', $param);
+        $mappings[$i]['unique'] = feeds_ui_get_form('feeds_ui_button_form', empty($mapping['unique']) ? 'No' : 'Yes', 'feeds_ui_toggle_unique', $param);
       }
       $mappings[$i]['remove'] = feeds_ui_get_form('feeds_ui_button_form', 'Remove', 'feeds_ui_remove_mapping', $param);
     }
