@@ -36,8 +36,7 @@ abstract class FeedsPlugin extends FeedsConfigurable implements FeedsSourceInter
    * information from this object by way of getConfig() and store it.
    */
   public function save() {
-    $feed = feeds_feed($this->id);
-    $feed->save();
+    $feed = feeds_feed($this->id)->save();
   }
 
   /**
