@@ -20,8 +20,7 @@ class FeedsDataProcessor extends FeedsProcessor {
     $inserted  = $updated = 0;
 
     foreach ($parserResult->value['items'] as $item) {
-      if (!$id = $this->existingItemId($item, $source) || $this->config['update_existing']) {
-
+      if (!($id = $this->existingItemId($item, $source)) || $this->config['update_existing']) {
         // Map item to a data record, feed_nid and timestamp are mandatory.
         $data = array();
         $data['feed_nid'] = $source->feed_nid;
@@ -30,6 +29,7 @@ class FeedsDataProcessor extends FeedsProcessor {
 
         // Save data.
         if ($id) {
+          $data['id'] = $id;
           $this->table()->handler()->update($data, 'id');
           $updated++;
         }
@@ -127,8 +127,8 @@ class FeedsDataProcessor extends FeedsProcessor {
    */
   protected function existingItemId($source_item, FeedsSource $source) {
     foreach ($this->uniqueTargets($source_item) as $target => $value) {
-      if ($record = $this->table()->handler()->load(array($target => $value))) {
-        return $record['id'];
+      if ($records = $this->table()->handler()->load(array($target => $value))) {
+        return $records[0]['id'];
       }
     }
     return 0;
