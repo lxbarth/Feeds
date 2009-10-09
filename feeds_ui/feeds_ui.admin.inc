@@ -438,7 +438,6 @@ function feeds_ui_mapping_form(&$form_state, $feed) {
   );
 
   if (is_array($mappings)) {
-
     foreach ($mappings as $i => $mapping) {
 
       $mappings[$i]['source'] = $source_options[$mappings[$i]['source']];
@@ -453,10 +452,14 @@ function feeds_ui_mapping_form(&$form_state, $feed) {
         $form['unique_flags'][$i] = array(
           '#type' => 'checkbox',
           '#default_value' => !empty($mapping['unique']),
+          '#attributes' => array('class' => 'feeds-ui-trigger-submit'),
         );
       }
       $form['remove_flags'][$i] = array(
         '#type' => 'checkbox',
+        '#title' => t('Remove'),
+        '#prefix' => '<div class="feeds-ui-checkbox-link">',
+        '#suffix' => '</div>',
       );
     }
   }
@@ -489,7 +492,7 @@ function feeds_ui_mapping_form(&$form_state, $feed) {
   $form['save'] = array(
     '#type' => 'submit',
     '#value' => t('Save'),
-    '#submit' => array('feeds_ui_mapping_form_save_submit'),
+    '#attributes' => array('class' => 'feeds-ui-mapping-save'),
   );
   return $form;
 }
@@ -511,7 +514,7 @@ function feeds_ui_mapping_form_add_submit($form, &$form_state) {
 /**
  * Submit handler for save button on feeds_ui_mapping_form().
  */
-function feeds_ui_mapping_form_save_submit($form, &$form_state) {
+function feeds_ui_mapping_form_submit($form, &$form_state) {
   if (!isset($form_state['values']['unique_flags'])) {
     return;
   }
