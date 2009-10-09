@@ -433,18 +433,31 @@ function feeds_ui_mapping_form(&$form_state, $feed) {
 
   // Add unique and remove forms to mappings.
   $mappings = $feed->processor->getMappings();
+  $form['unique_flags'] = $form['remove_flags'] = array(
+    '#tree' => TRUE,
+  );
+
   if (is_array($mappings)) {
+
     foreach ($mappings as $i => $mapping) {
+
       $mappings[$i]['source'] = $source_options[$mappings[$i]['source']];
       $mappings[$i]['target'] = $target_options[$mappings[$i]['target']];
       $param = array(
         'processor' => $feed->processor,
         'mapping' => $mapping,
       );
+
       if (!empty($targets[$mapping['target']]['optional_unique'])) {
-        $mappings[$i]['unique'] = feeds_ui_get_form('feeds_ui_button_form', empty($mapping['unique']) ? 'No' : 'Yes', 'feeds_ui_toggle_unique', $param);
+
+        $form['unique_flags'][$i] = array(
+          '#type' => 'checkbox',
+          '#default_value' => !empty($mapping['unique']),
+        );
       }
-      $mappings[$i]['remove'] = feeds_ui_get_form('feeds_ui_button_form', 'Remove', 'feeds_ui_remove_mapping', $param);
+      $form['remove_flags'][$i] = array(
+        '#type' => 'checkbox',
+      );
     }
   }
 
@@ -471,14 +484,20 @@ function feeds_ui_mapping_form(&$form_state, $feed) {
   $form['add'] = array(
     '#type' => 'submit',
     '#value' => t('Add'),
+    '#submit' => array('feeds_ui_mapping_form_add_submit'),
+  );
+  $form['save'] = array(
+    '#type' => 'submit',
+    '#value' => t('Save'),
+    '#submit' => array('feeds_ui_mapping_form_save_submit'),
   );
   return $form;
 }
 
 /**
- * Submit handler for feeds_ui_mapping_form().
+ * Submit handler for add button on feeds_ui_mapping_form().
  */
-function feeds_ui_mapping_form_submit($form, &$form_state) {
+function feeds_ui_mapping_form_add_submit($form, &$form_state) {
   $feed = $form['#feed'];
   try {
     $feed->processor->addMapping($form_state['values']['source'], $form_state['values']['target']);
@@ -487,6 +506,28 @@ function feeds_ui_mapping_form_submit($form, &$form_state) {
   catch (Exception $e) {
     drupal_set_message($e->getMessage(), 'error');
   }
+}
+
+/**
+ * Submit handler for save button on feeds_ui_mapping_form().
+ */
+function feeds_ui_mapping_form_save_submit($form, &$form_state) {
+  if (!isset($form_state['values']['unique_flags'])) {
+    return;
+  }
+  $processor = $form['#feed']->processor;
+  $mappings = $processor->config['mappings'];
+  // We may set some unique flags here that we remove in the subsequent step.
+  // That's fine.
+  foreach ($form_state['values']['unique_flags'] as $k => $v) {
+    $processor->setUnique($mappings[$k]['source'], $mappings[$k]['target'], $v);
+  }
+  foreach ($form_state['values']['remove_flags'] as $k => $v) {
+    if ($v) {
+      $processor->removeMapping($mappings[$k]['source'], $mappings[$k]['target']);
+    }
+  }
+  $processor->save();
 }
 
 /**
@@ -617,15 +658,12 @@ function theme_feeds_ui_mapping_form($form) {
   );
   $rows = array();
   if (is_array($form['#mappings'])) {
-    foreach ($form['#mappings'] as $mapping) {
+    foreach ($form['#mappings'] as $i => $mapping) {
       $rows[] = array(
         $mapping['source'],
         $mapping['target'],
-        // @todo: only second form renders correctly. FIX.
-        // + simpletest cannot submit this form.
-        // http://drupal.org/node/600370
-        '<div style="display:none">'. $mapping['unique'] .'</div>'. $mapping['unique'],
-        '<div style="display:none">'. $mapping['remove'] .'</div>'. $mapping['remove'],
+        drupal_render($form['unique_flags'][$i]),
+        drupal_render($form['remove_flags'][$i]),
       );
     }
   }
