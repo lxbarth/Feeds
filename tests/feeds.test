@@ -11,7 +11,8 @@ require_once(dirname(__FILE__) .'/feeds.test.inc');
 
 /**
  * Test operation of Feeds UI elements. While the entire admin UI sits in
- * feeds_ui module, feeds module contains UI elements for non-admin functionality.
+ * feeds_ui module, feeds module contains UI elements for non-admin
+ * functionality.
  */
 class FeedsUserInterfaceTestCase extends FeedsWebTestCase {
 
@@ -30,7 +31,8 @@ class FeedsUserInterfaceTestCase extends FeedsWebTestCase {
    * Set up test.
    */
   public function setUp() {
-    // @todo: once we have default configurations shipping with feeds, we do not need feeds_ui.
+    // @todo: once we have default configurations shipping with feeds, we do not
+    // need feeds_ui.
     parent::setUp('feeds', 'feeds_ui', 'ctools');
 
     $this->drupalLogin(
@@ -127,7 +129,8 @@ class FeedsUserInterfaceTestCase extends FeedsWebTestCase {
     $this->assertNoRaw('node/'. $nid .'/import');
     $this->assertNoRaw('node/'. $nid .'/delete-items');
 
-    // Login with new user with access content and import syndication feeds permissions.
+    // Login with new user with access content and import syndication feeds
+    // permissions.
     $this->drupalLogout();
     $this->drupalLogin(
       $this->drupalCreateUser(array('import syndication feeds'))
@@ -138,7 +141,8 @@ class FeedsUserInterfaceTestCase extends FeedsWebTestCase {
     $this->assertRaw('node/'. $nid .'/import');
     $this->assertNoRaw('node/'. $nid .'/delete-items');
 
-    // Login with new user with access content and purge syndication feeds permissions.
+    // Login with new user with access content and purge syndication feeds
+    // permissions.
     $this->drupalLogout();
     $this->drupalLogin(
       $this->drupalCreateUser(array('purge syndication feeds'))
