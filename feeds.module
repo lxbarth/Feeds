@@ -513,7 +513,7 @@ function feeds_scheduler() {
  *   NULL otherwise.
  */
 function feeds_plugin_instance($plugin, $id) {
-  feeds_include('feed');
+  feeds_include('Feed');
   if ($class = feeds_load_plugin_class($plugin)) {
     return FeedsConfigurable::instance($class, $id);
   }
