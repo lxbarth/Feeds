@@ -17,7 +17,7 @@ Requirements
 
 - CTools 1.x-dev or CTools 1.0 with patches
   http://drupal.org/node/599136
-  http://drupal.org/node/531522 
+  http://drupal.org/node/531522
 - Drupal 6.14 or higher.
 
 Installation
@@ -83,3 +83,4 @@ Todos
 - Revisit @todo tags in code
 - Wrap all exception messages in t()
 - Option for greying out plugins that miss requirements + message to user.
+- Revisit get/set naming conventions.
