@@ -212,10 +212,10 @@ class Feed extends FeedsConfigurable {
   }
 
   /**
-   * Override parent::configFormSubmit().
+   * Override parent::addConfig() to clear caches.
    */
-  public function configFormSubmit($form, &$form_state) {
-    parent::configFormSubmit($form, $form_state);
+  public function addConfig($config) {
+    parent::addConfig($config);
     // Clear cache, changes to content_type have an affect on menu tree.
     menu_rebuild();
   }

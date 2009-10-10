@@ -70,7 +70,7 @@ function feeds_import_form_validate($form, &$form_state) {
   $feed = feeds_feed($form['#feed_id']);
   $source = feeds_source($feed);
   // @todo: this may be a problem here, as we don't have a feed_nid at this point.
-  $source->configFormValidate($form, $form_state['values']['feeds']);
+  $source->configFormValidate($form_state['values']['feeds']);
 }
 
 /**
@@ -81,7 +81,7 @@ function feeds_import_form_submit($form, &$form_state) {
   $source = feeds_source($feed);
 
   // Save source and import.
-  $source->configFormSubmit($form, $form_state['values']['feeds']);
+  $source->addConfig($form_state['values']['feeds']);
   $source->save();
 
   // Refresh feed if import on create is selected.
@@ -140,6 +140,6 @@ function feeds_delete_tab_form(&$form_state, $feed_id, $node = NULL) {
  */
 function feeds_delete_tab_form_submit($form, &$form_state) {
   $feed = feeds_feed($form['#feed_id']);
-  $source = feeds_source($feed, $form['#feed_nid']);
+  $source = feeds_source($feed, empty($form['#feed_nid']) ? 0 : $form['#feed_nid']);
   feeds_importer()->purge($feed, $source);
 }

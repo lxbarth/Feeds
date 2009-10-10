@@ -148,15 +148,13 @@ class FeedsConfigurable implements FeedsConfigurableInterface {
 
   /**
    * Validation handler for configForm().
+   *
+   * Set errors with form_set_error().
+   *
+   * @param $values
+   *   An array that contains the values entered by the user through configForm.
    */
-  public function configFormValidate($form, &$form_state) {
-  }
-
-  /**
-   * Submit handler for configForm().
-   */
-  public function configFormSubmit($form, &$form_state) {
-    $this->addConfig($form_state['values']);
+  public function configFormValidate(&$values) {
   }
 }
 
@@ -206,13 +204,13 @@ function feeds_config_form(&$form_state, $configurable) {
  * Validation handler for feeds_config_form().
  */
 function feeds_config_form_validate($form, &$form_state) {
-  $form['#configurable']->configFormValidate($form, $form_state);
+  $form['#configurable']->configFormValidate($form_state['values']);
 }
 
 /**
  * Submit handler for feeds_config_form().
  */
 function feeds_config_form_submit($form, &$form_state) {
-  $form['#configurable']->configFormSubmit($form, $form_state);
+  $form['#configurable']->addConfig($form_state['values']);
   $form['#configurable']->save();
 }

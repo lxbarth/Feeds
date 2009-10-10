@@ -217,35 +217,35 @@ function feeds_feeds_plugins() {
  */
 function feeds_nodeapi($node, $op) {
 
-  // Break out node processor related nodeapi functionality in its own function.
+  // Break out node processor related nodeapi functionality.
   _feeds_nodeapi_node_processor($node, $op);
 
-  switch ($op) {
-    case 'insert':
-    case 'update':
-      if ($feed = feeds_get_by_content_type($node->type)) {
-        // Node module magically moved $form['feeds'] to $node->feeds.
-        // Save feed source and refresh feed.
+  if ($feed = feeds_get_by_content_type($node->type)) {
+    switch ($op) {
+      case 'validate':
+        // Node module magically moved $form['feeds'] to $node->feeds :P
+        feeds_source($feed)->configFormValidate($node->feeds);
+        break;
+      case 'insert':
+      case 'update':
+        // Add configuration to feed source and save.
         $source = feeds_source($feed, $node->nid);
-        $source->setConfig($node->feeds);
+        $source->addConfig($node->feeds);
         $source->save();
 
         // Refresh feed if import on create is selected.
         if ($op == 'insert' && $feed->config['import_on_create']) {
           feeds_importer()->import($feed, $source);
         }
-
         // Add feed to scheduler.
         feeds_scheduler()->add($feed->id, $node->nid);
-      }
-      break;
-    case 'delete':
-      if ($feed = feeds_get_by_content_type($node->type)) {
+        break;
+      case 'delete':
         // Remove feed from scheduler and delete source.
         feeds_scheduler()->remove($feed->id, $node->nid);
         feeds_source($feed, $node->nid)->delete();
-      }
-      break;
+        break;
+    }
   }
 }
 
@@ -298,7 +298,7 @@ function feeds_form_alter(&$form, $form_state, $form_id) {
       // For some reason I cannot pass on the feed object, pass on id.
       $form['#feed_id'] = $feed->id;
       // Only set validation handler. Save object on hook_nodeapi('insert')
-      $form['#validate'][] = 'feeds_node_form_validate';
+//      $form['#validate'][] = 'feeds_node_form_validate';
     }
   }
 }
@@ -509,15 +509,17 @@ function feeds_scheduler() {
  *   A string that is the id of the object.
  *
  * @return
- *   If plugin can be loaded, an object that is a FeedsPlugin,
- *   NULL otherwise.
+ *   A FeedsPlugin object.
+ *
+ * @throws Exception
+ *   If plugin can't be instantiated.
  */
 function feeds_plugin_instance($plugin, $id) {
   feeds_include('Feed');
   if ($class = feeds_load_plugin_class($plugin)) {
     return FeedsConfigurable::instance($class, $id);
   }
-  return NULL;
+  throw new Exception(t('Could not find plugin !name for !id.', array('!name' => $plugin, '!id' => $id)));
 }
 
 /**

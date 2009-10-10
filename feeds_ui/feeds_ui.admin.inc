@@ -110,7 +110,7 @@ function feeds_ui_create_form_validate($form, &$form_state) {
   if (ctools_export_load_object('feeds_config', 'conditions', array('id' => $form_state['values']['id'], 'class' => 'Feed'))) {
     form_set_error('id', t('Id is taken.'));
   }
-  $feed->configFormValidate($form, $form_state);
+  $feed->configFormValidate($form_state['values']);
 }
 
 /**
@@ -125,8 +125,6 @@ function feeds_ui_create_form_submit($form, &$form_state) {
   // Set a message and redirect to settings form.
   drupal_set_message(t('Your feed has been created with default settings. If they do not fit your use case you can change them here.'));
   $form_state['redirect'] = 'admin/build/feeds/edit/'. $feed->id;
-  // Clear cache, creating a configuration may have an affect on menu tree.
-  menu_rebuild();
 }
 
 /**

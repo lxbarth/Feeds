@@ -26,8 +26,7 @@ interface FeedsSourceInterface {
   public function hasSourceConfig();
   public function getSourceDefaults();
   public function sourceForm($source_config);
-  public function sourceFormValidate($form, &$values);
-  public function sourceFormSubmit($form, &$values);
+  public function sourceFormValidate(&$values);
 }
 
 /**
@@ -175,28 +174,12 @@ class FeedsSource extends FeedsConfigurable {
 
   /**
    * Override parent::configFormValidate().
-   *
-   * @todo: make configFormValidate($form, &$values) in parent, too.
-   * @todo: push declaration into FeedsConfigurableInterface
-   * @todo: make FeedsConfigurable an abstract class by declaring stubs of these functions.
    */
-  public function configFormValidate($form, &$values) {
+  public function configFormValidate(&$values) {
     foreach (array('fetcher', 'parser', 'processor') as $type) {
       $class = get_class($this->feed->$type);
       if (isset($values[$class]) && $this->feed->$type->hasSourceConfig()) {
-        $this->feed->$type->sourceFormValidate($form, $values[$class]);
-      }
-    }
-  }
-
-  /**
-   * Override parent::configFormSubmit().
-   */
-  public function configFormSubmit($form, &$values) {
-    foreach (array('fetcher', 'parser', 'processor') as $type) {
-      $class = get_class($this->feed->$type);
-      if (isset($values[$class]) && $this->feed->$type->hasSourceConfig()) {
-        $this->feed->$type->sourceFormSubmit($form, $values[$class]);
+        $this->feed->$type->sourceFormValidate($values[$class]);
       }
     }
   }

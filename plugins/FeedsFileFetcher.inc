@@ -34,7 +34,7 @@ class FeedsFileFetcher extends FeedsFetcher {
   /**
    * Override parent::sourceFormValidate().
    */
-  public function sourceFormValidate($form, &$values) {
+  public function sourceFormValidate(&$values) {
     $feed_dir = file_directory_path() .'/feeds';
     file_check_directory($feed_dir, TRUE);
 

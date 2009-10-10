@@ -10,13 +10,12 @@
  * Implement source interface for all plugins.
  *
  * Note how this class does not attempt to store source information locally.
- * Doing this would break the model where a Source information is strictly an
- * object that is being passed through Feed and its plugins.
+ * Doing this would break the model where source information is represented by
+ * an object that is being passed into a Feed object and its plugins.
  *
  * There is only one instance of a Feed or a FeedsPlugin per feed configuration,
  * whereas there is one instance of a FeedsSource per feed configuration, per
- * feed info definition (i. e. per feed configuaration, per feed node + standalone
- * import form).
+ * source info definition.
  */
 abstract class FeedsPlugin extends FeedsConfigurable implements FeedsSourceInterface {
 
@@ -68,13 +67,5 @@ abstract class FeedsPlugin extends FeedsConfigurable implements FeedsSourceInter
   /**
    * Validation handler for sourceForm.
    */
-  public function sourceFormValidate($form, &$values) {}
-
-  /**
-   * Submit handler for sourceForm.
-   */
-  public function sourceFormSubmit($form, &$values) {
-    $this->setSourceConfig($values);
-  }
-
+  public function sourceFormValidate(&$values) {}
 }
