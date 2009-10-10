@@ -12,9 +12,11 @@
 class FeedsWebTestCase extends DrupalWebTestCase {
 
   /**
-   * Utility.
+   * Debug utility. Shows current screen.
    */
   public function show() {
+    // Use error, this will make sure we don't forget accidental calls to show()
+    // in our tests.
     $this->error($this->content);
   }
 

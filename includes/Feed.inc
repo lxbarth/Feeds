@@ -110,6 +110,8 @@ class Feed extends FeedsConfigurable {
     if (!db_affected_rows()) {
       drupal_write_record('feeds_config', $save);
     }
+    // Clear menu cache, changes to Feed can change menu items.
+    menu_rebuild();
   }
 
   /**
@@ -209,15 +211,6 @@ class Feed extends FeedsConfigurable {
       '#default_value' => $this->config['import_on_create'],
     );
     return $form;
-  }
-
-  /**
-   * Override parent::addConfig() to clear caches.
-   */
-  public function addConfig($config) {
-    parent::addConfig($config);
-    // Clear cache, changes to content_type have an affect on menu tree.
-    menu_rebuild();
   }
 
   /**
