@@ -33,7 +33,7 @@ class FeedsCSVParser extends FeedsParser {
   /**
    * Define default configuration.
    */
-  public function getDefaultConfig() {
+  public function configDefaults() {
     return array('delimiter' => ',');
   }
 

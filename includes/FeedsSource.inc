@@ -16,7 +16,8 @@
 interface FeedsSourceInterface {
   /**
    * Crook: for ease of use, we implement FeedsSourceInterface for every plugin,
-   * but then we need to have a handle which plugin actually implements a source.
+   * but then we need to have a handle which plugin actually implements a
+   * source.
    *
    * @see FeedsPlugin class.
    *
@@ -24,7 +25,7 @@ interface FeedsSourceInterface {
    *   TRUE if a plugin handles source specific configuration, FALSE otherwise.
    */
   public function hasSourceConfig();
-  public function getSourceDefaults();
+  public function sourceDefaults();
   public function sourceForm($source_config);
   public function sourceFormValidate(&$values);
 }
@@ -101,7 +102,8 @@ class FeedsSource extends FeedsConfigurable {
       'feed_nid' => $this->feed_nid,
       'config' => $this->getConfig(),
     );
-    // Make sure a source record is present at all time, try to update first, then insert.
+    // Make sure a source record is present at all time, try to update first,
+    // then insert.
     drupal_write_record('feeds_source', $object, array('id', 'feed_nid'));
     if (!db_affected_rows()) {
       drupal_write_record('feeds_source', $object);
@@ -113,7 +115,8 @@ class FeedsSource extends FeedsConfigurable {
    */
   public function load() {
     if ($config = db_result(db_query('SELECT config FROM {feeds_source} WHERE id = "%s" AND feed_nid = %d', $this->id, $this->feed_nid))) {
-      // While FeedsSource cannot be exported, we still use CTool's export.inc export definitions.
+      // While FeedsSource cannot be exported, we still use CTool's export.inc
+      // export definitions.
       // @todo: patch CTools to move constants from export.inc to ctools.module.
       ctools_include('export');
       $this->export_type = EXPORT_IN_DATABASE;
@@ -145,12 +148,12 @@ class FeedsSource extends FeedsConfigurable {
   /**
    * Return defaults for feed configuration.
    */
-  public function getDefaultConfig() {
+  public function configDefaults() {
     // Collect information from plugins.
     $defaults = array();
     foreach (array('fetcher', 'parser', 'processor') as $type) {
       if ($this->feed->$type->hasSourceConfig()) {
-        $defaults[get_class($this->feed->$type)] = $this->feed->$type->getSourceDefaults();
+        $defaults[get_class($this->feed->$type)] = $this->feed->$type->sourceDefaults();
       }
     }
     return $defaults;

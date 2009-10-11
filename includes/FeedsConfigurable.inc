@@ -20,8 +20,7 @@ interface FeedsConfigurableInterface {
   public function getConfig();
   public function setConfig($config);
   public function addConfig($config);
-  // @todo: rename to getConfigDefaults()
-  public function getDefaultConfig();
+  public function configDefaults();
 }
 
 /**
@@ -76,7 +75,7 @@ class FeedsConfigurable implements FeedsConfigurableInterface {
     $this->export_type = FEEDS_EXPORT_NONE;
 
     // Make sure configuration is populated.
-    $this->config = $this->getDefaultConfig();
+    $this->config = $this->configDefaults();
   }
 
   /**
@@ -106,7 +105,7 @@ class FeedsConfigurable implements FeedsConfigurableInterface {
    *   Array where keys are the variable names of the configuration elements and
    *   values are their default values.
    */
-  public function getDefaultConfig() {
+  public function configDefaults() {
     $fake_form_state = array();
     $form = $this->configForm($fake_form_state);
     return element_children($form);
@@ -117,10 +116,10 @@ class FeedsConfigurable implements FeedsConfigurableInterface {
    *
    * @param $config
    *   Array containing configuration information. Will be filtered by the keys returned by
-   *   getDefaultConfig().
+   *   configDefaults().
    */
   public function setConfig($config) {
-    $default_keys = $this->getDefaultConfig();
+    $default_keys = $this->configDefaults();
     $this->config = array_intersect_key($config, $default_keys);
   }
 
@@ -128,12 +127,12 @@ class FeedsConfigurable implements FeedsConfigurableInterface {
    * Similar to setConfig but adds to existing configuration.
    *
    * @param $config
-   *   Array containing configuration information. Will be filtered by the keys returned by
-   *   getDefaultConfig().
+   *   Array containing configuration information. Will be filtered by the keys
+   *   returned by configDefaults().
    */
   public function addConfig($config) {
     $this->config = array_merge($this->config, $config);
-    $default_keys = $this->getDefaultConfig();
+    $default_keys = $this->configDefaults();
     $this->config = array_intersect_key($this->config, $default_keys);
   }
 

@@ -26,7 +26,7 @@ abstract class FeedsPlugin extends FeedsConfigurable implements FeedsSourceInter
    */
   protected function __construct($id) {
     parent::__construct($id);
-    $this->source_config = $this->getSourceDefaults();
+    $this->source_config = $this->sourceDefaults();
   }
 
   /**
@@ -47,9 +47,9 @@ abstract class FeedsPlugin extends FeedsConfigurable implements FeedsSourceInter
   }
 
   /**
-   * Implementation of FeedsSourceInterface::getSourceDefaults().
+   * Implementation of FeedsSourceInterface::sourceDefaults().
    */
-  public function getSourceDefaults() {
+  public function sourceDefaults() {
     $values = array_flip(array_keys($this->sourceForm(array())));
     foreach ($values as $k => $v) {
       $values[$k] = '';

@@ -176,9 +176,9 @@ class FeedsNodeProcessor extends FeedsProcessor {
   }
 
   /**
-   * Override parent::getDefaultConfig().
+   * Override parent::configDefaults().
    */
-  public function getDefaultConfig() {
+  public function configDefaults() {
     $types = node_get_types('names');
     $type = isset($types['story']) ? 'story' : key($types);
     return array(

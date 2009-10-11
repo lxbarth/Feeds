@@ -27,7 +27,7 @@ abstract class FeedsProcessor extends FeedsPlugin {
   /**
    * Declare default configuration.
    */
-  public function getDefaultConfig() {
+  public function configDefaults() {
     return array('mappings' => array());
   }
 

@@ -50,9 +50,9 @@ class FeedsHttpFetcher extends FeedsFetcher {
   }
 
   /**
-   * Override parent::getDefaultConfig().
+   * Override parent::configDefaults().
    */
-  public function getDefaultConfig() {
+  public function configDefaults() {
     return array('auto_detect_feeds' => FALSE);
   }
 

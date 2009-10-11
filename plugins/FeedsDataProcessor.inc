@@ -137,9 +137,9 @@ class FeedsDataProcessor extends FeedsProcessor {
   }
 
   /**
-   * Override parent::getDefaultConfig().
+   * Override parent::configDefaults().
    */
-  public function getDefaultConfig() {
+  public function configDefaults() {
     return array(
       'update_existing' => FALSE,
       'mappings' => array(),

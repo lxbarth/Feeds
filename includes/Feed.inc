@@ -139,7 +139,7 @@ class Feed extends FeedsConfigurable {
   /**
    * Return defaults for feed configuration.
    */
-  public function getDefaultConfig() {
+  public function configDefaults() {
     return array(
       'name' => '',
       'description' => '',
