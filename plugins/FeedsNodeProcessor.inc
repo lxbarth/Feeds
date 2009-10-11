@@ -105,6 +105,67 @@ class FeedsNodeProcessor extends FeedsProcessor {
   }
 
   /**
+   * Override parent::configDefaults().
+   */
+  public function configDefaults() {
+    $types = node_get_types('names');
+    $type = isset($types['story']) ? 'story' : key($types);
+    return array(
+      'content_type' => $type, // @todo: provide default content type feed_item.
+      'update_existing' => 0,
+      'mappings' => array(
+        '0' => array(
+          'source' => 'title',
+          'target' => 'title',
+          'unique' => FALSE,
+        ),
+        '1' => array(
+          'source' => 'description',
+          'target' => 'teaser',
+          'unique' => FALSE,
+        ),
+        '2' => array(
+          'source' => 'timestamp',
+          'target' => 'created',
+          'unique' => FALSE,
+        ),
+        '3' => array(
+          'source' => 'url',
+          'target' => 'url',
+          'unique' => TRUE,
+        ),
+        '4' => array(
+          'source' => 'guid',
+          'target' => 'guid',
+          'unique' => TRUE,
+        ),
+      ),
+    );
+  }
+
+  /**
+   * Override parent::configForm().
+   */
+  public function configForm(&$form_state) {
+    $types = node_get_types('names');
+    $form = array();
+    $form['content_type'] = array(
+      '#type' => 'select',
+      '#title' => t('Content type'),
+      '#description' => t('Choose node type to create from this feed. <strong>Note:</strong> Users with "import !feed_id feeds" permissions will be able to <strong>import</strong> nodes of the content type selected here regardless of the node level permissions. However, users with "purge !feed_id permissions" need to have sufficient node level permissions to delete the imported nodes.', array('!feed_id' => $this->id)),
+      '#options' => $types,
+      '#default_value' => $this->config['content_type'],
+    );
+    $form['update_existing'] = array(
+      '#type' => 'checkbox',
+      '#title' => t('Update existing items'),
+      '#description' => t('Check if existing items should be updated from the feed.'),
+      '#default_value' => $this->config['update_existing'],
+    );
+    return $form;
+  }
+
+  /**
    * Override setTargetElement to operate on a target item that is a node.
    */
   public function setTargetElement($target_node, $target_element, $value) {
@@ -174,66 +235,5 @@ class FeedsNodeProcessor extends FeedsProcessor {
       }
     }
     return 0;
-  }
-
-  /**
-   * Override parent::configDefaults().
-   */
-  public function configDefaults() {
-    $types = node_get_types('names');
-    $type = isset($types['story']) ? 'story' : key($types);
-    return array(
-      'content_type' => $type, // @todo: provide default content type feed_item.
-      'update_existing' => 0,
-      'mappings' => array(
-        '0' => array(
-          'source' => 'title',
-          'target' => 'title',
-          'unique' => FALSE,
-        ),
-        '1' => array(
-          'source' => 'description',
-          'target' => 'teaser',
-          'unique' => FALSE,
-        ),
-        '2' => array(
-          'source' => 'timestamp',
-          'target' => 'created',
-          'unique' => FALSE,
-        ),
-        '3' => array(
-          'source' => 'url',
-          'target' => 'url',
-          'unique' => TRUE,
-        ),
-        '4' => array(
-          'source' => 'guid',
-          'target' => 'guid',
-          'unique' => TRUE,
-        ),
-      ),
-    );
-  }
-
-  /**
-   * Override parent::configForm().
-   */
-  public function configForm(&$form_state) {
-    $types = node_get_types('names');
-    $form = array();
-    $form['content_type'] = array(
-      '#type' => 'select',
-      '#title' => t('Content type'),
-      '#description' => t('Choose node type to create from this feed. <strong>Note:</strong> Users with "import !feed_id feeds" permissions will be able to <strong>import</strong> nodes of the content type selected here regardless of the node level permissions. However, users with "purge !feed_id permissions" need to have sufficient node level permissions to delete the imported nodes.', array('!feed_id' => $this->id)),
-      '#options' => $types,
-      '#default_value' => $this->config['content_type'],
-    );
-    $form['update_existing'] = array(
-      '#type' => 'checkbox',
-      '#title' => t('Update existing items'),
-      '#description' => t('Check if existing items should be updated from the feed.'),
-      '#default_value' => $this->config['update_existing'],
-    );
-    return $form;
   }
 }
