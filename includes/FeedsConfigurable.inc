@@ -15,12 +15,11 @@
  * @todo: comment methods.
  */
 interface FeedsConfigurableInterface {
-  // @todo: don't pass trough $form_state.
-  public function configForm(&$form_state);
-  public function getConfig();
   public function setConfig($config);
   public function addConfig($config);
+  public function getConfig();
   public function configDefaults();
+  public function configForm(&$form_state);
 }
 
 /**
