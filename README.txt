@@ -50,7 +50,7 @@ array in your settings.php file.
 
 Name:        feeds_importer_class
 Default:     'FeedsImporter'
-Description: The class to use for importing a feed.
+Description: The class to use for importing feeds.
 
 Name:        feeds_source_class
 Default:     'FeedsSource'
