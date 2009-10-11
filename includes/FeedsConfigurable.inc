@@ -12,23 +12,8 @@
  * Note how a configurable does not need to implement any DB persistence
  * methods like load(), save() or delete().
  *
- * @todo: comment methods.
  */
-interface FeedsConfigurableInterface {
-  public function setConfig($config);
-  public function addConfig($config);
-  public function getConfig();
-  public function configDefaults();
-  public function configForm(&$form_state);
-}
-
-/**
- * Base class for configurable objects.
- *
- * Contains some common variables and functionality for implementers
- * of FeedsConfigurableInterface and a static method to generate singletons.
- */
-class FeedsConfigurable implements FeedsConfigurableInterface {
+abstract class FeedsConfigurable {
 
   // Holds the actual configuration information.
   protected $config;
@@ -210,6 +195,8 @@ function feeds_config_form_validate($form, &$form_state) {
 
 /**
  * Submit handler for feeds_config_form().
+ *
+ * @todo: ->save() violates the class definition.
  */
 function feeds_config_form_submit($form, &$form_state) {
   $form['#configurable']->addConfig($form_state['values']);
