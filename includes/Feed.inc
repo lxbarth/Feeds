@@ -140,6 +140,38 @@ class Feed extends FeedsConfigurable {
   }
 
   /**
+   * Set plugin.
+   *
+   * @param $plugin_key
+   *   A fetcher, parser or processor plugin.
+   *
+   * @todo: error handling, handle setting to the same plugin.
+   */
+  public function setPlugin($plugin_key) {
+    // $plugin_type can be either 'fetcher', 'parser' or 'processor'
+    if ($plugin_type = feeds_plugin_type($plugin_key)) {
+      if ($plugin = feeds_plugin_instance($plugin_key, $this->id)) {
+        // Unset existing plugin, switch to new plugin.
+        unset($this->$plugin_type);
+        $this->$plugin_type = $plugin;
+        // Set configuration information, blow away any previous information on
+        // this spot.
+        $this->config[$plugin_type] = array('plugin_key' => $plugin_key);
+      }
+    }
+  }
+
+  /**
+   * Get configuration of this feed.
+   */
+  public function getConfig() {
+    foreach (array('fetcher', 'parser', 'processor') as $type) {
+      $this->config[$type]['config'] = $this->$type->getConfig();
+    }
+    return $this->config;// Collect information from plugins.
+  }
+
+  /**
    * Return defaults for feed configuration.
    */
   public function configDefaults() {
@@ -160,16 +192,6 @@ class Feed extends FeedsConfigurable {
       'refresh_period' => 1800, // Refresh every 30 minutes by default.
       'import_on_create' => TRUE, // Import on create.
     );
-  }
-
-  /**
-   * Get configuration of this feed.
-   */
-  public function getConfig() {
-    foreach (array('fetcher', 'parser', 'processor') as $type) {
-      $this->config[$type]['config'] = $this->$type->getConfig();
-    }
-    return $this->config;// Collect information from plugins.
   }
 
   /**
@@ -214,27 +236,5 @@ class Feed extends FeedsConfigurable {
       '#default_value' => $this->config['import_on_create'],
     );
     return $form;
-  }
-
-  /**
-   * Set plugin.
-   *
-   * @param $plugin_key
-   *   A fetcher, parser or processor plugin.
-   *
-   * @todo: error handling, handle setting to the same plugin.
-   */
-  public function setPlugin($plugin_key) {
-    // $plugin_type can be either 'fetcher', 'parser' or 'processor'
-    if ($plugin_type = feeds_plugin_type($plugin_key)) {
-      if ($plugin = feeds_plugin_instance($plugin_key, $this->id)) {
-        // Unset existing plugin, switch to new plugin.
-        unset($this->$plugin_type);
-        $this->$plugin_type = $plugin;
-        // Set configuration information, blow away any previous information on
-        // this spot.
-        $this->config[$plugin_type] = array('plugin_key' => $plugin_key);
-      }
-    }
   }
 }
