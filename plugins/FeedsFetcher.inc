@@ -9,7 +9,7 @@ class FeedsFetcherResult extends FeedsResult {
   // @todo: does text/filepath make sense?
   // @todo: If convenient, we could expand on this concept and build content
   //   type negotiation between Fetchers and Parsers.
-  protected $validTypes = array('text/filepath', 'text/xml');
+  protected $valid_types = array('text/filepath', 'text/xml');
 }
 
 /**

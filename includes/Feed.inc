@@ -22,7 +22,7 @@ abstract class FeedsResult {
   protected $type;
   protected $value;
   // An array of valid values for $type.
-  protected $validTypes = array();
+  protected $valid_types = array();
 
   /**
    * Constructor: create object, validate class variables.
@@ -30,7 +30,7 @@ abstract class FeedsResult {
    * @param $value
    *   The value of this result.
    * @param $type
-   *   The type of this result. Must be one of $validTypes.
+   *   The type of this result. Must be one of $valid_types.
    */
   public function __construct($value, $type) {
     $this->_set('type', $type);
@@ -48,11 +48,11 @@ abstract class FeedsResult {
    * Control access to class variables.
    */
   public function _set($name, $value) {
-    if ($name == 'validTypes') {
-      throw new Exception('Cannot write FeedsResult::validTypes.');
+    if ($name == 'valid_types') {
+      throw new Exception('Cannot write FeedsResult::valid_types.');
     }
     if ($name == 'type') {
-      if (!in_array($value, $this->validTypes)) {
+      if (!in_array($value, $this->valid_types)) {
         throw new Exception('Invalid type "'. $value .'"');
       }
     }

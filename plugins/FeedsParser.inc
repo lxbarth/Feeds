@@ -6,7 +6,9 @@
  */
 class FeedsParserResult extends FeedsResult {
   // Define valid types.
-  protected $validTypes = array('simple', 'syndication');
+  // @todo: does this distinction make sense? We may be able to run with
+  // 'simple' and no special case for 'syndication'.
+  protected $valid_types = array('simple', 'syndication');
 
   /**
    * Override constructor to define a default type.
