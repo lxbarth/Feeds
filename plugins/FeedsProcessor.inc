@@ -107,10 +107,12 @@ abstract class FeedsProcessor extends FeedsPlugin {
       $target_item = array();
     }
 
-    // This is where the actual mapping happens: For every mapping we envoke
-    // the parser's getSourceElement() method to retrieve the value of the source
-    // element and pass it to the processor's setTargetElement() to stick it
-    // on the right place of the target item.
+    /*
+    This is where the actual mapping happens: For every mapping we envoke
+    the parser's getSourceElement() method to retrieve the value of the source
+    element and pass it to the processor's setTargetElement() to stick it
+    on the right place of the target item.
+    */
     foreach ($this->config['mappings'] as $mapping) {
       $value = $parser->getSourceElement($source_item, $mapping['source']);
       $this->setTargetElement($target_item, $mapping['target'], $value);

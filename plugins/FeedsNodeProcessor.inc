@@ -20,7 +20,8 @@ class FeedsNodeProcessor extends FeedsProcessor {
     $created  = $updated = 0;
 
     foreach ($parserResult->value['items'] as $item) {
-      // If the target item does not exist OR if update_existing is enabled, map and save.
+      // If the target item does not exist OR if update_existing is enabled,
+      // map and save.
       if (!$nid = $this->existingItemId($item, $source) || $this->config['update_existing']) {
 
         // Map item to a node.

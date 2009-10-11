@@ -38,7 +38,8 @@ class FeedsFileFetcher extends FeedsFetcher {
     $feed_dir = file_directory_path() .'/feeds';
     file_check_directory($feed_dir, TRUE);
 
-    // If there is a file uploaded, save it, otherwise validate input on feeds_source.
+    // If there is a file uploaded, save it, otherwise validate input on
+    // feeds_source.
     if ($file = file_save_upload('feeds', array(), $feed_dir)) {
       file_set_status($file, FILE_STATUS_PERMANENT);
       $values['feeds_source'] = $file->filepath;
@@ -56,8 +57,8 @@ class FeedsFileFetcher extends FeedsFetcher {
    */
   public function fetch(FeedsSource $source) {
     $source_config = $source->getConfigFor($this);
-    // Just return path to file, contents can be read easily with file_get_contents($file_path);
-    // @todo: Create a class definition for this.
+    // Just return path to file, contents can be read easily with
+    // file_get_contents($file_path);
     return new FeedsFetcherResult($source_config['feeds_source'], 'text/filepath');
   }
 }

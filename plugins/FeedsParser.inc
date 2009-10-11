@@ -42,8 +42,8 @@ abstract class FeedsParser extends FeedsPlugin {
    * Declare the possible mapping sources that this parser produces.
    *
    * @return
-   *   An array of mapping sources, or FALSE if the sources can be defined by typing a value
-   *   in a text field.
+   *   An array of mapping sources, or FALSE if the sources can be defined by
+   *   typing a value in a text field.
    *
    *   Example:
    *   array(
