@@ -179,7 +179,7 @@ class FeedsRSStoDataTest extends FeedsWebTestCase {
   public function getInfo() {
     return array(
       'name' => t('RSS import to data records'),
-      'description' => t('Tests a feed configuration that is attached to a content type, uses common syndication parser and a node processor. <strong>Requires Data module</strong>.'),
+      'description' => t('Tests a feed configuration that is attached to a content type, uses common syndication parser and a node processor. <strong>Requires Data module and Views module</strong>.'),
       'group' => t('Feeds'),
     );
   }
