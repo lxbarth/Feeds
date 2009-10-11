@@ -4,7 +4,7 @@
 /**
  * Abstract class, defines interface for processors.
  *
- * @todo: make implement FeedsSourceInterface
+ * @todo: declare an interface for mapping related functions.
  */
 abstract class FeedsProcessor extends FeedsPlugin {
 

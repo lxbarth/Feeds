@@ -12,6 +12,16 @@
 class FeedsFileFetcher extends FeedsFetcher {
 
   /**
+   * Fetch a local resource.
+   */
+  public function fetch(FeedsSource $source) {
+    $source_config = $source->getConfigFor($this);
+    // Just return path to file, contents can be read easily with
+    // file_get_contents($file_path);
+    return new FeedsFetcherResult($source_config['feeds_source'], 'text/filepath');
+  }
+
+  /**
    * Source form.
    */
   public function sourceForm($source_config) {
@@ -48,17 +58,5 @@ class FeedsFileFetcher extends FeedsFetcher {
       form_set_error('feeds][feeds_source', t('File needs to point to a file in your Drupal file system path.'));
       $values['feeds_source'] = $this->loadSource();
     }
-  }
-
-  /**
-   * Fetch a local resource.
-   *
-   * @todo: support seemless expanding of archives.
-   */
-  public function fetch(FeedsSource $source) {
-    $source_config = $source->getConfigFor($this);
-    // Just return path to file, contents can be read easily with
-    // file_get_contents($file_path);
-    return new FeedsFetcherResult($source_config['feeds_source'], 'text/filepath');
   }
 }

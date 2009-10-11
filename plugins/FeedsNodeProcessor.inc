@@ -83,6 +83,40 @@ class FeedsNodeProcessor extends FeedsProcessor {
   }
 
   /**
+   * Execute mapping on an item.
+   */
+  protected function map($source_item) {
+    // Prepare node object.
+    static $included;
+    if (!$included) {
+      module_load_include('inc', 'node', 'node.pages');
+      $included = TRUE;
+    }
+    $target_node = new stdClass();
+    $target_node->type = $this->config['content_type'];
+    $target_node->feeds_node_item = new stdClass();
+    node_object_prepare($target_node);
+    // Assign an aggregated node always to anonymous.
+    // @todo: change to feed node uid to keep in line with feedapi.
+    $target_node->uid = 0;
+
+    // Have parent class do the iterating.
+    return parent::map($source_item, $target_node);
+  }
+
+  /**
+   * Override setTargetElement to operate on a target item that is a node.
+   */
+  public function setTargetElement($target_node, $target_element, $value) {
+    if (in_array($target_element, array('url', 'guid'))) {
+      $target_node->feeds_node_item->$target_element = $value;
+    }
+    elseif (in_array($target_element, array('title', 'teaser', 'status', 'created'))) {
+      $target_node->$target_element = $value;
+    }
+  }
+
+  /**
    * Return available mapping targets.
    */
   public function getMappingTargets() {
@@ -116,40 +150,6 @@ class FeedsNodeProcessor extends FeedsProcessor {
     // @todo: document.
     drupal_alter('feeds_node_processor_targets', $targets);
     return $targets;
-  }
-
-  /**
-   * Execute mapping on an item.
-   */
-  protected function map($source_item) {
-    // Prepare node object.
-    static $included;
-    if (!$included) {
-      module_load_include('inc', 'node', 'node.pages');
-      $included = TRUE;
-    }
-    $target_node = new stdClass();
-    $target_node->type = $this->config['content_type'];
-    $target_node->feeds_node_item = new stdClass();
-    node_object_prepare($target_node);
-    // Assign an aggregated node always to anonymous.
-    // @todo: change to feed node uid to keep in line with feedapi.
-    $target_node->uid = 0;
-
-    // Have parent class do the iterating.
-    return parent::map($source_item, $target_node);
-  }
-
-  /**
-   * Override setTargetElement to operate on a target item that is a node.
-   */
-  public function setTargetElement($target_node, $target_element, $value) {
-    if (in_array($target_element, array('url', 'guid'))) {
-      $target_node->feeds_node_item->$target_element = $value;
-    }
-    elseif (in_array($target_element, array('title', 'teaser', 'status', 'created'))) {
-      $target_node->$target_element = $value;
-    }
   }
 
   /**

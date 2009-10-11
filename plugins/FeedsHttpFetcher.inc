@@ -4,29 +4,12 @@
 /**
  * @file
  * Home of the FeedsHttpFetcher.
- *
  */
 
 /**
  * Fetches data via HTTP.
  */
 class FeedsHttpFetcher extends FeedsFetcher {
-
-  /**
-   * Callback methods, exposes source form.
-   *
-   * @todo: move HTTP fetcher specific code down into HTTP fetcher.
-   */
-  public function sourceForm($source_config) {
-    $form = array();
-    $form['url'] = array(
-      '#type' => 'textfield',
-      '#title' => t('URL'),
-      '#description' => t('Enter the URL for this feed.'),
-      '#default_value' => isset($source_config['url']) ? $source_config['url'] : '',
-    );
-    return $form;
-  }
 
   /**
    * Fetch a resource via http.
@@ -47,6 +30,20 @@ class FeedsHttpFetcher extends FeedsFetcher {
     else {
       return new FeedsFetcherResult(http_request_get($url), 'text/xml');
     }
+  }
+
+  /**
+   * Expose source form.
+   */
+  public function sourceForm($source_config) {
+    $form = array();
+    $form['url'] = array(
+      '#type' => 'textfield',
+      '#title' => t('URL'),
+      '#description' => t('Enter the URL for this feed.'),
+      '#default_value' => isset($source_config['url']) ? $source_config['url'] : '',
+    );
+    return $form;
   }
 
   /**
