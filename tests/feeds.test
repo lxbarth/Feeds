@@ -213,8 +213,6 @@ class FeedsRSStoDataTest extends FeedsWebTestCase {
     // Go to edit page and select the data processor.
     $this->drupalPost('admin/build/feeds/edit/rss/processor', array(), 'Select');
     $this->assertPlugins('rss', 'FeedsHttpFetcher', 'FeedsSyndicationParser', 'FeedsDataProcessor');
-    // Reset permissions cache, check permissions.
-    $this->checkPermissions(array('import rss feeds', 'purge rss feeds'), TRUE);
 
     // Go to mapping page and create a couple of mappings.
     $mappings = array(
