@@ -33,21 +33,14 @@ abstract class FeedsResult {
    *   The type of this result. Must be one of $valid_types.
    */
   public function __construct($value, $type) {
-    $this->_set('type', $type);
-    $this->_set('value', $value);
+    $this->__set('type', $type);
+    $this->__set('value', $value);
   }
 
   /**
    * Control access to class variables.
    */
-  public function __get($name) {
-    return $this->$name;
-  }
-
-  /**
-   * Control access to class variables.
-   */
-  public function _set($name, $value) {
+  public function __set($name, $value) {
     if ($name == 'valid_types') {
       throw new Exception('Cannot write FeedsResult::valid_types.');
     }
@@ -57,6 +50,13 @@ abstract class FeedsResult {
       }
     }
     $this->$name = $value;
+  }
+
+  /**
+   * Control access to class variables.
+   */
+  public function __get($name) {
+    return $this->$name;
   }
 }
 
@@ -76,7 +76,6 @@ class Feed extends FeedsConfigurable {
   // This array defines the variable names of the plugins above.
   // @todo: make this static once 5.3.0 has spread enough and __callstatic can
   // be used.
-  // @todo use.
   protected $plugin_types = array('fetcher', 'parser', 'processor');
 
   /**
