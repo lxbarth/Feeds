@@ -151,7 +151,7 @@ class FeedsSource extends FeedsConfigurable {
   public function configDefaults() {
     // Collect information from plugins.
     $defaults = array();
-    foreach (array('fetcher', 'parser', 'processor') as $type) {
+    foreach ($this->feed->plugin_types as $type) {
       if ($this->feed->$type->hasSourceConfig()) {
         $defaults[get_class($this->feed->$type)] = $this->feed->$type->sourceDefaults();
       }
@@ -165,7 +165,7 @@ class FeedsSource extends FeedsConfigurable {
   public function configForm(&$form_state) {
     // Collect information from plugins.
     $form = array();
-    foreach (array('fetcher', 'parser', 'processor') as $type) {
+    foreach ($this->feed->plugin_types as $type) {
       if ($this->feed->$type->hasSourceConfig()) {
         $class = get_class($this->feed->$type);
         $form[$class] = $this->feed->$type->sourceForm($this->config[$class]);
@@ -179,7 +179,7 @@ class FeedsSource extends FeedsConfigurable {
    * Override parent::configFormValidate().
    */
   public function configFormValidate(&$values) {
-    foreach (array('fetcher', 'parser', 'processor') as $type) {
+    foreach ($this->feed->plugin_types as $type) {
       $class = get_class($this->feed->$type);
       if (isset($values[$class]) && $this->feed->$type->hasSourceConfig()) {
         $this->feed->$type->sourceFormValidate($values[$class]);

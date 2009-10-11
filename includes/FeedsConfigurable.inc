@@ -37,12 +37,13 @@ class FeedsConfigurable implements FeedsConfigurableInterface {
   // A unique identifier for the configuration.
   protected $id;
 
-  // Export type can be one of
-  // FEEDS_EXPORT_NONE - the configurable only exists in memory
-  // EXPORT_IN_DATABASE - the configurable is defined in the database.
-  // EXPORT_IN_CODE - the configurable is defined in code.
-  // EXPORT_IN_CODE | EXPORT_IN_DATABASE -
-  // - the configurable is defined in code, but overridden in the database.
+  /*
+  Export type can be one of
+  FEEDS_EXPORT_NONE - the configurable only exists in memory
+  EXPORT_IN_DATABASE - the configurable is defined in the database.
+  EXPORT_IN_CODE - the configurable is defined in code.
+  EXPORT_IN_CODE | EXPORT_IN_DATABASE - the configurable is defined in code, but
+                                        overridden in the database.*/
   protected $export_type;
 
   /**

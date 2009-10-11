@@ -77,7 +77,7 @@ class Feed extends FeedsConfigurable {
   // @todo: make this static once 5.3.0 has spread enough and __callstatic can
   // be used.
   // @todo use.
-  protected $types = array('fetcher', 'parser', 'processor');
+  protected $plugin_types = array('fetcher', 'parser', 'processor');
 
   /**
    * Instantiate class variables, initialize and configure
@@ -91,7 +91,7 @@ class Feed extends FeedsConfigurable {
 
     // Instantiate fetcher, parser and processor, set their configuration if
     // stored info is available.
-    foreach (array('fetcher', 'parser', 'processor') as $type) {
+    foreach ($this->plugin_types as $type) {
       $plugin = feeds_plugin_instance($this->config[$type]['plugin_key'], $this->id);
       if (isset($this->config[$type]['config'])) {
         $plugin->setConfig($this->config[$type]['config']);
