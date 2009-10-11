@@ -49,8 +49,6 @@ class FeedsRSStoNodesTest extends FeedsWebTestCase {
 
     // Create a feed.
     $this->createFeedConfiguration();
-    // Reset permissions cache, check permissions.
-    $this->checkPermissions(array('import syndication feeds', 'purge syndication feeds'), TRUE);
 
     $nid = $this->createFeedNode();
     // Assert 10 items aggregated after creation of the node.
@@ -118,7 +116,6 @@ class FeedsRSStoNodesTest extends FeedsWebTestCase {
     $this->assertText('Deleted 10 nodes.');
 
     // Assert DB status, now there should be no items.
-    // @todo: fails, is there something cached?
     $count = db_result(db_query('SELECT COUNT(*) FROM {feeds_node_item}'));
     $this->assertEqual($count, 0, 'Accurate number of items in database.');
 
@@ -138,6 +135,9 @@ class FeedsRSStoNodesTest extends FeedsWebTestCase {
     $this->drupalGet('node/'. $nid);
     $this->assertNoRaw('node/'. $nid .'/import');
     $this->assertNoRaw('node/'. $nid .'/delete-items');
+/*
+    @todo:
+    Can't use on-the-fly permissions. Wait for http://drupal.org/node/601820
 
     // Login with new user with access content and import syndication feeds
     // permissions.
@@ -162,6 +162,7 @@ class FeedsRSStoNodesTest extends FeedsWebTestCase {
     $this->drupalGet('node/'. $nid);
     $this->assertNoRaw('node/'. $nid .'/import');
     $this->assertRaw('node/'. $nid .'/delete-items');
+ */
 
     // @todo: Standalone import form testing.
     // @todo: Create a second feed and test.
