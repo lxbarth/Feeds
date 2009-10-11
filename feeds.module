@@ -235,7 +235,7 @@ function feeds_nodeapi($node, $op) {
         $source->save();
 
         // Refresh feed if import on create is selected.
-        if ($op == 'insert' && $feed->config['import_on_create']) {
+        if ($op == 'insert' && $importer->config['import_on_create']) {
           $importer->import($source);
         }
         // Add feed to scheduler.
@@ -243,8 +243,8 @@ function feeds_nodeapi($node, $op) {
         break;
       case 'delete':
         // Remove feed from scheduler and delete source.
-        feeds_scheduler()->remove($feed->id, $node->nid);
-        feeds_source($feed, $node->nid)->delete();
+        feeds_scheduler()->remove($importer->id, $node->nid);
+        feeds_source($importer, $node->nid)->delete();
         break;
     }
   }
@@ -403,7 +403,9 @@ function feeds_load_plugin_class($plugin) {
 }
 
 /**
- * Load all feeds.
+ * Load all importers.
+ *
+ * @todo: rename to feeds_importer_load_all()
  *
  * @return
  *   An array of all feed configurations available.
