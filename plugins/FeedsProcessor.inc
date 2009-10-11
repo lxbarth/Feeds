@@ -30,7 +30,7 @@ abstract class FeedsProcessor extends FeedsPlugin {
    * Execute mapping on an item.
    */
   protected function map($source_item, $target_item = NULL) {
-    $parser = feeds_feed($this->id)->parser;
+    $parser = feeds_importer($this->id)->parser;
     if (empty($target_item)) {
       $target_item = array();
     }
@@ -153,7 +153,7 @@ abstract class FeedsProcessor extends FeedsPlugin {
    *   elements from the source item mapped to these targets.
    */
   protected function uniqueTargets($source_item) {
-    $parser = feeds_feed($this->id)->parser;
+    $parser = feeds_importer($this->id)->parser;
     $targets = array();
     foreach ($this->config['mappings'] as $mapping) {
       if ($mapping['unique']) {

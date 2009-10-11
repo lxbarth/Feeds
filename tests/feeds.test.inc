@@ -120,14 +120,11 @@ class FeedsWebTestCase extends DrupalWebTestCase {
    */
   public function assertPlugins($id, $fetcher, $parser, $processor) {
     // Assert actual configuration.
-    $result = db_query('SELECT * FROM {feeds_config} WHERE id = "%s"', $id);
-    $config = array();
-    while ($row = db_fetch_object($result)) {
-      $config[$row->class] = unserialize($row->config);
-    }
-    $this->assertEqual($config['Feed']['fetcher']['plugin_key'], $fetcher, 'Correct fetcher');
-    $this->assertEqual($config['Feed']['parser']['plugin_key'], $parser, 'Correct parser');
-    $this->assertEqual($config['Feed']['processor']['plugin_key'], $processor, 'Correct processor');
+    $config = unserialize(db_result(db_query('SELECT config FROM {feeds_config} WHERE id = "%s"', $id)));
+
+    $this->assertEqual($config['fetcher']['plugin_key'], $fetcher, 'Correct fetcher');
+    $this->assertEqual($config['parser']['plugin_key'], $parser, 'Correct parser');
+    $this->assertEqual($config['processor']['plugin_key'], $processor, 'Correct processor');
   }
 
   /**

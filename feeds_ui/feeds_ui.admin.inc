@@ -107,8 +107,8 @@ function feeds_ui_create_form(&$form_state) {
  */
 function feeds_ui_create_form_validate($form, &$form_state) {
   ctools_include('export');
-  $feed = feeds_feed($form_state['values']['id']);
-  if (ctools_export_load_object('feeds_config', 'conditions', array('id' => $form_state['values']['id'], 'class' => 'Feed'))) {
+  $feed = feeds_importer($form_state['values']['id']);
+  if (ctools_export_load_object('feeds_config', 'conditions', array('id' => $form_state['values']['id']))) {
     form_set_error('id', t('Id is taken.'));
   }
   $feed->configFormValidate($form_state['values']);
@@ -119,7 +119,7 @@ function feeds_ui_create_form_validate($form, &$form_state) {
  */
 function feeds_ui_create_form_submit($form, &$form_state) {
   // Create feed.
-  $feed = feeds_feed($form_state['values']['id']);
+  $feed = feeds_importer($form_state['values']['id']);
   $feed->addConfig($form_state['values']);
   $feed->save();
 
@@ -338,7 +338,7 @@ function _feeds_ui_list_plugins_by_type($feed, $type, $selected) {
  */
 function feeds_ui_select_plugin($args) {
   $plugin_key = $args['plugin_key'];
-  $feed = feeds_feed($args['feed_id']);
+  $feed = feeds_importer($args['feed_id']);
 
   // Set the plugin and save feed.
   $feed->setPlugin($plugin_key);

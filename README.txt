@@ -47,9 +47,10 @@ Hidden settings
 Hidden settings are variables that you can define by adding them to the $conf
 array in your settings.php file.
 
-Name:        feed_class
-Default:     'Feed'
-Description: The class to use for handling feed configurations.
+
+Name:        feeds_importer_class
+Default:     'FeedsImporter'
+Description: The class to use for importing a feed.
 
 Name:        feeds_source_class
 Default:     'FeedsSource'
@@ -58,10 +59,6 @@ Description: The class to use for handling feed sources.
 Name:        feeds_scheduler_class
 Default:     'FeedsScheduler'
 Description: The class to use for scheduling feed refreshing.
-
-Name:        feeds_importer_class
-Default:     'FeedsImporter'
-Description: The class to use for importing a feed.
 
 Name:        feeds_worker_time
 Default:     60

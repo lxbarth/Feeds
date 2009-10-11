@@ -33,7 +33,7 @@ abstract class FeedsConfigurable {
   /**
    * Instantiate a FeedsConfigurable object.
    *
-   * Don't use directly, use feeds_feed() or feeds_plugin_instance()
+   * Don't use directly, use feeds_importer() or feeds_plugin_instance()
    * instead.
    */
   public static function instance($class, $id) {

@@ -9,6 +9,7 @@
  * Implementation of hook_schema().
  */
 function feeds_schema() {
+  // @todo: call feeds_importer
   $schema['feeds_config'] = array(
     'description' => 'Configuration of feeds objects.',
     'export' => array(
@@ -30,14 +31,6 @@ function feeds_schema() {
         'default' => '',
         'description' => 'Id of the fields object.',
       ),
-      // @todo: remove this, not needed any more.
-      'class' => array(
-        'type' => 'varchar',
-        'length' => '255',
-        'not null' => TRUE,
-        'default' => '',
-        'description' => 'Class name of the feeds plugin.',
-      ),
       'config' => array(
         'type' => 'text',
         'not null' => FALSE,
@@ -47,7 +40,6 @@ function feeds_schema() {
     ),
     'indexes' => array(
         'id' => array('id'),
-        'class' => array('class'),
       ),
   );
   $schema['feeds_source'] = array(
@@ -182,4 +174,13 @@ function feeds_install() {
 function feeds_uninstall() {
   // Remove tables.
   drupal_uninstall_schema('feeds');
+}
+
+/**
+ * Remove class field on feeds_config.
+ */
+function feeds_update_6001() {
+  $ret = array();
+  db_drop_field($ret, 'feeds_config', 'class');
+  return $ret;
 }

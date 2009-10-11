@@ -53,7 +53,7 @@ function feeds_perm() {
 function feeds_forms() {
   // Declare form callbacks for all known classes derived from FeedsConfigurable.
   $forms = array();
-  $forms['Feed_feeds_config_form']['callback'] = 'feeds_config_form';
+  $forms['FeedsImporter_feeds_config_form']['callback'] = 'feeds_config_form';
   $plugins = feeds_get_plugins();
   foreach ($plugins as $plugin) {
     // See feeds_get_config_form().
@@ -129,9 +129,10 @@ function feeds_menu() {
 
 /**
  * Menu loader callback.
+ * @todo: rename to feeds_importer_load().
  */
-function feeds_load($id) {
-  return feeds_feed($id);
+function feeds_importer_load($id) {
+  return feeds_importer($id);
 }
 
 /**
@@ -220,25 +221,25 @@ function feeds_nodeapi($node, $op) {
   // Break out node processor related nodeapi functionality.
   _feeds_nodeapi_node_processor($node, $op);
 
-  if ($feed = feeds_get_by_content_type($node->type)) {
+  if ($importer = feeds_get_by_content_type($node->type)) {
     switch ($op) {
       case 'validate':
         // Node module magically moved $form['feeds'] to $node->feeds :P
-        feeds_source($feed)->configFormValidate($node->feeds);
+        feeds_source($importer)->configFormValidate($node->feeds);
         break;
       case 'insert':
       case 'update':
         // Add configuration to feed source and save.
-        $source = feeds_source($feed, $node->nid);
+        $source = feeds_source($importer, $node->nid);
         $source->addConfig($node->feeds);
         $source->save();
 
         // Refresh feed if import on create is selected.
         if ($op == 'insert' && $feed->config['import_on_create']) {
-          feeds_importer()->import($feed, $source);
+          $importer->import($source);
         }
         // Add feed to scheduler.
-        feeds_scheduler()->add($feed->id, $node->nid);
+        feeds_scheduler()->add($importer->id, $node->nid);
         break;
       case 'delete':
         // Remove feed from scheduler and delete source.
@@ -409,11 +410,11 @@ function feeds_load_plugin_class($plugin) {
  */
 function feeds_load_all() {
   ctools_include('export');
-  $configs = ctools_export_load_object('feeds_config', 'conditions', array('class' => 'Feed'));
+  $configs = ctools_export_load_object('feeds_config', 'all');
   $feeds = array();
   foreach ($configs as $config) {
     if ($config->id) {
-      $feeds[$config->id] = feeds_feed($config->id);
+      $feeds[$config->id] = feeds_importer($config->id);
     }
   }
   return $feeds;
@@ -439,22 +440,23 @@ function feeds_import($feed, $feed_nid = 0) {
   if ($source->export_status & FEEDS_EXPORT_NONE) {
     throw new FeedsNoSourceException('Expected source information in database for '. $feed->id .'/'. $feed_nid .'. Could not find any.');
   }
-  feeds_importer()->import($feed, $source);
+  $feed->import($source);
 }
 
 /**
- * Get an instance of Feed object.
+ * Get an importer instance.
  *
  * @param $id
- *   A string that is the id of the object.
+ *   The unique id of the importer object.
  *
  * @return
- *   A Feed object or an object of a class defined by the Drupal variable
- *   'feed_class'.
+ *   A FeedsImporter object or an object of a class defined by the Drupal
+ *   variable 'feeds_importer_class'. There is only one importer object
+ *   per $id system-wide.
  */
-function feeds_feed($id) {
-  feeds_include('Feed');
-  return FeedsConfigurable::instance(variable_get('feed_class', 'Feed'), $id);
+function feeds_importer($id) {
+  feeds_include('FeedsImporter');
+  return FeedsConfigurable::instance(variable_get('feeds_importer_class', 'FeedsImporter'), $id);
 }
 
 /**
@@ -470,21 +472,8 @@ function feeds_feed($id) {
  *   variable 'source_class'.
  */
 function feeds_source($feed, $feed_nid = 0) {
-  feeds_include('Feed');
-  return FeedsSource::instance($feed, $feed_nid);
-}
-
-/**
- * Get an importer instance.
- *
- * @return
- *   A FeedsImporter object or an object of a class defined by the Drupal
- *   variable 'feeds_importer_class'.
- */
-function feeds_importer() {
-  feeds_include('Feed');
   feeds_include('FeedsImporter');
-  return FeedsImporter::instance();
+  return FeedsSource::instance($feed, $feed_nid);
 }
 
 /**
@@ -495,7 +484,7 @@ function feeds_importer() {
  *   variable 'feeds_scheduler_class'.
  */
 function feeds_scheduler() {
-  feeds_include('Feed');
+  feeds_include('FeedsImporter');
   feeds_include('FeedsScheduler');
   return FeedsScheduler::instance();
 }
@@ -515,7 +504,7 @@ function feeds_scheduler() {
  *   If plugin can't be instantiated.
  */
 function feeds_plugin_instance($plugin, $id) {
-  feeds_include('Feed');
+  feeds_include('FeedsImporter');
   if ($class = feeds_load_plugin_class($plugin)) {
     return FeedsConfigurable::instance($class, $id);
   }

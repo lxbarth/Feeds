@@ -58,7 +58,8 @@ class FeedsSource extends FeedsConfigurable {
   // standalone import form within Feeds or by other API users.
   protected $feed_nid;
 
-  // The Feed object that this source is expected to be used with.
+  // The FeedsImporter object that this source is expected to be used with.
+  // @todo: rename to $importer.
   protected $feed;
 
   /**
@@ -86,7 +87,7 @@ class FeedsSource extends FeedsConfigurable {
   /**
    * Constructor.
    */
-  protected function __construct($feed, $feed_nid) {
+  protected function __construct(FeedsImporter $feed, $feed_nid) {
     $this->feed_nid = $feed_nid;
     $this->feed = $feed;
     parent::__construct($feed->id);

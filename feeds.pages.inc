@@ -40,7 +40,7 @@ function feeds_page() {
  * Render a feeds import form on import/[config] pages.
  */
 function feeds_import_form(&$form_state, $feed_id) {
-  $feed = feeds_feed($feed_id);
+  $feed = feeds_importer($feed_id);
   $source = feeds_source($feed, empty($form['nid']['#value']) ? 0 : $form['nid']['#value']);
 
   $form = array();
@@ -67,7 +67,7 @@ function feeds_import_form(&$form_state, $feed_id) {
  * Has to live in feeds.module, needs to be callable from node form.
  */
 function feeds_import_form_validate($form, &$form_state) {
-  $feed = feeds_feed($form['#feed_id']);
+  $feed = feeds_importer($form['#feed_id']);
   $source = feeds_source($feed);
   // @todo: this may be a problem here, as we don't have a feed_nid at this point.
   $source->configFormValidate($form_state['values']['feeds']);
@@ -77,7 +77,7 @@ function feeds_import_form_validate($form, &$form_state) {
  * Submit handler for feeds_import_form().
  */
 function feeds_import_form_submit($form, &$form_state) {
-  $feed = feeds_feed($form['#feed_id']);
+  $feed = feeds_importer($form['#feed_id']);
   $source = feeds_source($feed);
 
   // Save source and import.
@@ -86,7 +86,7 @@ function feeds_import_form_submit($form, &$form_state) {
 
   // Refresh feed if import on create is selected.
   if ($feed->config['import_on_create']) {
-    feeds_importer()->import($feed, $source);
+    $feed->import($source);
   }
 
   // Add feed to scheduler.
@@ -109,9 +109,9 @@ function feeds_import_tab_form(&$form_state, $node) {
  * Submit handler for feeds_import_tab_form().
  */
 function feeds_import_tab_form_submit($form, $form_state) {
-  $feed = feeds_feed($form['#feed_id']);
+  $feed = feeds_importer($form['#feed_id']);
   $source = feeds_source($feed, $form['#feed_nid']);
-  feeds_importer()->import($feed, $source);
+  $feed->import($source);
 }
 
 /**
@@ -122,7 +122,7 @@ function feeds_import_tab_form_submit($form, $form_state) {
  */
 function feeds_delete_tab_form(&$form_state, $feed_id, $node = NULL) {
   if (empty($node)) {
-    $feed = feeds_feed($feed_id);
+    $feed = feeds_importer($feed_id);
     $path = 'import/'. $feed_id .'/delete-items';
   }
   else {
@@ -139,7 +139,7 @@ function feeds_delete_tab_form(&$form_state, $feed_id, $node = NULL) {
  * Submit handler for feeds_delete_tab_form().
  */
 function feeds_delete_tab_form_submit($form, &$form_state) {
-  $feed = feeds_feed($form['#feed_id']);
+  $feed = feeds_importer($form['#feed_id']);
   $source = feeds_source($feed, empty($form['#feed_nid']) ? 0 : $form['#feed_nid']);
-  feeds_importer()->purge($feed, $source);
+  $feed->purge($source);
 }

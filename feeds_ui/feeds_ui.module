@@ -43,7 +43,7 @@ function feeds_ui_menu() {
     'type' => MENU_LOCAL_TASK,
     'weight' => 1,
   );
-  $items['admin/build/feeds/export/%feeds'] = array(
+  $items['admin/build/feeds/export/%feeds_importer'] = array(
     'title callback' => 'feed_ui_title',
     'title arguments' => array(4),
     'page callback' => 'drupal_get_form',
@@ -52,7 +52,7 @@ function feeds_ui_menu() {
     'file' => 'feeds_ui.admin.inc',
     'type' => MENU_CALLBACK,
   );
-  $items['admin/build/feeds/edit/%feeds'] = array(
+  $items['admin/build/feeds/edit/%feeds_importer'] = array(
     'title callback' => 'feed_ui_title',
     'title arguments' => array(4),
     'page callback' => 'feeds_ui_edit_page',
@@ -61,7 +61,7 @@ function feeds_ui_menu() {
     'file' => 'feeds_ui.admin.inc',
     'type' => MENU_CALLBACK,
   );
-  $items['admin/build/feeds/delete/%feeds'] = array(
+  $items['admin/build/feeds/delete/%feeds_importer'] = array(
     'title' => t('Delete configuration'),
     'page callback' => 'drupal_get_form',
     'page arguments' => array('feeds_ui_delete_form', 4),

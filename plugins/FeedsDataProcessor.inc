@@ -180,7 +180,7 @@ class FeedsDataProcessor extends FeedsProcessor {
       return $table;
     }
     else {
-      if ($table = data_create_table($this->tableName(), $this->baseSchema(), feeds_feed($this->id)->config['name'])) {
+      if ($table = data_create_table($this->tableName(), $this->baseSchema(), feeds_importer($this->id)->config['name'])) {
         return $table;
       }
     }
