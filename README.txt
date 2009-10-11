@@ -82,8 +82,9 @@ Todos
 =====
 
 - http://drupal.org/project/issues/feeds
+- Finalize renaming of Feed => FeedsImporter. Most importantly, rename $feed to
+  $importer where possible.
 - Revisit @todo tags in code
 - Wrap all exception messages in t()
 - Option for greying out plugins that miss requirements + message to user.
-- Bring methods in similar classes in same order.
 - Revisit get/set naming conventions.
