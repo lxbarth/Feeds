@@ -35,6 +35,17 @@ function feeds_ui_edit_help() {
 }
 
 /**
+ * Help text for mapping.
+ */
+function feeds_ui_mapping_help() {
+  return t('
+  <p>
+  Define which elements of a single item of a feed (= <em>Sources</em>) map to which content pieces in Drupal (= <em>Targets</em>). Make sure that at least one definition has a <em>Unique target</em>. A unique target means that a value for a target can only occur once. E. g. only one item with the URL <em>http://example.com/story/1</em> can exist.
+  </p>
+  ');
+}
+
+/**
  * Build overview of available configurations.
  */
 function feeds_ui_overview_page() {
@@ -186,7 +197,7 @@ function feeds_ui_edit_page($feed, $active = 'help', $plugin_key = '') {
   switch ($active) {
     case 'help':
       $active_container['title'] = t('Configure your feed');
-      $active_container['body'] = feeds_ui_edit_help();
+      $active_container['body'] = '<div class="help feeds-admin-ui">'. feeds_ui_edit_help() .'</div>';
       break;
     case 'fetcher':
     case 'parser':
@@ -427,6 +438,7 @@ function feeds_ui_mapping_form(&$form_state, $feed) {
 
   $form = array();
   $form['#feed'] = $feed;
+  $form['help']['#value'] = feeds_ui_mapping_help();
 
   // Get mapping sources from parsers and targets from processor, format them
   // for output.
@@ -689,7 +701,8 @@ function theme_feeds_ui_mapping_form($form) {
     '',
     drupal_render($form['add']),
   );
-  $output = theme('table', $header, $rows);
+  $output = '<div class="help feeds-admin-ui""'. drupal_render($form['help']) .'</div>';
+  $output .= theme('table', $header, $rows);
   $output .= drupal_render($form);
   return $output;
 }
