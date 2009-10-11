@@ -121,7 +121,7 @@ class FeedsNodeProcessor extends FeedsProcessor {
   /**
    * Execute mapping on an item.
    */
-  public function map($source_item) {
+  protected function map($source_item) {
     // Prepare node object.
     static $included;
     if (!$included) {

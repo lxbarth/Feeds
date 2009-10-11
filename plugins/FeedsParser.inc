@@ -37,6 +37,8 @@ abstract class FeedsParser extends FeedsPlugin {
    * @return
    *   A parsed array.
    *   @todo: define this array (object?).
+   *
+   * @todo: Should it be execute() ?
    */
   public abstract function parse(FeedsFetcherResult $fetcherResult, FeedsSource $source);
 

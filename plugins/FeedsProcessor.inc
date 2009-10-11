@@ -16,6 +16,8 @@ abstract class FeedsProcessor extends FeedsPlugin {
    *   The result of the parsing stage.
    * @param FeedsSource $source
    *   Source information about this import.
+   *
+   * @todo: Should it be execute()?
    */
   public abstract function process(FeedsParserResult $parserResult, FeedsSource $source);
 
@@ -23,6 +25,28 @@ abstract class FeedsProcessor extends FeedsPlugin {
    * Remove all stored results for this configuration/this source.
    */
   public abstract function purge(FeedsSource $source);
+
+  /**
+   * Execute mapping on an item.
+   */
+  protected function map($source_item, $target_item = NULL) {
+    $parser = feeds_feed($this->id)->parser;
+    if (empty($target_item)) {
+      $target_item = array();
+    }
+
+    /*
+    This is where the actual mapping happens: For every mapping we envoke
+    the parser's getSourceElement() method to retrieve the value of the source
+    element and pass it to the processor's setTargetElement() to stick it
+    on the right place of the target item.
+    */
+    foreach ($this->config['mappings'] as $mapping) {
+      $value = $parser->getSourceElement($source_item, $mapping['source']);
+      $this->setTargetElement($target_item, $mapping['target'], $value);
+    }
+    return $target_item;
+  }
 
   /**
    * Declare default configuration.
@@ -80,6 +104,13 @@ abstract class FeedsProcessor extends FeedsPlugin {
   }
 
   /**
+   * Get mappings.
+   */
+  public function getMappings() {
+    return $this->config['mappings'];
+  }
+
+  /**
    * Declare possible mapping targets.
    *
    * @return
@@ -89,35 +120,6 @@ abstract class FeedsProcessor extends FeedsPlugin {
    */
   public function getMappingTargets() {
     return array();
-  }
-
-  /**
-   * Get mappings.
-   */
-  public function getMappings() {
-    return $this->config['mappings'];
-  }
-
-  /**
-   * Execute mapping on an item.
-   */
-  public function map($source_item, $target_item = NULL) {
-    $parser = feeds_feed($this->id)->parser;
-    if (empty($target_item)) {
-      $target_item = array();
-    }
-
-    /*
-    This is where the actual mapping happens: For every mapping we envoke
-    the parser's getSourceElement() method to retrieve the value of the source
-    element and pass it to the processor's setTargetElement() to stick it
-    on the right place of the target item.
-    */
-    foreach ($this->config['mappings'] as $mapping) {
-      $value = $parser->getSourceElement($source_item, $mapping['source']);
-      $this->setTargetElement($target_item, $mapping['target'], $value);
-    }
-    return $target_item;
   }
 
   /**
