@@ -80,6 +80,31 @@ class FeedsConfigurable implements FeedsConfigurableInterface {
   }
 
   /**
+   * Set configuration.
+   *
+   * @param $config
+   *   Array containing configuration information. Will be filtered by the keys
+   *   returned by configDefaults().
+   */
+  public function setConfig($config) {
+    $default_keys = $this->configDefaults();
+    $this->config = array_intersect_key($config, $default_keys);
+  }
+
+  /**
+   * Similar to setConfig but adds to existing configuration.
+   *
+   * @param $config
+   *   Array containing configuration information. Will be filtered by the keys
+   *   returned by configDefaults().
+   */
+  public function addConfig($config) {
+    $this->config = array_merge($this->config, $config);
+    $default_keys = $this->configDefaults();
+    $this->config = array_intersect_key($this->config, $default_keys);
+  }
+
+  /**
    * Override magic method __get(). Make sure that $this->config goes
    * through getConfig()
    */
@@ -113,34 +138,11 @@ class FeedsConfigurable implements FeedsConfigurableInterface {
   }
 
   /**
-   * Set configuration.
+   * Return configuration form for this object. The keys of the configuration
+   * form must match the keys of the array returned by configDefaults().
    *
-   * @param $config
-   *   Array containing configuration information. Will be filtered by the keys
-   *   returned by configDefaults().
-   */
-  public function setConfig($config) {
-    $default_keys = $this->configDefaults();
-    $this->config = array_intersect_key($config, $default_keys);
-  }
-
-  /**
-   * Similar to setConfig but adds to existing configuration.
-   *
-   * @param $config
-   *   Array containing configuration information. Will be filtered by the keys
-   *   returned by configDefaults().
-   */
-  public function addConfig($config) {
-    $this->config = array_merge($this->config, $config);
-    $default_keys = $this->configDefaults();
-    $this->config = array_intersect_key($this->config, $default_keys);
-  }
-
-  /**
-   * Return configuration form for this object.
-   *
-   * @return FormAPI style form definition.
+   * @return
+   *   FormAPI style form definition.
    */
   public function configForm(&$form_state) {
     return array();
