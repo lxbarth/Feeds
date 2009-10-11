@@ -6,6 +6,11 @@
  * Feeds - basic API functions and hook implementations.
  */
 
+// Include default definitions of content types and importer configurations.
+if (variable_get('feeds_use_defaults', TRUE)) {
+  include(dirname(__FILE__) .'/feeds.defaults.inc');
+}
+
 // Vague request time. Use as common point of reference and to avoid costly
 // calls to time().
 define('FEEDS_REQUEST_TIME', time());

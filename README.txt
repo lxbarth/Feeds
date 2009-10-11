@@ -72,6 +72,11 @@ Description: The number of feeds to refresh on cron time.
              If drupal_queue is enabled, the maximum number of feeds to move to
              queue.
 
+Name:        feeds_use_defaults
+Default:     TRUE
+Description: Whether or not to use default content type and importer
+             configurations. Set to FALSE if you would like to use Feeds without
+             any default configurations.
 
 Todos
 =====
