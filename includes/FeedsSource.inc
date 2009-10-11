@@ -65,7 +65,7 @@ class FeedsSource extends FeedsConfigurable {
    * Instantiate a unique object per class/id/feed_nid. Don't use
    * directly, use feeds_source() instead.
    *
-   * @todo: I thought overriding static functions would not work in PHP.
+   * @todo: Does overriding static functions work in PHP?
    */
   public static function instance($feed, $feed_nid = 0) {
     // This is useful at least as long as we're developing.
