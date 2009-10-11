@@ -280,7 +280,9 @@ function _parser_common_syndication_RDF10_parse($feed_XML) {
     // Add every found RDF property to the feed item.
     $item['rdf'] = (object)array();
     foreach ($rdf_data as $rdf_property => $rdf_value) {
-      $rdf_property = str_replace(':', '_', $rdf_property); // looks nicer in the mapper UI
+      // looks nicer in the mapper UI
+      // @todo: revisit, not used with feedapi mapper anymore.
+      $rdf_property = str_replace(':', '_', $rdf_property);
       $item['rdf'][$rdf_property] = $rdf_value;
     }
 
@@ -294,7 +296,8 @@ function _parser_common_syndication_RDF10_property($rdf_data, $rdf_properties = 
   $rdf_properties = is_array($rdf_properties) ? $rdf_properties : array_slice(func_get_args(), 1);
   foreach ($rdf_properties as $rdf_property) {
     if ($rdf_property && !empty($rdf_data[$rdf_property])) {
-      return array_filter($rdf_data[$rdf_property], 'strlen'); // remove empty strings
+      // remove empty strings
+      return array_filter($rdf_data[$rdf_property], 'strlen');
     }
   }
 }
@@ -351,7 +354,8 @@ function _parser_common_syndication_RSS20_parse($feed_XML) {
     if (isset($news['description'])) {
       $body = "{$news['description']}";
     }
-    // Some sources use content:encoded as description i.e. PostNuke PageSetter module.
+    // Some sources use content:encoded as description i.e.
+    // PostNuke PageSetter module.
     if (isset($news['encoded'])) {  // content:encoded for PHP < 5.1.2.
       if (strlen($body) < strlen("{$news['encoded']}")) {
         $body = "{$news['encoded']}";
@@ -471,7 +475,8 @@ function _parser_common_syndication_parse_w3cdtf($date_str) {
 }
 
 /**
- * Extract the link that points to the original content (back to site or original article)
+ * Extract the link that points to the original content (back to site or
+ * original article)
  *
  * @param $links
  *  Array of SimpleXML objects

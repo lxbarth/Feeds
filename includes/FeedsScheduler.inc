@@ -192,7 +192,8 @@ class FeedsScheduler implements IFeedsScheduler {
     // Only refresh if feed is actually in DB or in default configuration.
     if ($feed->export_type != FEEDS_EXPORT_NONE) {
 
-      // Remove scheduled flag, if we fail after this we'd like to try again next time.
+      // Remove scheduled flag, if we fail after this we'd like to try again
+      // next time.
       $this->unmark($feed_info['feed_nid']);
 
       try {

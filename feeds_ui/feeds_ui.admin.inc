@@ -2,7 +2,8 @@
 // $Id: feeds_ui.admin.inc,v 1.14 2009/09/21 14:55:47 alexb Exp $
 /**
  * @file
- * Contains all page callbacks, forms and theming functions for Feeds administrative pages.
+ * Contains all page callbacks, forms and theming functions for Feeds
+ * administrative pages.
  */
 
 /**
@@ -198,7 +199,8 @@ function feeds_ui_edit_page($feed, $active = 'help', $plugin_key = '') {
         $active_container['title'] = $configure . t('basic settings');
         $active_container['body'] = feeds_get_config_form($feed);
       }
-      // feeds_plugin_instance() returns a correct result because feed has been instantiated previously.
+      // feeds_plugin_instance() returns a correct result because feed has been
+      // instantiated previously.
       elseif (in_array($plugin_key, array_keys($plugins)) && $plugin = feeds_plugin_instance($plugin_key, $feed->id)) {
         $active_container['title'] = $configure . t('settings for !plugin', array('!plugin' => $plugins[$plugin_key]['name']));
         $active_container['body'] = feeds_get_config_form($plugin);
@@ -278,7 +280,8 @@ function feeds_ui_edit_page($feed, $active = 'help', $plugin_key = '') {
   if (feeds_get_config_form($feed->processor)) {
     $actions[] = l(t('Settings'), $path .'settings/'. $config['processor']['plugin_key']);
   }
-  // @todo: We assume that every processor supports mapping - that's not necessarily the case.
+  // @todo: We assume that every processor supports mapping - that's not
+  // necessarily the case.
   $actions[] = l(t('Mapping'), $path .'mapping');
   $info['title'] = t('Processor');
   $info['body'] = array(
@@ -362,7 +365,8 @@ function feeds_ui_get_form($form_callback) {
   $args = func_get_args();
   array_shift($args);
 
-  // Register the form callback generates a random id and exposes the form id to FormAPI.
+  // Register the form callback generates a random id and exposes the form id to
+  // FormAPI.
   $form_id = feeds_ui_register_form($form_callback);
   array_unshift($args, $form_id);
 
@@ -375,7 +379,8 @@ function feeds_ui_get_form($form_callback) {
  *
  * Use together with feeds_ui_get_form for using multiple times on one page.
  *
- * $output = feeds_ui_get_form('feeds_ui_button_form', 'Select', 'call_back_func', $param);
+ * $output =
+ *   feeds_ui_get_form('feeds_ui_button_form', 'Select', 'call_back_func', $param);
  *
  * @param $form_state
  *   Form API form state.
@@ -423,7 +428,8 @@ function feeds_ui_mapping_form(&$form_state, $feed) {
   $form = array();
   $form['#feed'] = $feed;
 
-  // Get mapping sources from parsers and targets from processor, format them for output.
+  // Get mapping sources from parsers and targets from processor, format them
+  // for output.
   $sources = $feed->parser->getMappingSources();
   $source_options = _feeds_ui_format_options($sources);
   $targets = $feed->processor->getMappingTargets();
@@ -608,7 +614,8 @@ function theme_feeds_ui_edit_page($config_info, $active_container) {
  *   An array that describes the container. All elements are optional:
  *   array(
  *     'title' => 'the title',
- *     'body' => 'the body of the container, may also be an ARRAY of more containers.',
+ *     'body' => 'the body of the container, may also be an array of more
+ *                containers.',
  *     'class' => 'the class of the container.',
  *     'id' => 'the id of the container',
  *   );

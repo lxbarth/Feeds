@@ -5,12 +5,14 @@
  * @file
  * Download via HTTP.
  *
- * Support caching, HTTP Basic Authentication, detection of RSS/Atom feeds, redirects.
+ * Support caching, HTTP Basic Authentication, detection of RSS/Atom feeds,
+ * redirects.
  */
 
 /**
- * Download RSS or Atom feeds from a given URL. If document in given URL is an HTML
- * document, function attempts to discover RSS or Atom feeds and downloads them.
+ * Download RSS or Atom feeds from a given URL. If document in given URL is an
+ * HTML document, function attempts to discover RSS or Atom feeds and downloads
+ * them.
  *
  * @todo: use exceptions, not string or false return values.
  *
@@ -41,7 +43,8 @@ function http_request_get_common_syndication($url, $settings = NULL) {
   }
 
   // Do the autodiscovery at this level, pass back the real data.
-  // Maybe it's HTML. If it's not HTML, not worth to take a look into the downloaded string.
+  // Maybe it's HTML. If it's not HTML, not worth to take a look into the
+  // downloaded string.
   if (strpos(strtolower($downloaded_string), "<html") !== FALSE) {
     $allowed_mime = array("text/xml", "application/rss+xml", "application/atom+xml", "application/rdf+xml", "application/xml");
     $matches = array();
@@ -82,7 +85,8 @@ function http_request_get_common_syndication($url, $settings = NULL) {
       }
     }
   }
-  // Ugly hack to be able to retrieve the xml:base property, no way to access xml:lang inside <feed>
+  // Ugly hack to be able to retrieve the xml:base property, no way to access
+  // xml:lang inside <feed>
   $downloaded_string = preg_replace('/xml:base *=/', 'base=', $downloaded_string);
 
   // Filter out strange tags. Without this, the text would contain strange stuff.

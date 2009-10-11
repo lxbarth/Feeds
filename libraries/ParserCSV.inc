@@ -4,7 +4,8 @@
 /**
  * Contains CSV Parser.
  * Functions in this file are independent of the Feeds specific implementation.
- * Thanks to jpetso http://drupal.org/user/56020 for most of the code in this file.
+ * Thanks to jpetso http://drupal.org/user/56020 for most of the code in this
+ * file.
  */
 
 /**

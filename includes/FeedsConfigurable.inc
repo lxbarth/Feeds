@@ -115,8 +115,8 @@ class FeedsConfigurable implements FeedsConfigurableInterface {
    * Set configuration.
    *
    * @param $config
-   *   Array containing configuration information. Will be filtered by the keys returned by
-   *   configDefaults().
+   *   Array containing configuration information. Will be filtered by the keys
+   *   returned by configDefaults().
    */
   public function setConfig($config) {
     $default_keys = $this->configDefaults();

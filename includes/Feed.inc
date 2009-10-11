@@ -61,18 +61,21 @@ abstract class FeedsResult {
 }
 
 /**
- * Configurable importer class. This is the main hub for Feeds module's functionality.
+ * Configurable importer class. This is the main hub for Feeds module's
+ * functionality.
  *
  * @todo: rename to FeedsFeedConfig.
  */
 class Feed extends FeedsConfigurable {
 
   // Every feed has a fetcher, a parser and a processor.
-  // These variable names match the possible return values of feeds_plugin_type().
+  // These variable names match the possible return values of
+  // feeds_plugin_type().
   protected $fetcher, $parser, $processor;
 
   // This array defines the variable names of the plugins above.
-  // @todo: make this static once 5.3.0 has spread enough and __callstatic can be used.
+  // @todo: make this static once 5.3.0 has spread enough and __callstatic can
+  // be used.
   // @todo use.
   protected $types = array('fetcher', 'parser', 'processor');
 
@@ -105,7 +108,8 @@ class Feed extends FeedsConfigurable {
     $save->id = $this->id;
     $save->class = get_class($this);
     $save->config = $this->getConfig();
-    // Make sure a source record is present at all time, try to update first, then insert.
+    // Make sure a source record is present at all time, try to update first,
+    // then insert.
     drupal_write_record('feeds_config', $save, 'id');
     if (!db_affected_rows()) {
       drupal_write_record('feeds_config', $save);
@@ -228,7 +232,8 @@ class Feed extends FeedsConfigurable {
         // Unset existing plugin, switch to new plugin.
         unset($this->$plugin_type);
         $this->$plugin_type = $plugin;
-        // Set configuration information, blow away any previous information on this spot.
+        // Set configuration information, blow away any previous information on
+        // this spot.
         $this->config[$plugin_type] = array('plugin_key' => $plugin_key);
       }
     }
