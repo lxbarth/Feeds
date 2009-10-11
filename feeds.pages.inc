@@ -13,7 +13,7 @@
  */
 function feeds_page() {
   $rows = array();
-  if ($feeds = feeds_load_all()) {
+  if ($feeds = feeds_importer_load_all()) {
     foreach ($feeds as $feed) {
       if (empty($feed->config['content_type'])) {
         $link = 'import/'. $feed->id;

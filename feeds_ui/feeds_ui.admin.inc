@@ -51,7 +51,7 @@ function feeds_ui_mapping_help() {
 function feeds_ui_overview_page() {
 
   $rows = array();
-  if ($feeds = feeds_load_all()) {
+  if ($feeds = feeds_importer_load_all()) {
     foreach ($feeds as $feed) {
       if (empty($feed->config['content_type'])) {
         $type = '[none]';

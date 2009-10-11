@@ -40,7 +40,7 @@ function feeds_cron_queue_info() {
  */
 function feeds_perm() {
   $perms = array('administer feeds');
-  foreach (feeds_load_all() as $feed) {
+  foreach (feeds_importer_load_all() as $feed) {
     $perms[] = 'import '. $feed->id .' feeds';
     $perms[] = 'purge '. $feed->id .' feeds';
   }
@@ -68,7 +68,7 @@ function feeds_forms() {
 function feeds_menu() {
   // Register a callback for all feed configurations that are not attached to a content type.
   $items = array();
-  foreach (feeds_load_all() as $feed) {
+  foreach (feeds_importer_load_all() as $feed) {
     if (empty($feed->config['content_type'])) {
       $items['import/'. $feed->id] = array(
         'title' => $feed->config['name'],
@@ -183,7 +183,7 @@ function feeds_page_access() {
   if (user_access('administer feeds')) {
     return TRUE;
   }
-  foreach (feeds_load_all() as $feed) {
+  foreach (feeds_importer_load_all() as $feed) {
     if (user_access('import '. $feed->id .' feed')) {
       return TRUE;
     }
@@ -405,12 +405,10 @@ function feeds_load_plugin_class($plugin) {
 /**
  * Load all importers.
  *
- * @todo: rename to feeds_importer_load_all()
- *
  * @return
  *   An array of all feed configurations available.
  */
-function feeds_load_all() {
+function feeds_importer_load_all() {
   ctools_include('export');
   $configs = ctools_export_load_object('feeds_config', 'all');
   $feeds = array();
@@ -529,7 +527,7 @@ function feeds_get_by_content_type($content_type) {
 
   if (!isset($feeds[$content_type])) {
     $feeds[$content_type] = FALSE;
-    foreach (feeds_load_all() as $feed) {
+    foreach (feeds_importer_load_all() as $feed) {
       if ($feed->config['content_type'] == $content_type) {
         $feeds[$content_type] = $feed;
         break;
