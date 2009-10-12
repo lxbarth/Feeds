@@ -37,16 +37,8 @@ class FeedsTermProcessor extends FeedsProcessor {
           $term['tid'] = $tid;
         }
 
-        // Save the node.
-        $return = taxonomy_save_term($term);
-        if (empty($tid)) {
-          if ($return != SAVED_NEW) {
-            throw new Exception(t('Insert failed'));
-          }
-        }
-        elseif ($return != SAVED_UPDATED) {
-          throw new Exception(t('Update failed'));
-        }
+        // Save the term.
+        taxonomy_save_term($term);
 
         if ($tid) {
           $updated++;
@@ -57,7 +49,6 @@ class FeedsTermProcessor extends FeedsProcessor {
 
       }
     }
-
 
     // Set messages.
     $vocabularies = taxonomy_get_vocabularies();
@@ -80,7 +71,24 @@ class FeedsTermProcessor extends FeedsProcessor {
    * Implement purge.
    */
   public function purge(FeedsSource $source) {
+    $deleted = 0;
 
+    $result = db_query('SELECT tid FROM term_data WHERE vid = %d', $this->config['vocabulary']);
+    while ($term = db_fetch_object($result)) {
+      if (taxonomy_del_term($term->tid) == SAVED_DELETED) {
+        $deleted++;
+      }
+    }
+
+    // Set messages.
+    $vocabularies = taxonomy_get_vocabularies();
+    $vocabulary = $vocabularies[$this->config['vocabulary']];
+    if ($deleted) {
+      drupal_set_message(t('Deleted !number terms from !vocabulary.', array('!number' => $deleted, '!vocabulary' => $vocabulary->name)));
+    }
+    else {
+      drupal_set_message(t('No terms to be deleted.'));
+    }
   }
 
   /**
@@ -118,7 +126,7 @@ class FeedsTermProcessor extends FeedsProcessor {
     $form['vocabulary'] = array(
       '#type' => 'select',
       '#title' => t('Import to vocabulary'),
-      '#description' => t('Choose the vocabulary to import into.'),
+      '#description' => t('Choose the vocabulary to import into. <strong>CAUTION:</strong> when deleting terms through the "Delete items" tab, Feeds will delete <em>all</em> terms from this vocabulary.'),
       '#options' => $options,
       '#default_value' => $this->config['vocabulary'],
     );
