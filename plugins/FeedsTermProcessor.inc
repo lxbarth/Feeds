@@ -149,7 +149,7 @@ class FeedsTermProcessor extends FeedsProcessor {
         'optional_unique' => TRUE,
        ),
     );
-    // @todo: document.
+    // Let implementers of hook_feeds_term_processor_targets() add their targets.
     drupal_alter('feeds_term_processor_targets', $targets, $this->config['vocabulary']);
     return $targets;
   }

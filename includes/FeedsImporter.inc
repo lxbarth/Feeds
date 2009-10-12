@@ -113,6 +113,7 @@ class FeedsImporter extends FeedsConfigurable {
     catch (Exception $e) {
       drupal_set_message($e->getMessage(), 'error');
     }
+    module_invoke_all('feeds_after_import', $this, $source);
   }
 
   /**
