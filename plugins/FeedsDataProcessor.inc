@@ -144,6 +144,38 @@ class FeedsDataProcessor extends FeedsProcessor {
   }
 
   /**
+   * Set target element, bring element in a FeedsDataHandler format.
+   */
+  public function setTargetElement(&$target_item, $target_element, $value) {
+    if (strpos($target_element, '.')) {
+
+      /**
+
+      Add field in FeedsDataHandler format.
+
+      This is the tricky part, FeedsDataHandler expects an *array* of records
+      at #[joined_table_name]. We need to iterate over the $value that has
+      been mapped to this element and create a record array from each of
+      them.
+      */
+      list($table, $field) = explode('.', $target_element);
+
+      $values = array();
+      $value = is_array($value) ? $value : array($value);
+      foreach ($value as $v) {
+        // Create a record array.
+        $values[] = array(
+          $field => $v,
+        );
+      }
+      $target_item['#'. $table] = $values;
+    }
+    else {
+      $target_item[$target_element] = $value;
+    }
+  }
+
+  /**
    * Iterate through unique targets and try to load existing records.
    * Return id for the first match.
    */
