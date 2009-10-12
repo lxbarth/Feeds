@@ -465,7 +465,7 @@ function feeds_ui_mapping_form(&$form_state, $feed) {
         'mapping' => $mapping,
       );
 
-      if (!empty($targets[$mapping['target']]['optional_unique'])) {
+      if (isset($targets[$mapping['target']]['optional_unique']) && $targets[$mapping['target']]['optional_unique'] === TRUE) {
 
         $form['unique_flags'][$i] = array(
           '#type' => 'checkbox',

@@ -150,7 +150,7 @@ class FeedsTermProcessor extends FeedsProcessor {
        ),
     );
     // @todo: document.
-    drupal_alter('feeds_term_processor_targets', $targets);
+    drupal_alter('feeds_term_processor_targets', $targets, $this->config['vocabulary']);
     return $targets;
   }
 

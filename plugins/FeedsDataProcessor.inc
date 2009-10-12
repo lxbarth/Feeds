@@ -110,7 +110,11 @@ class FeedsDataProcessor extends FeedsProcessor {
     if (isset($schema['fields'])) {
       foreach ($schema['fields'] as $field_name => $field) {
         if (!in_array($field_name, array('id', 'feed_nid'))) {
-          $existing_fields[$field_name] = empty($meta['fields'][$field_name]['label']) ? $field_name : $meta['fields'][$field_name]['label'];
+          // Any existing field can be optionally unique.
+          $existing_fields[$field_name] = array(
+            'name' => empty($meta['fields'][$field_name]['label']) ? $field_name : $meta['fields'][$field_name]['label'],
+            'optional_unique' => TRUE,
+          );
         }
       }
     }
