@@ -342,19 +342,28 @@ class FeedsDataHandler extends DataHandler {
    */
   public function delete($keys) {
 
-    // First delete records from joined tables.
-    foreach ($this->joined_table as $table) {
-      $where = $values = array();
-      $schema = drupal_get_schema($this->table);
-      $fields = $schema['fields'];
-      foreach ($keys as $key => $value) {
-        $where[] = 'base.'. db_escape_string($key) ." = ". db_type_placeholder($fields[$key]['type']);
-        $values[] = $value;
-      }
-      if (!empty($where)) {
-        db_query('DELETE {'. db_escape_table($table) .'} joined FROM {'. db_escape_table($this->table) .'} base JOIN  {'. db_escape_table($table) .'} joined ON base.'. $this->key .' = joined.'. $this->key .' WHERE '. implode(' AND ', $where), $values);
-      }
+    // Assemble where clause for delete query.
+    $where = $values = array();
+    foreach ($keys as $key => $value) {
+      $where[] = 'base.'. db_escape_string($key) ." = ". db_type_placeholder($fields[$key]['type']);
+      $values[] = $value;
     }
-    return parent::delete($keys);
+
+    // Only execute delete statement if where clause has been populated.
+    if (!empty($where)) {
+
+      // First delete records from joined tables, then delete this table's
+      // record.
+      foreach ($this->joined_table as $table) {
+        $schema = drupal_get_schema($this->table);
+        $fields = $schema['fields'];
+        if (!empty($where)) {
+          db_query('DELETE joined FROM {'. db_escape_table($this->table) .'} base JOIN  {'. db_escape_table($table) .'} joined ON base.'. $this->key .' = joined.'. $this->key .' WHERE '. implode(' AND ', $where), $values);
+        }
+      }
+      db_query('DELETE base FROM {'. db_escape_table($this->table) .'} base WHERE '. implode(' AND ', $where), $values);
+    }
+
+    return db_affected_rows();
   }
 }
