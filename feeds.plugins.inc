@@ -88,6 +88,16 @@ function _feeds_feeds_plugins() {
       'path' => $path,
     ),
   );
+  $info['FeedsSimplePieParser'] = array(
+    'name' => 'SimplePie parser',
+    'description' => 'Use <a href="http://simplepie.org">SimplePie</a> to parse XML feeds in RSS 1, RSS 2 or Atom format.',
+    'handler' => array(
+      'parent' => 'FeedsParser',
+      'class' => 'FeedsSimplePieParser',
+      'file' => 'FeedsSimplePieParser.inc',
+      'path' => $path,
+    ),
+  );
   $info['FeedsNodeProcessor'] = array(
     'name' => 'Node processor',
     'description' => 'Create nodes from parsed content.',
