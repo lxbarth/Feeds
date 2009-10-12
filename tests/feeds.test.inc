@@ -116,6 +116,31 @@ class FeedsWebTestCase extends DrupalWebTestCase {
   }
 
   /**
+   * Import a URL through the import form. Assumes FeedsHttpFetcher in place.
+   */
+  public function importURL($id, $feed_url = NULL) {
+    if (empty($feed_url)) {
+      $feed_url = $GLOBALS['base_url'] .'/'. drupal_get_path('module', 'feeds') .'/tests/feeds/developmentseed.rss2';
+    }
+    $edit = array(
+      'feeds[FeedsHttpFetcher][url]' => $feed_url,
+      );
+    $nid = $this->drupalPost('import/'. $id, $edit, 'Import');
+
+    // Check whether feed got recorded in feeds_source table.
+    $this->assertEqual(1, db_result(db_query('select COUNT(*) from {feeds_source} WHERE id = "%s" AND feed_nid = 0', $id)));
+    $source = db_fetch_object(db_query('select * from {feeds_source} WHERE id = "%s" AND feed_nid = 0', $id));
+    $config = unserialize($source->config);
+    $this->assertEqual($config['FeedsHttpFetcher']['url'], $feed_url, t('URL in DB correct.'));
+
+    // Check whether feed got properly added to scheduler.
+    $this->assertEqual(1, db_result(db_query('select COUNT(*) from {feeds_schedule} WHERE id = "%s" AND feed_nid = 0', $id)));
+    $schedule = db_fetch_object(db_query('select * from {feeds_schedule} WHERE id = "%s" AND feed_nid = 0', $id));
+    $this->assertEqual($schedule->scheduled, 0, 'Feed is not set scheduled.');
+    $this->assertEqual($schedule->last_scheduled_time, 0, 'Last scheduled time is 0.');
+  }
+
+  /**
    * Assert a feeds configuration's plugins.
    */
   public function assertPlugins($id, $fetcher, $parser, $processor) {

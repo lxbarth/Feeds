@@ -20,7 +20,7 @@ class FeedsRSStoNodesTest extends FeedsWebTestCase {
   public function getInfo() {
     return array(
       'name' => t('RSS import to nodes'),
-      'description' => t('Tests a feed configuration that is attached to a content type, uses common syndication parser and a node processor.'),
+      'description' => t('Tests a feed configuration that is attached to a content type, uses common syndication parser and a node processor. Repeats the same test for a feed configuration that is not attached to a content type.'),
       'group' => t('Feeds'),
     );
   }
@@ -164,8 +164,97 @@ class FeedsRSStoNodesTest extends FeedsWebTestCase {
     $this->assertRaw('node/'. $nid .'/delete-items');
  */
 
-    // @todo: Standalone import form testing.
-    // @todo: Create a second feed and test.
+   /**
+    * Now create a second feed configuration that is not attached to a content
+    * type and run tests on importing/purging.
+    */
+
+    // Login with sufficient permissions.
+    $this->drupalLogin(
+      $this->drupalCreateUser(array('administer feeds', 'administer nodes'))
+    );
+    // Remove all items again so that next test can check for them.
+    $this->drupalPost('node/'. $nid .'/delete-items', array(), 'Delete');
+
+    // Create a feed, not attached to content type.
+    $this->createFeedConfiguration('Syndication standalone', 'syndication_standalone');
+    $edit = array(
+      'content_type' => '',
+    );
+    $this->drupalPost('admin/build/feeds/edit/syndication_standalone/settings/Feed', $edit, 'Save');
+
+    // Import, assert 10 items aggregated after creation of the node.
+    $this->importURL('syndication_standalone');
+    $this->assertText('Created 10 story nodes.');
+
+    // Assert accuracy of aggregated information.
+    $this->drupalGet('node');
+    $this->assertText('Open Atrium Translation Workflow: Two Way Translation Updates');
+    $this->assertText('Tue, 10/06/2009');
+    $this->assertText('A new translation process for Open Atrium and integration with Localize Drupal');
+    $this->assertText('Week in DC Tech: October 5th Edition');
+    $this->assertText('Mon, 10/05/2009');
+    $this->assertText('There are some great technology events happening this week');
+    $this->assertText('Mapping Innovation at the World Bank with Open Atrium');
+    $this->assertText('Fri, 10/02/2009');
+    $this->assertText('Open Atrium is being used as a base platform for collaboration');
+    $this->assertText('September GeoDC Meetup Tonight');
+    $this->assertText('Wed, 09/30/2009');
+    $this->assertText('Today is the last Wednesday of the month');
+    $this->assertText('Week in DC Tech: September 28th Edition');
+    $this->assertText('Mon, 09/28/2009');
+    $this->assertText('Looking to geek out this week? There are a bunch of');
+    $this->assertText('Open Data for Microfinance: The New MIXMarket.org');
+    $this->assertText('Thu, 09/24/2009');
+    $this->assertText('There are profiles for every country that the MIX Market is hosting.');
+    $this->assertText('Integrating the Siteminder Access System in an Open Atrium-based Intranet');
+    $this->assertText('Tue, 09/22/2009');
+    $this->assertText('In addition to authentication, the Siteminder system');
+    $this->assertText('Week in DC Tech: September 21 Edition');
+    $this->assertText('Mon, 09/21/2009');
+    $this->assertText('an interesting variety of technology events happening in Washington, DC ');
+    $this->assertText('s Software Freedom Day: Impressions and Photos');
+    $this->assertText('Mon, 09/21/2009');
+    $this->assertText('Presenting on Features in Drupal and Open Atrium');
+    $this->assertText('Scaling the Open Atrium UI');
+    $this->assertText('Fri, 09/18/2009');
+    $this->assertText('The first major change is switching');
+
+    // Assert DB status.
+    $count = db_result(db_query('SELECT COUNT(*) FROM {feeds_node_item}'));
+    $this->assertEqual($count, 10, 'Accurate number of items in database.');
+
+    // Import again.
+    $this->drupalPost('import/syndication_standalone', array(), 'Import');
+    $this->assertText('There is no new content.');
+
+    // Assert DB status, there still shouldn't be more than 10 items.
+    $count = db_result(db_query('SELECT COUNT(*) FROM {feeds_node_item}'));
+    $this->assertEqual($count, 10, 'Accurate number of items in database.');
+
+    // Now delete all items.
+    $this->drupalPost('import/syndication_standalone/delete-items', array(), 'Delete');
+    $this->assertText('Deleted 10 nodes.');
+
+    // Assert DB status, now there should be no items.
+    $count = db_result(db_query('SELECT COUNT(*) FROM {feeds_node_item}'));
+    $this->assertEqual($count, 0, 'Accurate number of items in database.');
+
+    // Import again, we should find new content.
+    $this->drupalPost('import/syndication_standalone', array(), 'Import');
+    $this->assertText('Created 10 story nodes.');
+
+    // Assert DB status, there should be 10 again.
+    $count = db_result(db_query('SELECT COUNT(*) FROM {feeds_node_item}'));
+    $this->assertEqual($count, 10, 'Accurate number of items in database.');
+
+    // Login with new user with only access content permissions.
+    $this->drupalLogin(
+      $this->drupalCreateUser()
+    );
+    // Navigate to feed import form, access should be denied.
+    $this->drupalGet('import/syndication_standalone');
+    $this->assertResponse(403);
   }
 }
 
