@@ -12,6 +12,68 @@ class FeedsTermProcessor extends FeedsProcessor {
    */
   public function process(FeedsParserResult $parserResult, FeedsSource $source) {
 
+    if (empty($this->config['vocabulary'])) {
+      throw new Exception(t('You must define a vocabulary for Taxonomy term processor before importing.'));
+    }
+
+    // Count number of created and updated nodes.
+    $created  = $updated = $no_name = 0;
+
+    foreach ($parserResult->value['items'] as $item) {
+
+      if (!($tid = $this->existingItemId($item, $source)) || $this->config['update_existing']) {
+
+        // Map item to a term.
+        $term = $this->map($item);
+
+        // Check if term name is set, otherwise continue.
+        if (empty($term['name'])) {
+          $no_name++;
+          continue;
+        }
+
+        // Add term id if available.
+        if (!empty($tid)) {
+          $term['tid'] = $tid;
+        }
+
+        // Save the node.
+        $return = taxonomy_save_term($term);
+        if (empty($tid)) {
+          if ($return != SAVED_NEW) {
+            throw new Exception(t('Insert failed'));
+          }
+        }
+        elseif ($return != SAVED_UPDATED) {
+          throw new Exception(t('Update failed'));
+        }
+
+        if ($tid) {
+          $updated++;
+        }
+        else {
+          $created++;
+        }
+
+      }
+    }
+
+
+    // Set messages.
+    $vocabularies = taxonomy_get_vocabularies();
+    $vocabulary = $vocabularies[$this->config['vocabulary']];
+    if ($no_name) {
+      drupal_set_message(t('There were !number terms that could not be imported because their name was empty. Check mapping settings on Taxomy term processor.', array('!number' => $no_name)), 'error');
+    }
+    if ($created) {
+      drupal_set_message(t('Created !number terms in !vocabulary.', array('!number' => $created, '!vocabulary' => $vocabulary->name)));
+    }
+    elseif ($updated) {
+      drupal_set_message(t('Updated !number terms in !vocabulary.', array('!number' => $updated, '!vocabulary' => $vocabulary->name)));
+    }
+    else {
+      drupal_set_message(t('There are no new terms.'));
+    }
   }
 
   /**
@@ -40,6 +102,7 @@ class FeedsTermProcessor extends FeedsProcessor {
     return array(
       'vocabulary' => 0,
       'update_existing' => 0,
+      'mappings' => array(),
     );
   }
 
@@ -54,7 +117,7 @@ class FeedsTermProcessor extends FeedsProcessor {
     $form = array();
     $form['vocabulary'] = array(
       '#type' => 'select',
-      '#title' => t('Vocabulary'),
+      '#title' => t('Import to vocabulary'),
       '#description' => t('Choose the vocabulary to import into.'),
       '#options' => $options,
       '#default_value' => $this->config['vocabulary'],
@@ -84,7 +147,7 @@ class FeedsTermProcessor extends FeedsProcessor {
   }
 
   /**
-   * Get nid of an existing feed item node if available.
+   * Get id of an existing feed item term if available.
    */
   protected function existingItemId($source_item, FeedsSource $source) {
 

@@ -67,6 +67,6 @@ abstract class FeedsParser extends FeedsPlugin {
    * FeedsParser::getMappingSources().
    */
   public function getSourceElement($item, $element_key) {
-    return $item[$element_key];
+    return isset($item[$element_key]) ? $item[$element_key] : '';
   }
 }
