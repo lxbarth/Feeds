@@ -526,6 +526,7 @@ function feeds_ui_mapping_form_add_submit($form, &$form_state) {
   try {
     $feed->processor->addMapping($form_state['values']['source'], $form_state['values']['target']);
     $feed->processor->save();
+    drupal_set_message(t('Mapping has been added.'));
   }
   catch (Exception $e) {
     drupal_set_message($e->getMessage(), 'error');
@@ -551,24 +552,7 @@ function feeds_ui_mapping_form_submit($form, &$form_state) {
       $processor->removeMapping($mappings[$k]['source'], $mappings[$k]['target']);
     }
   }
-  $processor->save();
-}
-
-/**
- * Toggle unique callback for mapping form.
- */
-function feeds_ui_toggle_unique($args) {
-  $processor = $args['processor'];
-  $processor->setUnique($args['mapping']['source'], $args['mapping']['target'], !$args['mapping']['unique']);
-  $processor->save();
-}
-
-/**
- * Remove callback for mapping form.
- */
-function feeds_ui_remove_mapping($args) {
-  $processor = $args['processor'];
-  $processor->removeMapping($args['mapping']['source'], $args['mapping']['target']);
+  drupal_set_message(t('Your changes have been saved.'));
   $processor->save();
 }
 

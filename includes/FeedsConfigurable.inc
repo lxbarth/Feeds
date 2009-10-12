@@ -201,4 +201,5 @@ function feeds_config_form_validate($form, &$form_state) {
 function feeds_config_form_submit($form, &$form_state) {
   $form['#configurable']->addConfig($form_state['values']);
   $form['#configurable']->save();
+  drupal_set_message(t('Your changes have been saved.'));
 }
