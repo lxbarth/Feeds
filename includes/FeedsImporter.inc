@@ -105,9 +105,14 @@ class FeedsImporter extends FeedsConfigurable {
    *   @todo: Support batching.
    */
   public function import(FeedsSource $source) {
-    $result = $this->fetcher->fetch($source);
-    $result = $this->parser->parse($result, $source);
-    $this->processor->process($result, $source);
+    try {
+      $result = $this->fetcher->fetch($source);
+      $result = $this->parser->parse($result, $source);
+      $this->processor->process($result, $source);
+    }
+    catch (Exception $e) {
+      drupal_set_message($e->getMessage(), 'error');
+    }
   }
 
   /**
