@@ -320,6 +320,9 @@ function feeds_ui_edit_page($feed, $active = 'help', $plugin_key = '') {
  *
  * @return
  *   An array themeable by theme_feeds_ui_container().
+ *
+ * @todo: make this a single form. Simpletest can't push buttons on forms
+ *   with the same label on submit buttons.
  */
 function _feeds_ui_list_plugins_by_type($feed, $type, $selected) {
   $plugins = feeds_get_plugins_by_type();
