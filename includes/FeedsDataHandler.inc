@@ -76,19 +76,44 @@ class FeedsDataHandler extends DataHandler {
    *
    * @param $record
    *   An array of a record to store. Keys are the names of fields or names of
-   *   joining tables.
+   *   joining tables. Names of joining tables must start with #. Joined table
+   *   keys must contain an array of values to insert.
+   *
+   *   Example:
+   *   This is an array that inserts a title and a description into the base
+   *   table and a series of tags into a depending table 'feeds_data_tags'.
+   *   Note how the actual serial key is missing, it will be generated and
+   *   passed on to depending tables by insert().
+   *
+   *   array(
+   *     'title' => 'Example title',
+   *     'description' => 'Lorem ipsum...',
+   *     '#feeds_data_tags' => array(
+   *       array(
+   *         'tid' => 12,
+   *       ),
+   *       array(
+   *         'tid' => 14,
+   *       ),
+   *       array(
+   *         'tid' => 28,
+   *       ),
+   *     ),
+   *   );
    */
   public function insert(&$record) {
-    $base_record = array();
-    foreach ($records as $k => $v) {
-      if (in_array($k, $this->joined_tables)) {
-        parent::insert($v);
-      }
-      else {
-        $base_record[$k] = $v;
+    parent::insert($record);
+
+    foreach ($record as $key => $value) {
+      if ($handler = $this->joinedTableHandler($key)) {
+        foreach ($value as $v) {
+          // parent::insert() has populated the key or key must have been passed
+          // in.
+          $v[$this->key] = $record[$this->key];
+          $handler->insert($v);
+        }
       }
     }
-    parent::insert($base_record);
   }
 
   /**
@@ -97,29 +122,23 @@ class FeedsDataHandler extends DataHandler {
    * Assumes that updates occur on keys. Does not support any other form of
    * updates.
    *
+   * @see insert().
+   *
    * @param $record
    *   An array of the record to update. Keys are the names of fields or names
    *   of joining tables. At least one key name in $record must match
    *   $this->key.
    */
   public function update(&$record) {
-    $base_record = array();
-    foreach ($records as $k => $v) {
-      if (in_array($k, $this->joined_tables)) {
-        parent::update($v, $this->key);
-      }
-      else {
-        $base_record[$k] = $v;
+    parent::update($record, $this->key);
+
+    foreach ($record as $key => $value) {
+      if ($handler = $this->joinedTableHandler($key)) {
+        foreach ($value as $v) {
+          $handler->update($v, $this->key);
+        }
       }
     }
-    parent::update($base_record, $this->key);
-  }
-
-  /**
-   * Does not support save(). protected.
-   */
-  protected function save(&$record, $update) {
-    parent::save($record, $update);
   }
 
   /**
@@ -150,5 +169,40 @@ class FeedsDataHandler extends DataHandler {
     }
 
     return db_affected_rows();
+  }
+
+  /**
+   * Helper. Returns a joined table for a given table name that starts with a #.
+   *
+   * @see: insert(), update().
+   *
+   * @param $name
+   *   Potential table name. If name does not start with a #, method will always
+   *   return FALSE.
+   *
+   * @return
+   *   A DataHandler object if a joined table with this name could be found,
+   *   FALSE otherwise. Returns FALSE if $name does not start with #.
+   *
+   * @throws Exception
+   *   Throws Exception if a table name starting with # is given, but a
+   *   DataHandler can't be found.
+   */
+  protected function joinedTableHandler($name) {
+    if (strpos($name, '#') === 0) {
+      $name = substr($name, 1);
+      if (in_array($name, $this->joined_tables)) {
+        return data_get_handler($name);
+      }
+      throw new Exception(t('Data handler for table !name not found.', array('!name' => $name)));
+    }
+    return NULL;
+  }
+
+  /**
+   * Does not support save(). protected.
+   */
+  protected function save(&$record, $update) {
+    parent::save($record, $update);
   }
 }
