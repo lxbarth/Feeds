@@ -98,16 +98,6 @@ function _feeds_feeds_plugins() {
       'path' => $path,
     ),
   );
-  $info['FeedsTermProcessor'] = array(
-    'name' => 'Taxonomy term processor',
-    'description' => 'Create taxonomy terms from parsed content.',
-    'handler' => array(
-      'parent' => 'FeedsProcessor',
-      'class' => 'FeedsTermProcessor',
-      'file' => 'FeedsTermProcessor.inc',
-      'path' => $path,
-    ),
-  );
   $info['FeedsDataProcessor'] = array(
     'name' => 'Data processor',
     'description' => 'Create data table records from parsed content.',
@@ -115,6 +105,16 @@ function _feeds_feeds_plugins() {
       'parent' => 'FeedsProcessor',
       'class' => 'FeedsDataProcessor',
       'file' => 'FeedsDataProcessor.inc',
+      'path' => $path,
+    ),
+  );
+  $info['FeedsTermProcessor'] = array(
+    'name' => 'Taxonomy term processor',
+    'description' => 'Create taxonomy terms from parsed content.',
+    'handler' => array(
+      'parent' => 'FeedsProcessor',
+      'class' => 'FeedsTermProcessor',
+      'file' => 'FeedsTermProcessor.inc',
       'path' => $path,
     ),
   );
