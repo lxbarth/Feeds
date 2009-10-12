@@ -442,8 +442,10 @@ function feeds_ui_mapping_form(&$form_state, $feed) {
 
   // Get mapping sources from parsers and targets from processor, format them
   // for output.
-  $sources = $feed->parser->getMappingSources();
-  $source_options = _feeds_ui_format_options($sources);
+  // Some parsers do not define mapping sources but let them define on the fly.
+  if ($sources = $feed->parser->getMappingSources()) {
+    $source_options = _feeds_ui_format_options($sources);
+  }
   $targets = $feed->processor->getMappingTargets();
   $target_options = _feeds_ui_format_options($targets);
 
@@ -456,7 +458,7 @@ function feeds_ui_mapping_form(&$form_state, $feed) {
   if (is_array($mappings)) {
     foreach ($mappings as $i => $mapping) {
 
-      $mappings[$i]['source'] = $source_options[$mappings[$i]['source']];
+      $mappings[$i]['source'] = isset($source_options) ? $source_options[$mappings[$i]['source']] : $mappings[$i]['source'];
       $mappings[$i]['target'] = $target_options[$mappings[$i]['target']];
       $param = array(
         'processor' => $feed->processor,
