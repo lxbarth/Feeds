@@ -236,6 +236,8 @@ class FeedsDataProcessor extends FeedsProcessor {
  *   considered of the same data set.
  * - save() is not supported. update() only supports updates on
  *   FeedsDataHandler::key
+ * - Note: a record in depending tables will deleted when records from the base
+ *   table are deleted.
  */
 class FeedsDataHandler extends DataHandler {
 
@@ -338,7 +340,7 @@ class FeedsDataHandler extends DataHandler {
   }
 
   /**
-   * Delete records.
+   * Delete records from this handler's base table and all joined tables.
    */
   public function delete($keys) {
 
