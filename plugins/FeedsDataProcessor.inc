@@ -119,6 +119,22 @@ class FeedsDataProcessor extends FeedsProcessor {
       }
     }
 
+    // Do the same for every joined table.
+    foreach ($this->handler()->joined_tables as $table) {
+      $schema = data_get_table($table)->get('table_schema');
+      if (isset($schema['fields'])) {
+        foreach ($schema['fields'] as $field_name => $field) {
+          if (!in_array($field_name, array('id', 'feed_nid'))) {
+            // Fields in joined tables can't be unique.
+            $existing_fields["$table.$field_name"] = array(
+              'name' => $table .'.'. (empty($meta['fields'][$field_name]['label']) ? $field_name : $meta['fields'][$field_name]['label']),
+              'optional_unique' => FALSE,
+            );
+          }
+        }
+      }
+    }
+
     // Now add data field types as mapping targets.
     $field_types = drupal_map_assoc(array_keys(data_get_field_definitions()));
     foreach ($field_types as $k => $v) {
@@ -193,11 +209,13 @@ class FeedsDataProcessor extends FeedsProcessor {
 
   /**
    * Return a data handler for this table.
+   *
+   * Avoids a call to table() to not unnecessarily instantiate DataTable.
    */
   protected function handler() {
     data_include('DataHandler');
     feeds_include('FeedsDataHandler');
-    return FeedsDataHandler::instance($this->table()->get('name'), 'id');
+    return FeedsDataHandler::instance($this->tableName(), 'id');
   }
 
   /**
