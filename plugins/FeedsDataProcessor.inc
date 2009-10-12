@@ -30,11 +30,11 @@ class FeedsDataProcessor extends FeedsProcessor {
         // Save data.
         if ($id) {
           $data['id'] = $id;
-          $this->table()->handler()->update($data, 'id');
+          $this->handler()->update($data, 'id');
           $updated++;
         }
         else {
-          $this->table()->handler()->insert($data);
+          $this->handler()->insert($data);
           $inserted++;
         }
       }
@@ -58,7 +58,7 @@ class FeedsDataProcessor extends FeedsProcessor {
    * Delete all data records for feed_nid in this table.
    */
   public function purge(FeedsSource $source) {
-    $num = $this->table()->handler()->delete(array('feed_nid' => $source->feed_nid));
+    $num = $this->handler()->delete(array('feed_nid' => $source->feed_nid));
     drupal_set_message(t('Deleted !number records from !table.', array('!number' => $num, '!table' => $this->tableName())));
   }
 
@@ -133,7 +133,7 @@ class FeedsDataProcessor extends FeedsProcessor {
    */
   protected function existingItemId($source_item, FeedsSource $source) {
     foreach ($this->uniqueTargets($source_item) as $target => $value) {
-      if ($records = $this->table()->handler()->load(array($target => $value))) {
+      if ($records = $this->handler()->load(array($target => $value))) {
         return $records[0]['id'];
       }
     }
@@ -189,6 +189,15 @@ class FeedsDataProcessor extends FeedsProcessor {
       }
     }
     throw new Exception('Could not create data table.');
+  }
+
+  /**
+   * Return a data handler for this table.
+   */
+  protected function handler() {
+    data_include('DataHandler');
+    feeds_include('FeedsDataHandler');
+    return FeedsDataHandler::instance($this->table()->get('name'), 'id');
   }
 
   /**

@@ -148,6 +148,8 @@ class FeedsDataHandler extends DataHandler {
 
     // Assemble where clause for delete query.
     $where = $values = array();
+    $schema = drupal_get_schema($this->table);
+    $fields = $schema['fields'];
     foreach ($keys as $key => $value) {
       $where[] = 'base.'. db_escape_string($key) ." = ". db_type_placeholder($fields[$key]['type']);
       $values[] = $value;
@@ -158,9 +160,7 @@ class FeedsDataHandler extends DataHandler {
 
       // First delete records from joined tables, then delete this table's
       // record.
-      foreach ($this->joined_table as $table) {
-        $schema = drupal_get_schema($this->table);
-        $fields = $schema['fields'];
+      foreach ($this->joined_tables as $table) {
         if (!empty($where)) {
           db_query('DELETE joined FROM {'. db_escape_table($this->table) .'} base JOIN  {'. db_escape_table($table) .'} joined ON base.'. $this->key .' = joined.'. $this->key .' WHERE '. implode(' AND ', $where), $values);
         }
@@ -200,9 +200,9 @@ class FeedsDataHandler extends DataHandler {
   }
 
   /**
-   * Does not support save(). protected.
+   * @todo: support save().
    */
-  protected function save(&$record, $update) {
-    parent::save($record, $update);
+  public function save(&$record, $update) {
+    throw new Exception(t('Not implemented.'));
   }
 }
