@@ -24,10 +24,24 @@ class FeedsCSVParser extends FeedsParser {
     $parser = new ParserCSV();
     $parser->setDelimiter($this->config['delimiter']);
     $parser->setSkipFirstLine(FALSE);
-    $result = array(
-      'items' => $parser->parse($iterator),
-    );
-    return new FeedsParserResult($result);
+
+    // Parse and apply titles.
+    // @todo: push this functionality into ParserCSV.
+    $rows = $parser->parse($iterator);
+
+    $header = array_shift($rows);
+    $result_rows = array();
+    foreach ($rows as $i => $row) {
+      $result_row = array();
+      foreach ($row as $j => $col) {
+        $result_row[$header[$j]] = $col;
+      }
+      $result_rows[$i] = $result_row;
+    }
+    unset($rows);
+
+    // Return result.
+    return new FeedsParserResult(array('items' => $result_rows));
   }
 
   /**
