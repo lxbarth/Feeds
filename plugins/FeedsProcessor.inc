@@ -107,7 +107,7 @@ abstract class FeedsProcessor extends FeedsPlugin {
    * Get mappings.
    */
   public function getMappings() {
-    return $this->config['mappings'];
+    return isset($this->config['mappings']) ? $this->config['mappings'] : array();
   }
 
   /**
