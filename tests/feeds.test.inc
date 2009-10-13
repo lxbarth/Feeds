@@ -66,7 +66,7 @@ class FeedsWebTestCase extends DrupalWebTestCase {
       $feed_url = $GLOBALS['base_url'] .'/'. drupal_get_path('module', 'feeds') .'/tests/feeds/developmentseed.rss2';
     }
     // Ask the configuration for the content type to create.
-    $config = unserialize(db_result(db_query('SELECT config FROM {feeds_config} WHERE id = "%s"', $id)));
+    $config = unserialize(db_result(db_query('SELECT config FROM {feeds_importer} WHERE id = "%s"', $id)));
     $content_type = $config['content_type'];
     $this->assertFalse(empty($content_type), 'Valid content type found: '. $content_type);
 
@@ -145,7 +145,7 @@ class FeedsWebTestCase extends DrupalWebTestCase {
    */
   public function assertPlugins($id, $fetcher, $parser, $processor) {
     // Assert actual configuration.
-    $config = unserialize(db_result(db_query('SELECT config FROM {feeds_config} WHERE id = "%s"', $id)));
+    $config = unserialize(db_result(db_query('SELECT config FROM {feeds_importer} WHERE id = "%s"', $id)));
 
     $this->assertEqual($config['fetcher']['plugin_key'], $fetcher, 'Correct fetcher');
     $this->assertEqual($config['parser']['plugin_key'], $parser, 'Correct parser');

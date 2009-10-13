@@ -118,7 +118,7 @@ function feeds_ui_create_form(&$form_state) {
 function feeds_ui_create_form_validate($form, &$form_state) {
   ctools_include('export');
   $importer = feeds_importer($form_state['values']['id']);
-  if (ctools_export_load_object('feeds_config', 'conditions', array('id' => $form_state['values']['id']))) {
+  if (ctools_export_load_object('feeds_importer', 'conditions', array('id' => $form_state['values']['id']))) {
     form_set_error('id', t('Id is taken.'));
   }
   $importer->configFormValidate($form_state['values']);

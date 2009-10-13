@@ -334,7 +334,7 @@ class FeedsRSStoDataTest extends FeedsWebTestCase {
     $this->addMappings('rss', $mappings);
 
     // Verify the mapping configuration.
-    $config = unserialize(db_result(db_query('SELECT config FROM {feeds_config} WHERE id = "rss"')));
+    $config = unserialize(db_result(db_query('SELECT config FROM {feeds_importer} WHERE id = "rss"')));
     $stored_mappings = $config['processor']['config']['mappings'];
     foreach ($mappings as $i => $mapping) {
       $this->assertEqual($mapping['source'], $stored_mappings[$i]['source']);

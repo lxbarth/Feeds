@@ -355,7 +355,7 @@ function feeds_scheduler_work($feed_info) {
  */
 function feeds_importer_load_all() {
   ctools_include('export');
-  $configs = ctools_export_load_object('feeds_config', 'all');
+  $configs = ctools_export_load_object('feeds_importer', 'all');
   $feeds = array();
   foreach ($configs as $config) {
     if ($config->id) {
@@ -413,13 +413,13 @@ function feeds_import($importer, $feed_nid = 0) {
 }
 
 /**
- * Export a feed configuration to code.
+ * Export a FeedsImporter configuration to code.
  */
 function feeds_export($importer_id, $indent = '') {
   ctools_include('export');
-  $result = ctools_export_load_object('feeds_config', 'names', array('id' => $importer_id));
+  $result = ctools_export_load_object('feeds_importer', 'names', array('id' => $importer_id));
   if (isset($result[$importer_id])) {
-    return ctools_export_object('feeds_config', $result[$importer_id], $indent);
+    return ctools_export_object('feeds_importer', $result[$importer_id], $indent);
   }
 }
 

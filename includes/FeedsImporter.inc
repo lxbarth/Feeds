@@ -161,9 +161,9 @@ class FeedsImporter extends FeedsConfigurable {
     $save->config = $this->getConfig();
     // Make sure a source record is present at all time, try to update first,
     // then insert.
-    drupal_write_record('feeds_config', $save, 'id');
+    drupal_write_record('feeds_importer', $save, 'id');
     if (!db_affected_rows()) {
-      drupal_write_record('feeds_config', $save);
+      drupal_write_record('feeds_importer', $save);
     }
     // Clear menu cache, changes to importer can change menu items.
     menu_rebuild();
@@ -174,7 +174,7 @@ class FeedsImporter extends FeedsConfigurable {
    */
   public function load() {
     ctools_include('export');
-    if ($config = ctools_export_load_object('feeds_config', 'conditions', array('id' => $this->id))) {
+    if ($config = ctools_export_load_object('feeds_importer', 'conditions', array('id' => $this->id))) {
       $config = array_shift($config);
       $this->export_type = $config->export_type;
       $this->config = $config->config;
@@ -188,7 +188,7 @@ class FeedsImporter extends FeedsConfigurable {
    * from database, does not delete configuration itself.
    */
   public function delete() {
-    db_query('DELETE FROM {feeds_config} WHERE id = "%s"', $this->id);
+    db_query('DELETE FROM {feeds_importer} WHERE id = "%s"', $this->id);
   }
 
   /**
