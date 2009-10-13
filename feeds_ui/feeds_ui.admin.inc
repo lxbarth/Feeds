@@ -1,5 +1,6 @@
 <?php
 // $Id: feeds_ui.admin.inc,v 1.14 2009/09/21 14:55:47 alexb Exp $
+
 /**
  * @file
  * Contains all page callbacks, forms and theming functions for Feeds
@@ -51,19 +52,19 @@ function feeds_ui_mapping_help() {
 function feeds_ui_overview_page() {
 
   $rows = array();
-  foreach (feeds_importer_load_all() as $feed) {
-    if (empty($feed->config['content_type'])) {
+  foreach (feeds_importer_load_all() as $importer) {
+    if (empty($importer->config['content_type'])) {
       $type = '[none]';
     }
     else {
-      $type = l(node_get_types('name', $feed->config['content_type']), 'node/add/'. $feed->config['content_type']);
+      $type = l(node_get_types('name', $importer->config['content_type']), 'node/add/'. $importer->config['content_type']);
     }
     $rows[] = array(
-      $feed->config['name'],
+      $importer->config['name'],
       $type,
-      l(t('Edit'), 'admin/build/feeds/edit/'. $feed->id) .' | '.
-      l(t('Export'), 'admin/build/feeds/export/'. $feed->id) .' | '.
-      l(t('Delete'), 'admin/build/feeds/delete/'. $feed->id),
+      l(t('Edit'), 'admin/build/feeds/edit/'. $importer->id) .' | '.
+      l(t('Export'), 'admin/build/feeds/export/'. $importer->id) .' | '.
+      l(t('Delete'), 'admin/build/feeds/delete/'. $importer->id),
     );
   }
   $rows[] = array(
@@ -116,11 +117,11 @@ function feeds_ui_create_form(&$form_state) {
  */
 function feeds_ui_create_form_validate($form, &$form_state) {
   ctools_include('export');
-  $feed = feeds_importer($form_state['values']['id']);
+  $importer = feeds_importer($form_state['values']['id']);
   if (ctools_export_load_object('feeds_config', 'conditions', array('id' => $form_state['values']['id']))) {
     form_set_error('id', t('Id is taken.'));
   }
-  $feed->configFormValidate($form_state['values']);
+  $importer->configFormValidate($form_state['values']);
 }
 
 /**
@@ -128,23 +129,23 @@ function feeds_ui_create_form_validate($form, &$form_state) {
  */
 function feeds_ui_create_form_submit($form, &$form_state) {
   // Create feed.
-  $feed = feeds_importer($form_state['values']['id']);
-  $feed->addConfig($form_state['values']);
-  $feed->save();
+  $importer = feeds_importer($form_state['values']['id']);
+  $importer->addConfig($form_state['values']);
+  $importer->save();
 
   // Set a message and redirect to settings form.
   drupal_set_message(t('Your feed has been created with default settings. If they do not fit your use case you can change them here.'));
-  $form_state['redirect'] = 'admin/build/feeds/edit/'. $feed->id;
+  $form_state['redirect'] = 'admin/build/feeds/edit/'. $importer->id;
 }
 
 /**
  * Delete configuration form.
  */
-function feeds_ui_delete_form(&$form_state, $feed) {
+function feeds_ui_delete_form(&$form_state, $importer) {
   $form['#redirect'] = 'admin/build/feeds';
-  $form['#feed'] = $feed;
+  $form['#feed'] = $importer;
   return confirm_form($form,
-    t('Would you really like to delete the configuration !id?', array('!id' => $feed->id)),
+    t('Would you really like to delete the configuration !id?', array('!id' => $importer->id)),
     $form['#redirect'],
     t('This action cannot be undone.'),
     t('Delete')
@@ -165,8 +166,8 @@ function feeds_ui_delete_form_submit($form, &$form_state) {
 /**
  * Export a feed configuration.
  */
-function feeds_ui_export_form(&$form_state, $feed) {
-  $code = feeds_export($feed->id);
+function feeds_ui_export_form(&$form_state, $importer) {
+  $code = feeds_export($importer->id);
 
   $form['export'] = array(
     '#title' => t('Export feed configuration'),
@@ -180,13 +181,13 @@ function feeds_ui_export_form(&$form_state, $feed) {
 /**
  * Edit feed configuration.
  */
-function feeds_ui_edit_page($feed, $active = 'help', $plugin_key = '') {
+function feeds_ui_edit_page($importer, $active = 'help', $plugin_key = '') {
 
   // Get plugins and configuration.
   $plugins = feeds_get_plugins();
-  $config = $feed->config;
+  $config = $importer->config;
   // Base path for changing the active container.
-  $path = 'admin/build/feeds/edit/'. $feed->id .'/';
+  $path = 'admin/build/feeds/edit/'. $importer->id .'/';
 
   $configure = t('!configure - ', array('!configure' => l(t('Configure your feed'), $path)));
   $active_container = array(
@@ -201,23 +202,23 @@ function feeds_ui_edit_page($feed, $active = 'help', $plugin_key = '') {
     case 'parser':
     case 'processor':
       $active_container['title'] = $configure . t('select a !plugin_type', array('!plugin_type' => $active));
-      $active_container['body'] = _feeds_ui_list_plugins_by_type($feed, $active, $config[$active]['plugin_key']);
+      $active_container['body'] = _feeds_ui_list_plugins_by_type($importer, $active, $config[$active]['plugin_key']);
       break;
     case 'settings':
       if ($plugin_key == 'Feed') {
         $active_container['title'] = $configure . t('basic settings');
-        $active_container['body'] = feeds_get_config_form($feed);
+        $active_container['body'] = feeds_get_config_form($importer);
       }
       // feeds_plugin_instance() returns a correct result because feed has been
       // instantiated previously.
-      elseif (in_array($plugin_key, array_keys($plugins)) && $plugin = feeds_plugin_instance($plugin_key, $feed->id)) {
+      elseif (in_array($plugin_key, array_keys($plugins)) && $plugin = feeds_plugin_instance($plugin_key, $importer->id)) {
         $active_container['title'] = $configure . t('settings for !plugin', array('!plugin' => $plugins[$plugin_key]['name']));
         $active_container['body'] = feeds_get_config_form($plugin);
       }
       break;
     case 'mapping':
       $active_container['title'] = $configure . t('mapping for !processor', array('!processor' => $plugins[$config['processor']['plugin_key']]['name']));
-      $active_container['body'] = drupal_get_form('feeds_ui_mapping_form', $feed);
+      $active_container['body'] = drupal_get_form('feeds_ui_mapping_form', $importer);
       break;
   }
 
@@ -227,18 +228,18 @@ function feeds_ui_edit_page($feed, $active = 'help', $plugin_key = '') {
 
   // Basic information.
   $items = array();
-  $items[] = t('Attached to: !type', array('!type' => $feed->config['content_type'] ? node_get_types('name', $feed->config['content_type']) : t('[none]')));
-  if ($feed->config['refresh_period'] == FEEDS_SCHEDULE_NEVER) {
+  $items[] = t('Attached to: !type', array('!type' => $importer->config['content_type'] ? node_get_types('name', $importer->config['content_type']) : t('[none]')));
+  if ($importer->config['refresh_period'] == FEEDS_SCHEDULE_NEVER) {
     $refresh_period = t('never');
   }
-  elseif ($feed->config['refresh_period'] == 0) {
+  elseif ($importer->config['refresh_period'] == 0) {
     $refresh_period = t('as often as possible');
   }
   else {
-    $refresh_period = t('every !interval', array('!interval' => format_interval($feed->config['refresh_period'])));
+    $refresh_period = t('every !interval', array('!interval' => format_interval($importer->config['refresh_period'])));
   }
   $items[] = t('Refresh: !refresh_period', array('!refresh_period' => $refresh_period));
-  $items[] = $feed->config['import_on_create'] ? t('Import on create') : t('Do not import on create');
+  $items[] = $importer->config['import_on_create'] ? t('Import on create') : t('Do not import on create');
 
   $info['title'] = t('Basic settings');
   $info['body'] = array(
@@ -252,7 +253,7 @@ function feeds_ui_edit_page($feed, $active = 'help', $plugin_key = '') {
   // Fetcher.
   $fetcher = $plugins[$config['fetcher']['plugin_key']];
   $actions = array();
-  if (feeds_get_config_form($feed->fetcher)) {
+  if (feeds_get_config_form($importer->fetcher)) {
     $actions = array(l(t('Settings'), $path .'settings/'. $config['fetcher']['plugin_key']));
   }
   $info['title'] = t('Fetcher');
@@ -269,7 +270,7 @@ function feeds_ui_edit_page($feed, $active = 'help', $plugin_key = '') {
   // Parser.
   $parser = $plugins[$config['parser']['plugin_key']];
   $actions = array();
-  if (feeds_get_config_form($feed->parser)) {
+  if (feeds_get_config_form($importer->parser)) {
     $actions = array(l(t('Settings'), $path .'settings/'. $config['parser']['plugin_key']));
   }
   $info['title'] = t('Parser');
@@ -286,7 +287,7 @@ function feeds_ui_edit_page($feed, $active = 'help', $plugin_key = '') {
   // Processor.
   $processor = $plugins[$config['processor']['plugin_key']];
   $actions = array();
-  if (feeds_get_config_form($feed->processor)) {
+  if (feeds_get_config_form($importer->processor)) {
     $actions[] = l(t('Settings'), $path .'settings/'. $config['processor']['plugin_key']);
   }
   // @todo: We assume that every processor supports mapping - that's not
@@ -309,7 +310,7 @@ function feeds_ui_edit_page($feed, $active = 'help', $plugin_key = '') {
 /**
  * Helper for building a list of plugins of a specific type.
  *
- * @param $feed
+ * @param $importer
  *   Feed object.
  * @param $type
  *   Plugin type. One of 'fetcher', 'parser', 'processor'.
@@ -322,7 +323,7 @@ function feeds_ui_edit_page($feed, $active = 'help', $plugin_key = '') {
  * @todo: make this a single form. Simpletest can't push buttons on forms
  *   with the same label on submit buttons.
  */
-function _feeds_ui_list_plugins_by_type($feed, $type, $selected) {
+function _feeds_ui_list_plugins_by_type($importer, $type, $selected) {
   $plugins = feeds_get_plugins_by_type();
   $plugins = $plugins[$type];
 
@@ -331,7 +332,7 @@ function _feeds_ui_list_plugins_by_type($feed, $type, $selected) {
     $actions = array();
     if ($key != $selected) {
       $param = array(
-        'feed_id' => $feed->id,
+        'feed_id' => $importer->id,
         'plugin_key' => $key,
       );
       $actions = array(feeds_ui_get_form('feeds_ui_button_form', 'Select', 'feeds_ui_select_plugin', $param));
@@ -350,11 +351,11 @@ function _feeds_ui_list_plugins_by_type($feed, $type, $selected) {
  */
 function feeds_ui_select_plugin($args) {
   $plugin_key = $args['plugin_key'];
-  $feed = feeds_importer($args['feed_id']);
+  $importer = feeds_importer($args['feed_id']);
 
   // Set the plugin and save feed.
-  $feed->setPlugin($plugin_key);
-  $feed->save();
+  $importer->setPlugin($plugin_key);
+  $importer->save();
 }
 
 /**
@@ -434,24 +435,24 @@ function feeds_ui_button_form_submit($form, &$form_state) {
  *   shared form of configuration, most of the common functionality can live in
  *   FeedsProcessor, a flag can tell whether mapping is supported or not.
  */
-function feeds_ui_mapping_form(&$form_state, $feed) {
+function feeds_ui_mapping_form(&$form_state, $importer) {
   drupal_add_js(drupal_get_path('module', 'feeds_ui') .'/feeds_ui.js');
 
   $form = array();
-  $form['#feed'] = $feed;
+  $form['#feed'] = $importer;
   $form['help']['#value'] = feeds_ui_mapping_help();
 
   // Get mapping sources from parsers and targets from processor, format them
   // for output.
   // Some parsers do not define mapping sources but let them define on the fly.
-  if ($sources = $feed->parser->getMappingSources()) {
+  if ($sources = $importer->parser->getMappingSources()) {
     $source_options = _feeds_ui_format_options($sources);
   }
-  $targets = $feed->processor->getMappingTargets();
+  $targets = $importer->processor->getMappingTargets();
   $target_options = _feeds_ui_format_options($targets);
 
   // Add unique and remove forms to mappings.
-  $mappings = $feed->processor->getMappings();
+  $mappings = $importer->processor->getMappings();
   $form['unique_flags'] = $form['remove_flags'] = array(
     '#tree' => TRUE,
   );
@@ -462,7 +463,7 @@ function feeds_ui_mapping_form(&$form_state, $feed) {
       $mappings[$i]['source'] = isset($source_options) ? $source_options[$mappings[$i]['source']] : $mappings[$i]['source'];
       $mappings[$i]['target'] = $target_options[$mappings[$i]['target']];
       $param = array(
-        'processor' => $feed->processor,
+        'processor' => $importer->processor,
         'mapping' => $mapping,
       );
 
@@ -520,10 +521,10 @@ function feeds_ui_mapping_form(&$form_state, $feed) {
  * Submit handler for add button on feeds_ui_mapping_form().
  */
 function feeds_ui_mapping_form_add_submit($form, &$form_state) {
-  $feed = $form['#feed'];
+  $importer = $form['#feed'];
   try {
-    $feed->processor->addMapping($form_state['values']['source'], $form_state['values']['target']);
-    $feed->processor->save();
+    $importer->processor->addMapping($form_state['values']['source'], $form_state['values']['target']);
+    $importer->processor->save();
     drupal_set_message(t('Mapping has been added.'));
   }
   catch (Exception $e) {
