@@ -3,15 +3,11 @@
 
 /**
  * @file
- * Home of FeedsConfigurable class and related.
+ * FeedsConfigurable and helper functions.
  */
 
 /**
- * Define a configurable interface.
- *
- * Note how a configurable does not need to implement any DB persistence
- * methods like load(), save() or delete().
- *
+ * A configurable class.
  */
 abstract class FeedsConfigurable {
 
@@ -22,6 +18,8 @@ abstract class FeedsConfigurable {
   protected $id;
 
   /*
+  CTools export type of this object.
+
   Export type can be one of
   FEEDS_EXPORT_NONE - the configurable only exists in memory
   EXPORT_IN_DATABASE - the configurable is defined in the database.
@@ -62,6 +60,12 @@ abstract class FeedsConfigurable {
     // Make sure configuration is populated.
     $this->config = $this->configDefaults();
   }
+
+  /**
+   * Save a configuration. Concrete extending classes must implement a save
+   * operation.
+   */
+  public abstract function save();
 
   /**
    * Set configuration.
@@ -195,8 +199,6 @@ function feeds_config_form_validate($form, &$form_state) {
 
 /**
  * Submit handler for feeds_config_form().
- *
- * @todo: ->save() violates the class definition.
  */
 function feeds_config_form_submit($form, &$form_state) {
   $form['#configurable']->addConfig($form_state['values']);
