@@ -51,6 +51,14 @@ function feeds_views_data() {
       'click sortable' => FALSE,
     ),
   );
+  // feed_nid joins to node nid.
+  $data['feeds_source']['table']['join'] = array(
+    'node' => array(
+      'left_field' => 'nid',
+      'field' => 'feed_nid',
+      'type' => 'LEFT',
+    ),
+  );
 
   return $data;
 }
