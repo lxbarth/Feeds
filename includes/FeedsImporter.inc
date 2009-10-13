@@ -18,10 +18,12 @@ require_once(dirname(__FILE__) .'/FeedsSource.inc');
  */
 abstract class FeedsResult {
 
-  protected $type;
-  protected $value;
   // An array of valid values for $type.
   protected $valid_types = array();
+  // The type of this result.
+  protected $type;
+  // The value of this result.
+  protected $value;
 
   /**
    * Constructor: create object, validate class variables.
@@ -60,8 +62,34 @@ abstract class FeedsResult {
 }
 
 /**
- * Configurable importer class. This is the main hub for Feeds module's
+ * Class defining an importer object. This is the main hub for Feeds module's
  * functionality.
+ *
+ * A FeedsImporter holds a pointer to a fetcher, a parser and a processor
+ * plugin. It further contains the configuration for itself and each of the
+ * three plugins.
+ *
+ * Its most important responsibilities are configuration management, importing
+ * and purging.
+ *
+ * When a FeedsImporter is instantiated, it loads its configuration. Then it
+ * instantiates one fetcher, one parser and one processor plugin depending on
+ * the configuration information. After instantiating them, it sets them to
+ * the configuration information it holds for them.
+ *
+ * @see __construct()
+ *
+ * When importing or purging, a FeedsSource object is passed into import() and
+ * the fetcher, the parser and the processor are subsequently executed. It is
+ * important to note that at no time a FeedsImporter object holds a pointer to a
+ * FeedsSource object, while a FeedsSource object always holds a pointer to a
+ * FeedsImporter object. The reason is that there is only one FeedsImporter
+ * instance per configuration, while there is a FeedsSource object per source to
+ * be imported. Sources can be tied to feed nodes, thus there can be potentially
+ * many sources per feeds configuration.
+ *
+ * @see import()
+ * @see purge()
  */
 class FeedsImporter extends FeedsConfigurable {
 
@@ -119,7 +147,7 @@ class FeedsImporter extends FeedsConfigurable {
   /**
    * Remove all Items from a feed.
    *
-   * @todo: Run purge on fetcher parser and processor.
+   * @todo: Run purge on fetcher, parser and processor.
    */
   public function purge(FeedsSource $source) {
     $this->processor->purge($source);
@@ -138,7 +166,7 @@ class FeedsImporter extends FeedsConfigurable {
     if (!db_affected_rows()) {
       drupal_write_record('feeds_config', $save);
     }
-    // Clear menu cache, changes to Feed can change menu items.
+    // Clear menu cache, changes to importer can change menu items.
     menu_rebuild();
   }
 
