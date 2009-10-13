@@ -24,7 +24,7 @@ function feeds_views_data() {
   );
   $data['feeds_source']['feed_nid'] = array(
     'title' => 'Feed node id',
-    'help' => 'Contains the node id of a feed node if the feed\'s configuration is attached to a content type. Otherwise contains 0.',
+    'help' => 'Contains the node id of a feed node if the feed\'s configuration is attached to a content type, otherwise contains 0.',
     'field' => array(
       'handler' => 'views_handler_field_numeric',
       'click sortable' => TRUE,
@@ -43,6 +43,31 @@ function feeds_views_data() {
       'help' => 'Sort Feeds Source\'s feed_nid field.',
     ),
   );
+  $data['feeds_source']['config'] = array(
+    'title' => 'Source',
+    'help' => 'The resource identifier for this feed. For instance a URL.',
+    'field' => array(
+      'handler' => 'feeds_views_handler_field_source',
+      'click sortable' => FALSE,
+    ),
+  );
 
   return $data;
+}
+
+/**
+ * Implementation of hook_views_handlers().
+ */
+function feeds_views_handlers() {
+  return array(
+    'info' => array(
+      'path' => drupal_get_path('module', 'feeds') .'/views',
+    ),
+    'handlers' => array(
+      // field handlers
+      'feeds_views_handler_field_source' => array(
+        'parent' => 'views_handler_field',
+      ),
+    ),
+  );
 }
