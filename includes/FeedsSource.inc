@@ -7,8 +7,8 @@
  */
 
 /**
- * Describes a class that defines default values and form descriptions for
- * a FeedSource.
+ * Declares an interface for a class that defines default values and form
+ * descriptions for a FeedSource.
  */
 interface FeedsSourceInterface {
 
