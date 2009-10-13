@@ -37,9 +37,7 @@ function feeds_schema() {
         'serialize' => TRUE,
       ),
     ),
-    'indexes' => array(
-        'id' => array('id'),
-      ),
+    'primary key' => array('id'),
   );
   $schema['feeds_source'] = array(
     'description' => 'Source definitions for feeds.',
@@ -64,6 +62,7 @@ function feeds_schema() {
         'serialize' => TRUE,
       ),
     ),
+    'primary key' => array('id', 'feed_nid'),
     'indexes' => array(
         'id' => array('id'),
         'feed_nid' => array('feed_nid'),
@@ -190,5 +189,16 @@ function feeds_update_6001() {
 function feeds_update_6002() {
   $ret = array();
   db_rename_table($ret, 'feeds_config', 'feeds_importer');
+  return $ret;
+}
+
+/**
+ * Add primary keys to feeds_importer and feeds_source.
+ */
+function feeds_update_6003() {
+  $ret = array();
+  db_drop_index($ret, 'feeds_importer', 'id');
+  db_add_primary_key($ret, 'feeds_importer', array('id'));
+  db_add_primary_key($ret, 'feeds_source', array('id', 'feed_nid'));
   return $ret;
 }
