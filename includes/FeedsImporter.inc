@@ -99,8 +99,6 @@ class FeedsImporter extends FeedsConfigurable {
   protected $fetcher, $parser, $processor;
 
   // This array defines the variable names of the plugins above.
-  // @todo: make this static once 5.3.0 has spread enough and __callstatic can
-  // be used.
   protected $plugin_types = array('fetcher', 'parser', 'processor');
 
   /**
@@ -117,6 +115,7 @@ class FeedsImporter extends FeedsConfigurable {
     // stored info is available.
     foreach ($this->plugin_types as $type) {
       $plugin = feeds_plugin_instance($this->config[$type]['plugin_key'], $this->id);
+
       if (isset($this->config[$type]['config'])) {
         $plugin->setConfig($this->config[$type]['config']);
       }
