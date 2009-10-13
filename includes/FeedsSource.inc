@@ -59,8 +59,6 @@ class FeedsNoSourceException extends Exception {}
  *
  * As with Feed, the idea with FeedsSource is that it can be used without
  * actually saving the object to the database.
- *
- * @todo: Rename to FeedsSourceInfo.
  */
 class FeedsSource extends FeedsConfigurable {
 
