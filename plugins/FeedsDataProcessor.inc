@@ -236,7 +236,7 @@ class FeedsDataProcessor extends FeedsProcessor {
         return $table;
       }
     }
-    throw new Exception('Could not create data table.');
+    throw new Exception(t('Could not create data table.'));
   }
 
   /**

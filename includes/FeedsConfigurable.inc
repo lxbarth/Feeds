@@ -37,7 +37,7 @@ abstract class FeedsConfigurable {
   public static function instance($class, $id) {
     // This is useful at least as long as we're developing.
     if (empty($id)) {
-      throw new Exception('Empty configuration identifier.');
+      throw new Exception(t('Empty configuration identifier.'));
     }
     static $instances = array();
     if (!isset($instances[$class][$id])) {

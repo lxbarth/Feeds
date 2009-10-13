@@ -17,7 +17,7 @@ class FeedsCSVParser extends FeedsParser {
     }
     // @todo: write string buffer iterator.
     else {
-      throw new Exception('You must use CSV Parser with File Fetcher.');
+      throw new Exception(t('You must use CSV Parser with File Fetcher.'));
     }
 
     // Parse.

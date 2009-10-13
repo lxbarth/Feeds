@@ -43,11 +43,11 @@ abstract class FeedsResult {
    */
   public function __set($name, $value) {
     if ($name == 'valid_types') {
-      throw new Exception('Cannot write FeedsResult::valid_types.');
+      throw new Exception(t('Cannot write FeedsResult::valid_types.'));
     }
     if ($name == 'type') {
       if (!in_array($value, $this->valid_types)) {
-        throw new Exception('Invalid type "'. $value .'"');
+        throw new Exception(t('Invalid type "!type"', array('!type' => $value)));
       }
     }
     $this->$name = $value;

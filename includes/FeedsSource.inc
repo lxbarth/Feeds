@@ -87,7 +87,7 @@ class FeedsSource extends FeedsConfigurable {
   public static function instance($importer, $feed_nid = 0) {
     // This is useful at least as long as we're developing.
     if (empty($importer)) {
-      throw new Exception('Empty FeedsImporter.');
+      throw new Exception(t('Empty FeedsImporter.'));
     }
 
     // Let others override which class to instantiate.

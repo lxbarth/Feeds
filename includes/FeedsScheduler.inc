@@ -19,12 +19,12 @@ interface IFeedsScheduler {
   /**
    * Add a feed to the schedule.
    *
-   * @param $feed_id
-   *   Id of a Feed object.
+   * @param $importer_id
+   *   Id of a FeedsImporter object.
    * @param $feed_nid
    *   Feed nid that identifies the source for this configuration.
    */
-  public function add($feed_id, $feed_nid = 0);
+  public function add($importer_id, $feed_nid = 0);
 
   /**
    * Remove a feed from the schedule.
@@ -38,7 +38,7 @@ interface IFeedsScheduler {
    * Work off a given feed identified by $feed_info.
    *
    * @param $feed_info
-   *   Array where 'feed_id' key is the id of a Feed object,
+   *   Array where 'importer_id' key is the id of a FeedsImporter object,
    *   and 'feed_nid' is the feed node id that identifies the
    *   source of a FeedsSource object.
    */
@@ -108,21 +108,21 @@ class FeedsScheduler implements IFeedsScheduler {
 
     // Get feeds configuration, check whether drupal_queue is present and set
     // parameters accordingly.
-    if ($feeds = feeds_importer_load_all()) {
+    if ($importers = feeds_importer_load_all()) {
       $use_queue = module_exists('drupal_queue');
-      $num = variable_get('feeds_schedule_num', $use_queue ? 200 / count($feeds) : 10 / count($feeds));
+      $num = variable_get('feeds_schedule_num', $use_queue ? 200 / count($importers) : 10 / count($importers));
       $num = $num ? $num : 1;
 
       // Iterate over feed configurations, pick $num feeds for each
       // configuration, push to queue or refresh feeds.
-      foreach ($feeds as $feed) {
-        if ($feed->config['refresh_period'] != FEEDS_SCHEDULE_NEVER) {
+      foreach ($importers as $importer) {
+        if ($importer->config['refresh_period'] != FEEDS_SCHEDULE_NEVER) {
 
           // Refresh feeds that have a refresh time older than now minus
           // refresh period.
-          $time = $this->time() - $feed->config['refresh_period'];
+          $time = $this->time() - $importer->config['refresh_period'];
 
-          $result = db_query_range('SELECT feed_nid, id AS feed_id, last_scheduled_time FROM {feeds_schedule} WHERE scheduled = 0 AND (last_scheduled_time < %d OR last_scheduled_time = 0) ORDER BY last_scheduled_time DESC', $time, 0, $num);
+          $result = db_query_range('SELECT feed_nid, id AS importer_id, last_scheduled_time FROM {feeds_schedule} WHERE scheduled = 0 AND (last_scheduled_time < %d OR last_scheduled_time = 0) ORDER BY last_scheduled_time DESC', $time, 0, $num);
           while ($feed_info = db_fetch_array($result)) {
 
             // If drupal_queue is present, add to queue, otherwise work off
@@ -158,9 +158,9 @@ class FeedsScheduler implements IFeedsScheduler {
    *        Set this value if a feed is refreshed on creation.
    * @todo: Create an abstract interface for items that can be added?
    */
-  public function add($feed_id, $feed_nid = 0) {
+  public function add($importer_id, $feed_nid = 0) {
     $save = array(
-      'id' => $feed_id,
+      'id' => $importer_id,
       'feed_nid' => $feed_nid,
       'last_scheduled_time' => 0,
       'scheduled' => 0, // Means NOT scheduled at the moment.
@@ -187,17 +187,17 @@ class FeedsScheduler implements IFeedsScheduler {
    * if drupal_queue is not enabled, directly from $this->cron().
    */
   public function work($feed_info) {
-    $feed = feeds_importer($feed_info['feed_id']);
+    $importer = feeds_importer($feed_info['importer_id']);
 
     // Only refresh if feed is actually in DB or in default configuration.
-    if ($feed->export_type != FEEDS_EXPORT_NONE) {
+    if ($importer->export_type != FEEDS_EXPORT_NONE) {
 
       // Remove scheduled flag, if we fail after this we'd like to try again
       // next time.
       $this->unmark($feed_info['feed_nid']);
 
       try {
-        feeds_import($feed, $feed_info['feed_nid']);
+        feeds_import($importer, $feed_info['feed_nid']);
       }
       catch (Exception $e) {
         watchdog('feeds_refresh', $e->getMessage() .'<br /><pre>'. $e->getTraceAsString() .'</pre>', array(), WATCHDOG_ERROR);
