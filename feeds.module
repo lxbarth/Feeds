@@ -364,12 +364,16 @@ function feeds_scheduler_work($feed_info) {
  *   An array of all feed configurations available.
  */
 function feeds_importer_load_all() {
-  ctools_include('export');
-  $configs = ctools_export_load_object('feeds_importer', 'all');
   $feeds = array();
-  foreach ($configs as $config) {
-    if ($config->id) {
-      $feeds[$config->id] = feeds_importer($config->id);
+  // This function can get called very early in install process through
+  // menu_router_rebuild(). Do not try to include CTools if not available.
+  if (function_exists('ctools_include')) {
+    ctools_include('export');
+    $configs = ctools_export_load_object('feeds_importer', 'all');
+    foreach ($configs as $config) {
+      if ($config->id) {
+        $feeds[$config->id] = feeds_importer($config->id);
+      }
     }
   }
   return $feeds;
