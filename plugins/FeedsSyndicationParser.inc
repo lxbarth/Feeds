@@ -18,7 +18,7 @@ class FeedsSyndicationParser extends FeedsParser {
     else {
       $string = $fetcherResult->value;
     }
-    feeds_include('common_syndication_parser', 'libraries');
+    feeds_include_library('common_syndication_parser.inc', 'common_syndication_parser');
     return new FeedsParserResult(common_syndication_parser_parse($string), 'syndication');
   }
 

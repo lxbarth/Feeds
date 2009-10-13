@@ -18,7 +18,7 @@ class FeedsSimplePieParser extends FeedsParser {
     else {
       $string = $fetcherResult->value;
     }
-    feeds_include('simplepie', 'libraries');
+    feeds_include_library('simplepie.inc', 'simplepie');
 
     // Initialize SimplePie.
     $parser = new SimplePie();

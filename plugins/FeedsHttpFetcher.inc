@@ -23,7 +23,7 @@ class FeedsHttpFetcher extends FeedsFetcher {
   public function fetch(FeedsSource $source) {
     $source_config = $source->getConfigFor($this);
     $url = $source_config['url'];
-    feeds_include('http_request', 'libraries');
+    feeds_include_library('http_request.inc', 'http_request');
     if ($this->config['auto_detect_feeds']) {
       return new FeedsFetcherResult(http_request_get_common_syndication($url), 'text/xml');
     }

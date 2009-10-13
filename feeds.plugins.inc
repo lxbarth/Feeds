@@ -21,6 +21,14 @@ function _feeds_feeds_plugins() {
       'path' => $path,
     ),
   );
+  $info['FeedsMissingPlugin'] = array(
+    'hidden' => TRUE,
+    'handler' => array(
+      'class' => 'FeedsMissingPlugin',
+      'file' => 'FeedsPlugin.inc',
+      'path' => $path,
+    ),
+  );
   $info['FeedsFetcher'] = array(
     'hidden' => TRUE,
     'handler' => array(
@@ -88,16 +96,18 @@ function _feeds_feeds_plugins() {
       'path' => $path,
     ),
   );
-  $info['FeedsSimplePieParser'] = array(
-    'name' => 'SimplePie parser',
-    'description' => 'Use <a href="http://simplepie.org">SimplePie</a> to parse XML feeds in RSS 1, RSS 2 or Atom format.',
-    'handler' => array(
-      'parent' => 'FeedsParser',
-      'class' => 'FeedsSimplePieParser',
-      'file' => 'FeedsSimplePieParser.inc',
-      'path' => $path,
-    ),
-  );
+  if (feeds_library_exists('simplepie.inc', 'simplepie')) {
+    $info['FeedsSimplePieParser'] = array(
+      'name' => 'SimplePie parser',
+      'description' => 'Use <a href="http://simplepie.org">SimplePie</a> to parse XML feeds in RSS 1, RSS 2 or Atom format.',
+      'handler' => array(
+        'parent' => 'FeedsParser',
+        'class' => 'FeedsSimplePieParser',
+        'file' => 'FeedsSimplePieParser.inc',
+        'path' => $path,
+      ),
+    );
+  }
   $info['FeedsNodeProcessor'] = array(
     'name' => 'Node processor',
     'description' => 'Create nodes from parsed content.',
@@ -108,25 +118,29 @@ function _feeds_feeds_plugins() {
       'path' => $path,
     ),
   );
-  $info['FeedsDataProcessor'] = array(
-    'name' => 'Data processor',
-    'description' => 'Create data table records from parsed content.',
-    'handler' => array(
-      'parent' => 'FeedsProcessor',
-      'class' => 'FeedsDataProcessor',
-      'file' => 'FeedsDataProcessor.inc',
-      'path' => $path,
-    ),
-  );
-  $info['FeedsTermProcessor'] = array(
-    'name' => 'Taxonomy term processor',
-    'description' => 'Create taxonomy terms from parsed content.',
-    'handler' => array(
-      'parent' => 'FeedsProcessor',
-      'class' => 'FeedsTermProcessor',
-      'file' => 'FeedsTermProcessor.inc',
-      'path' => $path,
-    ),
-  );
+  if (module_exists('data')) {
+    $info['FeedsDataProcessor'] = array(
+      'name' => 'Data processor',
+      'description' => 'Create data table records from parsed content.',
+      'handler' => array(
+        'parent' => 'FeedsProcessor',
+        'class' => 'FeedsDataProcessor',
+        'file' => 'FeedsDataProcessor.inc',
+        'path' => $path,
+      ),
+    );
+  }
+  if (module_exists('taxonomy')) {
+    $info['FeedsTermProcessor'] = array(
+      'name' => 'Taxonomy term processor',
+      'description' => 'Create taxonomy terms from parsed content.',
+      'handler' => array(
+        'parent' => 'FeedsProcessor',
+        'class' => 'FeedsTermProcessor',
+        'file' => 'FeedsTermProcessor.inc',
+        'path' => $path,
+      ),
+    );
+  }
   return $info;
 }

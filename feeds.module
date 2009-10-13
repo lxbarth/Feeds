@@ -511,7 +511,9 @@ function feeds_plugin_instance($plugin, $id) {
   if ($class = feeds_load_plugin_class($plugin)) {
     return FeedsConfigurable::instance($class, $id);
   }
-  throw new Exception(t('Could not find plugin !name for !id.', array('!name' => $plugin, '!id' => $id)));
+  // @todo: better error handling.
+  drupal_set_message(t('Missing plugin. Check whether all required libraries and modules are installed properly.'), 'error');
+  return FeedsConfigurable::instance('FeedsMissingPlugin', $id);
 }
 
 /**
@@ -546,15 +548,60 @@ function feeds_get_by_content_type($content_type) {
  * @param $file
  *   The filename without the .inc extension.
  * @param $directory
- *   The feeds subdirectory the file resides in.
+ *   The directory to include the file from. Do not include files from libraries
+ *   directory. Use feeds_include_library() instead
  */
 function feeds_include($file, $directory = 'includes') {
   static $included = array();
   if (!isset($included[$file])) {
-    require_once './' . drupal_get_path('module', 'feeds') . "/$directory/$file.inc";
+    require './' . drupal_get_path('module', 'feeds') . "/$directory/$file.inc";
   }
-
   $included[$file] = TRUE;
+}
+
+/**
+ * Include a library file.
+ *
+ * @param $file
+ *   The filename to load from.
+ * @param $library
+ *   The name of the library. If libraries module is installed,
+ *   feeds_include_library() will look for libraries with this name managed by
+ *   libraries module.
+ */
+function feeds_include_library($file, $library) {
+  static $included = array();
+  if (!isset($included[$file])) {
+    // Try first whether libraries module is present and load the file from
+    // there. If this fails, require the library from the local path.
+    if (module_exists('libraries') && file_exists(libraries_get_path($library) ."/$file")) {
+      require libraries_get_path($library) ."/$file";
+    }
+    else {
+      require './'. drupal_get_path('module', 'feeds') . "/libraries/$file";
+    }
+  }
+  $included[$file] = TRUE;
+}
+
+/**
+ * Checks whether a library is present.
+ *
+ * @param $file
+ *   The filename to load from.
+ * @param $library
+ *   The name of the library. If libraries module is installed,
+ *   feeds_library_exists() will look for libraries with this name managed by
+ *   libraries module.
+ */
+function feeds_library_exists($file, $library) {
+  if (module_exists('libraries') && file_exists(libraries_get_path($library) ."/$file")) {
+    return TRUE;
+  }
+  elseif (file_exists(drupal_get_path('module', 'feeds') . "/libraries/$file")) {
+    return TRUE;
+  }
+  return FALSE;
 }
 
 /**

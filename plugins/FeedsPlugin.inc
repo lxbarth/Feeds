@@ -69,3 +69,9 @@ abstract class FeedsPlugin extends FeedsConfigurable implements FeedsSourceInter
    */
   public function sourceFormValidate(&$values) {}
 }
+
+/**
+ * Used when a plugin is missing.
+ */
+class FeedsMissingPlugin extends FeedsPlugin {
+}
