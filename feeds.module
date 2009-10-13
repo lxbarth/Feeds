@@ -390,7 +390,7 @@ function feeds_importer_load_all() {
  * @return
  *   A FeedsImporter object if one is available, FALSE otherwise.
  */
-function feeds_importer_by_content_type_type($content_type) {
+function feeds_importer_by_content_type($content_type) {
   static $feeds = array();
 
   if (!isset($feeds[$content_type])) {
