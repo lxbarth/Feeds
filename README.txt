@@ -12,6 +12,26 @@ The new incarnation of FeedAPI and Feed Element Mapper. Work in progress.
 Contact alex_b for details:
 http://drupal.org/user/53995
 
+Features
+========
+
+- Pluggable import configurations consisting of fetchers (get data) parsers
+  (read and transform data) and processors (create content on Drupal).
+-- HTTP upload.
+-- File upload.
+-- CSV, RSS, Atom parsing.
+-- Creates nodes or terms.
+-- Creates lightweight database records if Data module is installed.
+   http://drupal.org/project/data
+-- Additional fetchers/parsers or processors can be added by an object oriented
+   plugin system.
+-- Granular mapping of parsed data to content elements.
+- Import configurations can be piggy backed on nodes, thus using nodes as
+  importers ("feed as node" approach) or they can be used on a standalone form.
+- Unlimited number of import configurations.
+- Export import configurations to code.
+- Optional libraries module support.
+
 Requirements
 ============
 
@@ -26,6 +46,9 @@ Installation
 - Check out from github into your modules directory.
 - Navigate to admin/build/feeds.
 - Create at least one feed configuration.
+- To use SimplePie parser, download SimplePie and place simplepie.inc into
+  feeds/libraries
+  http://simplepie.org/
 
 API Overview
 ============
