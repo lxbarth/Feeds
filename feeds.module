@@ -485,6 +485,9 @@ function feeds_scheduler() {
 /**
  * @defgroup plugins Plugin functions
  * @{
+ *
+ * @todo: Encapsulate this in a FeedsPluginHandler class, move it to includes/
+ * and only load it if we're manipulating plugins.
  */
 
 /**
