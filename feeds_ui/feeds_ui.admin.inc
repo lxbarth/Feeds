@@ -143,7 +143,7 @@ function feeds_ui_create_form_submit($form, &$form_state) {
  */
 function feeds_ui_delete_form(&$form_state, $importer) {
   $form['#redirect'] = 'admin/build/feeds';
-  $form['#feed'] = $importer;
+  $form['#importer'] = $importer;
   return confirm_form($form,
     t('Would you really like to delete the configuration !id?', array('!id' => $importer->id)),
     $form['#redirect'],
@@ -157,7 +157,7 @@ function feeds_ui_delete_form(&$form_state, $importer) {
  */
 function feeds_ui_delete_form_submit($form, &$form_state) {
   // Delete feed.
-  $form['#feed']->delete();
+  $form['#importer']->delete();
 
   // Clear cache, deleting a configuration may have an affect on menu tree.
   menu_rebuild();
@@ -439,7 +439,7 @@ function feeds_ui_mapping_form(&$form_state, $importer) {
   drupal_add_js(drupal_get_path('module', 'feeds_ui') .'/feeds_ui.js');
 
   $form = array();
-  $form['#feed'] = $importer;
+  $form['#importer'] = $importer;
   $form['help']['#value'] = feeds_ui_mapping_help();
 
   // Get mapping sources from parsers and targets from processor, format them
@@ -521,7 +521,7 @@ function feeds_ui_mapping_form(&$form_state, $importer) {
  * Submit handler for add button on feeds_ui_mapping_form().
  */
 function feeds_ui_mapping_form_add_submit($form, &$form_state) {
-  $importer = $form['#feed'];
+  $importer = $form['#importer'];
   try {
     $importer->processor->addMapping($form_state['values']['source'], $form_state['values']['target']);
     $importer->processor->save();
@@ -539,7 +539,7 @@ function feeds_ui_mapping_form_submit($form, &$form_state) {
   if (!isset($form_state['values']['unique_flags'])) {
     return;
   }
-  $processor = $form['#feed']->processor;
+  $processor = $form['#importer']->processor;
   $mappings = $processor->config['mappings'];
   // We may set some unique flags here that we remove in the subsequent step.
   // That's fine.
