@@ -20,6 +20,12 @@ define('FEEDS_SCHEDULE_NEVER', -1);
 // EXPORT_IN_CODE.
 define('FEEDS_EXPORT_NONE', 0x0);
 
+
+/**
+ * @defgroup hooks Hooks and callbacks.
+ * @{
+ */
+
 /**
  * Implementation of hook_cron().
  */
@@ -333,6 +339,15 @@ function feeds_scheduler_work($feed_info) {
 }
 
 /**
+ * @} End of "defgroup hooks".
+ */
+
+/**
+ * @defgroup utility Utility functions
+ * @{
+ */
+
+/**
  * Load all importers.
  *
  * @return
@@ -383,6 +398,15 @@ function feeds_export($importer_id, $indent = '') {
 }
 
 /**
+ * @} End of "defgroup utility".
+ */
+
+/**
+ * @defgroup instantiators Instantiators
+ * @{
+ */
+
+/**
  * Get an importer instance.
  *
  * @param $id
@@ -427,6 +451,15 @@ function feeds_scheduler() {
   feeds_include('FeedsScheduler');
   return FeedsScheduler::instance();
 }
+
+/**
+ * @} End of "defgroup instantiators".
+ */
+
+/**
+ * @defgroup plugins Plugin functions
+ * @{
+ */
 
 /**
  * Get all available plugins. Does not list hidden plugins.
@@ -610,9 +643,15 @@ function feeds_plugin_type($plugin_key) {
 }
 
 /**
+ * @} End of "defgroup plugins".
+ */
+
+/**
  * @defgroup include Funtions for loading libraries
  * @{
- *
+ */
+
+/**
  * Includes a feeds module include file.
  *
  * @param $file
