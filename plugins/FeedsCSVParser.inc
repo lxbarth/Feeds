@@ -24,12 +24,14 @@ class FeedsCSVParser extends FeedsParser {
     $parser = new ParserCSV();
     $parser->setDelimiter($this->config['delimiter']);
     $parser->setSkipFirstLine(FALSE);
-
-    // Parse and apply titles.
-    // @todo: push this functionality into ParserCSV.
     $rows = $parser->parse($iterator);
 
+    // Apply titles in lower case.
+    // @todo: push this functionality into ParserCSV.
     $header = array_shift($rows);
+    foreach ($header as $i => $title) {
+      $header[$i] = strtolower($title);
+    }
     $result_rows = array();
     foreach ($rows as $i => $row) {
       $result_row = array();
