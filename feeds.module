@@ -548,21 +548,6 @@ function feeds_get_plugins_by_type() {
 }
 
 /**
- * Load a plugin's class file.
- *
- * @param $plugin
- *   The key of the plugin.
- *
- * @return
- *   String that identifies the class name associated with this plugin.
- *   The class name is the one specified in the plugins $info['handler'] property.
- */
-function feeds_load_plugin_class($plugin) {
-  ctools_include('plugins');
-  return ctools_plugin_load_class('feeds', 'plugins', $plugin, 'handler');
-}
-
-/**
  * Get an instance of a class for a given plugin and id.
  *
  * @param $plugin
@@ -578,7 +563,8 @@ function feeds_load_plugin_class($plugin) {
  */
 function feeds_plugin_instance($plugin, $id) {
   feeds_include('FeedsImporter');
-  if ($class = feeds_load_plugin_class($plugin)) {
+  ctools_include('plugins');
+  if ($class = ctools_plugin_load_class('feeds', 'plugins', $plugin, 'handler')) {
     return FeedsConfigurable::instance($class, $id);
   }
   // @todo: better error handling.
