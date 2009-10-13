@@ -237,7 +237,8 @@ function feeds_feeds_plugins() {
 /**
  * Implementation of hook_nodeapi().
  */
-function feeds_nodeapi($node, $op) {
+function feeds_nodeapi(&$node, $op, $form) {
+  static $last_title;
 
   // Break out node processor related nodeapi functionality.
   _feeds_nodeapi_node_processor($node, $op);
@@ -245,11 +246,45 @@ function feeds_nodeapi($node, $op) {
   if ($importer = feeds_importer_by_content_type($node->type)) {
     switch ($op) {
       case 'validate':
+        // On validation stage we are working with a FeedsSource object that is
+        // not tied to a nid - when creating a new node there is $node->nid at
+        // this stage.
+        $source = feeds_source($importer);
+
+        // If node title is empty, try to retrieve title from feed.
+        if (trim($node->title) == '') {
+          try {
+            $source->addConfig($node->feeds);
+            $result = $importer->fetcher->fetch($source);
+            $result = $importer->parser->parse($result, $source);
+            if (!isset($result->value['title']) || trim($result->value['title']) == '') {
+              form_set_error('title', t('Could not retrieve title from feed.'), 'error');
+            }
+            else {
+              // Keep the title in a static cache and populate $node->title on
+              // 'presave' as node module looses any changes to $node after
+              // 'validate'.
+              $last_title = $result->value['title'];
+            }
+          }
+          catch (Exception $e) {
+            drupal_set_message($e->getMessage(), 'error');
+          }
+        }
+
+        // Invoke source
         // Node module magically moved $form['feeds'] to $node->feeds :P
-        feeds_source($importer)->configFormValidate($node->feeds);
+        $source->configFormValidate($node->feeds);
+        break;
+      case 'presave':
+        if (!empty($last_title)) {
+          $node->title = $last_title;
+        }
+        $last_title = NULL;
         break;
       case 'insert':
       case 'update':
+
         // Add configuration to feed source and save.
         $source = feeds_source($importer, $node->nid);
         $source->addConfig($node->feeds);
@@ -307,9 +342,11 @@ function _feeds_nodeapi_node_processor($node, $op) {
 function feeds_form_alter(&$form, $form_state, $form_id) {
   if ($form['#id'] == 'node-form') {
     if ($importer = feeds_importer_by_content_type($form['type']['#value'])) {
-      $source = feeds_source($importer, empty($form['nid']['#value']) ? 0 : $form['nid']['#value']);
+      // Set title to not required, try to retrieve it from feed.
+      $form['title']['#required'] = FALSE;
 
       // Build form.
+      $source = feeds_source($importer, empty($form['nid']['#value']) ? 0 : $form['nid']['#value']);
       $form['feeds'] = array(
         '#type' => 'fieldset',
         '#title' => t('Feed'),
