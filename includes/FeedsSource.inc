@@ -3,7 +3,7 @@
 
 /**
  * @file
- * Home of FeedsSource and related interfaces and exceptions.
+ * Definition of FeedsSourceInterface and FeedsSource class.
  */
 
 /**
