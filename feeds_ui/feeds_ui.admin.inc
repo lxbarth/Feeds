@@ -311,7 +311,7 @@ function feeds_ui_edit_page($importer, $active = 'help', $plugin_key = '') {
  * Helper for building a list of plugins of a specific type.
  *
  * @param $importer
- *   Feed object.
+ *   FeedsImporter object.
  * @param $type
  *   Plugin type. One of 'fetcher', 'parser', 'processor'.
  * @param $selected
