@@ -428,8 +428,6 @@ function feeds_importer_load_all() {
 /**
  * Utility function: import a feed. Expects a stored source.
  *
- * Use this when source at the time of call is not present.
- *
  * @param $importer
  *   FeedsImporter object.
  * @param $feed_nid
