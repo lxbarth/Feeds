@@ -97,7 +97,7 @@ function feeds_import_form_submit($form, &$form_state) {
  * Render a feeds import form on node/id/import pages.
  */
 function feeds_import_tab_form(&$form_state, $node) {
-  $feed = feeds_get_by_content_type($node->type);
+  $feed = feeds_importer_by_content_type($node->type);
 
   $form = array();
   $form['#feed_nid'] = $node->nid;
@@ -126,7 +126,7 @@ function feeds_delete_tab_form(&$form_state, $feed_id, $node = NULL) {
     $path = 'import/'. $feed_id .'/delete-items';
   }
   else {
-    $feed = feeds_get_by_content_type($node->type);
+    $feed = feeds_importer_by_content_type($node->type);
     $form['#feed_nid'] = $node->nid;
     $path = 'node/'. $node->nid;
   }

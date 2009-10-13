@@ -170,7 +170,7 @@ function feeds_access($action, $param) {
     $importer_id = $param;
   }
   elseif ($param->type) {
-    if ($importer = feeds_get_by_content_type($param->type)) {
+    if ($importer = feeds_importer_by_content_type($param->type)) {
       $importer_id = $importer->id;
     }
   }
@@ -242,7 +242,7 @@ function feeds_nodeapi($node, $op) {
   // Break out node processor related nodeapi functionality.
   _feeds_nodeapi_node_processor($node, $op);
 
-  if ($importer = feeds_get_by_content_type($node->type)) {
+  if ($importer = feeds_importer_by_content_type($node->type)) {
     switch ($op) {
       case 'validate':
         // Node module magically moved $form['feeds'] to $node->feeds :P
@@ -306,7 +306,7 @@ function _feeds_nodeapi_node_processor($node, $op) {
  */
 function feeds_form_alter(&$form, $form_state, $form_id) {
   if ($form['#id'] == 'node-form') {
-    if ($importer = feeds_get_by_content_type($form['type']['#value'])) {
+    if ($importer = feeds_importer_by_content_type($form['type']['#value'])) {
       $source = feeds_source($importer, empty($form['nid']['#value']) ? 0 : $form['nid']['#value']);
 
       // Build form.
@@ -390,7 +390,7 @@ function feeds_importer_load_all() {
  * @return
  *   A FeedsImporter object if one is available, FALSE otherwise.
  */
-function feeds_get_by_content_type($content_type) {
+function feeds_importer_by_content_type_type($content_type) {
   static $feeds = array();
 
   if (!isset($feeds[$content_type])) {
