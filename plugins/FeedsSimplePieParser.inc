@@ -127,7 +127,8 @@ class FeedsSimplePieParser extends FeedsParser {
    */
   protected function createTitle($text = FALSE) {
     // Explode to words and use the first 3 words.
-    $words = preg_split("/[\s,]+/", $body);
-    return $words[0] .' '. $words[1] .' '. $words[2];
+    $words = preg_split("/[\s,]+/", $text);
+    $words = array_slice($words, 0, 3);
+    return implode(' ', $words);
   }
 }
