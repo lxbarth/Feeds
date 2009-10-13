@@ -59,8 +59,7 @@ class FeedsSource extends FeedsConfigurable {
   protected $feed_nid;
 
   // The FeedsImporter object that this source is expected to be used with.
-  // @todo: rename to $importer.
-  protected $feed;
+  protected $importer;
 
   /**
    * Instantiate a unique object per class/id/feed_nid. Don't use
@@ -68,29 +67,29 @@ class FeedsSource extends FeedsConfigurable {
    *
    * @todo: Does overriding static functions work in PHP?
    */
-  public static function instance($feed, $feed_nid = 0) {
+  public static function instance($importer, $feed_nid = 0) {
     // This is useful at least as long as we're developing.
-    if (empty($feed)) {
-      throw new Exception('Empty feed.');
+    if (empty($importer)) {
+      throw new Exception('Empty FeedsImporter.');
     }
 
     // Let others override which class to instantiate.
     $class = variable_get('feeds_source_class', 'FeedsSource');
 
     static $instances = array();
-    if (!isset($instances[$class][$feed->id][$feed_nid])) {
-      $instances[$class][$feed->id][$feed_nid] = new $class($feed, $feed_nid);
+    if (!isset($instances[$class][$importer->id][$feed_nid])) {
+      $instances[$class][$importer->id][$feed_nid] = new $class($importer, $feed_nid);
     }
-    return $instances[$class][$feed->id][$feed_nid];
+    return $instances[$class][$importer->id][$feed_nid];
   }
 
   /**
    * Constructor.
    */
-  protected function __construct(FeedsImporter $feed, $feed_nid) {
+  protected function __construct(FeedsImporter $importer, $feed_nid) {
     $this->feed_nid = $feed_nid;
-    $this->feed = $feed;
-    parent::__construct($feed->id);
+    $this->importer = $importer;
+    parent::__construct($importer->id);
     $this->load();
   }
 
@@ -152,9 +151,9 @@ class FeedsSource extends FeedsConfigurable {
   public function configDefaults() {
     // Collect information from plugins.
     $defaults = array();
-    foreach ($this->feed->plugin_types as $type) {
-      if ($this->feed->$type->hasSourceConfig()) {
-        $defaults[get_class($this->feed->$type)] = $this->feed->$type->sourceDefaults();
+    foreach ($this->importer->plugin_types as $type) {
+      if ($this->importer->$type->hasSourceConfig()) {
+        $defaults[get_class($this->importer->$type)] = $this->importer->$type->sourceDefaults();
       }
     }
     return $defaults;
@@ -166,10 +165,10 @@ class FeedsSource extends FeedsConfigurable {
   public function configForm(&$form_state) {
     // Collect information from plugins.
     $form = array();
-    foreach ($this->feed->plugin_types as $type) {
-      if ($this->feed->$type->hasSourceConfig()) {
-        $class = get_class($this->feed->$type);
-        $form[$class] = $this->feed->$type->sourceForm($this->config[$class]);
+    foreach ($this->importer->plugin_types as $type) {
+      if ($this->importer->$type->hasSourceConfig()) {
+        $class = get_class($this->importer->$type);
+        $form[$class] = $this->importer->$type->sourceForm($this->config[$class]);
         $form[$class]['#tree'] = TRUE;
       }
     }
@@ -180,10 +179,10 @@ class FeedsSource extends FeedsConfigurable {
    * Override parent::configFormValidate().
    */
   public function configFormValidate(&$values) {
-    foreach ($this->feed->plugin_types as $type) {
-      $class = get_class($this->feed->$type);
-      if (isset($values[$class]) && $this->feed->$type->hasSourceConfig()) {
-        $this->feed->$type->sourceFormValidate($values[$class]);
+    foreach ($this->importer->plugin_types as $type) {
+      $class = get_class($this->importer->$type);
+      if (isset($values[$class]) && $this->importer->$type->hasSourceConfig()) {
+        $this->importer->$type->sourceFormValidate($values[$class]);
       }
     }
   }
