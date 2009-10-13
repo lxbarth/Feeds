@@ -366,6 +366,32 @@ function feeds_importer_load_all() {
 }
 
 /**
+ * Get a feed configuration by content type.
+ *
+ * @todo: speed this up by DB caching the result.
+ *
+ * @param $content_type
+ *   A node type string.
+ *
+ * @return
+ *   A FeedsImporter object if one is available, FALSE otherwise.
+ */
+function feeds_get_by_content_type($content_type) {
+  static $feeds = array();
+
+  if (!isset($feeds[$content_type])) {
+    $feeds[$content_type] = FALSE;
+    foreach (feeds_importer_load_all() as $importer) {
+      if ($importer->config['content_type'] == $content_type) {
+        $feeds[$content_type] = $importer;
+        break;
+      }
+    }
+  }
+  return $feeds[$content_type];
+}
+
+/**
  * Utility function: import a feed. Expects a stored source.
  *
  * @param $importer
@@ -558,32 +584,6 @@ function feeds_plugin_instance($plugin, $id) {
   // @todo: better error handling.
   drupal_set_message(t('Missing plugin. Check whether all required libraries and modules are installed properly.'), 'error');
   return FeedsConfigurable::instance('FeedsMissingPlugin', $id);
-}
-
-/**
- * Get a feed configuration by content type.
- *
- * @todo: speed this up by DB caching the result.
- *
- * @param $content_type
- *   A node type string.
- *
- * @return
- *   A FeedsImporter object if one is available, FALSE otherwise.
- */
-function feeds_get_by_content_type($content_type) {
-  static $feeds = array();
-
-  if (!isset($feeds[$content_type])) {
-    $feeds[$content_type] = FALSE;
-    foreach (feeds_importer_load_all() as $importer) {
-      if ($importer->config['content_type'] == $content_type) {
-        $feeds[$content_type] = $importer;
-        break;
-      }
-    }
-  }
-  return $feeds[$content_type];
 }
 
 /**
