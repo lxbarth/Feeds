@@ -19,7 +19,7 @@ class FeedsUIUserInterfaceTestCase extends FeedsWebTestCase {
   public function getInfo() {
     return array(
       'name' => t('Feeds UI user interface'),
-      'description' => t('Tests Feeds Admin UI module\'s GUI.'),
+      'description' => t('Tests Feeds Admin UI module\'s GUI. <strong>Requires Data module</strong>.'),
       'group' => t('Feeds'),
     );
   }
@@ -28,7 +28,7 @@ class FeedsUIUserInterfaceTestCase extends FeedsWebTestCase {
    * Set up test.
    */
   public function setUp() {
-    parent::setUp('feeds', 'feeds_ui', 'ctools');
+    parent::setUp('feeds', 'feeds_ui', 'ctools', 'data');
 
     $this->drupalLogin(
       $this->drupalCreateUser(
