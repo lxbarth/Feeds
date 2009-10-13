@@ -181,7 +181,7 @@ class FeedsRSStoNodesTest extends FeedsWebTestCase {
     $edit = array(
       'content_type' => '',
     );
-    $this->drupalPost('admin/build/feeds/edit/syndication_standalone/settings/Feed', $edit, 'Save');
+    $this->drupalPost('admin/build/feeds/edit/syndication_standalone/settings', $edit, 'Save');
 
     // Import, assert 10 items aggregated after creation of the node.
     $this->importURL('syndication_standalone');
@@ -462,7 +462,7 @@ class FeedsSchedulerTestCase extends FeedsWebTestCase {
     $edit = array(
       'import_on_create' => FALSE,
     );
-    $this->drupalPost('admin/build/feeds/edit/syndication/settings/Feed', $edit, 'Save');
+    $this->drupalPost('admin/build/feeds/edit/syndication/settings', $edit, 'Save');
     $this->assertText('Do not import on create');
 
     $nids = $this->createFeedNodes();
@@ -526,7 +526,7 @@ class FeedsSchedulerTestCase extends FeedsWebTestCase {
     $edit = array(
       'refresh_period' => 0,
     );
-    $this->drupalPost('admin/build/feeds/edit/syndication/settings/Feed', $edit, 'Save');
+    $this->drupalPost('admin/build/feeds/edit/syndication/settings', $edit, 'Save');
     $this->assertText('Refresh: as often as possible');
 
     // Hit cron again twice.

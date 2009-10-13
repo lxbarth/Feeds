@@ -205,7 +205,7 @@ function feeds_ui_edit_page($importer, $active = 'help', $plugin_key = '') {
       $active_container['body'] = _feeds_ui_list_plugins_by_type($importer, $active, $config[$active]['plugin_key']);
       break;
     case 'settings':
-      if ($plugin_key == 'Feed') {
+      if (empty($plugin_key)) {
         $active_container['title'] = $configure . t('basic settings');
         $active_container['body'] = feeds_get_config_form($importer);
       }
@@ -245,7 +245,7 @@ function feeds_ui_edit_page($importer, $active = 'help', $plugin_key = '') {
   $info['body'] = array(
     array(
       'body' => theme('item_list', $items),
-      'actions' => array(l(t('Settings'), $path .'settings/Feed')),
+      'actions' => array(l(t('Settings'), $path .'settings')),
     ),
   );
   $config_info[] = $info;
