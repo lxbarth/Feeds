@@ -43,12 +43,15 @@ Requirements
 Installation
 ============
 
-- Check out from github into your modules directory.
+- Check out from github into your modules directory, enable module.
 - Navigate to admin/build/feeds.
 - Create at least one feed configuration.
 - To use SimplePie parser, download SimplePie and place simplepie.inc into
   feeds/libraries
   http://simplepie.org/
+- If importing large datasets into term_data with Taxonomy term processor, where
+  the term names should be unique, consider adding an index to term_data's name
+  field.
 
 API Overview
 ============
