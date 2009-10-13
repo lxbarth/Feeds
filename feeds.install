@@ -9,16 +9,15 @@
  * Implementation of hook_schema().
  */
 function feeds_schema() {
-  // @todo: call feeds_importer
-  $schema['feeds_config'] = array(
+  $schema['feeds_importer'] = array(
     'description' => 'Configuration of feeds objects.',
     'export' => array(
       'key' => 'id',
-      'identifier' => 'feed_object',
-      'default hook' => 'feeds',  // Function hook name.
+      'identifier' => 'feeds_importer',
+      'default hook' => 'feeds_importer',  // Function hook name.
       'api' => array(
         'owner' => 'data',
-        'api' => 'feeds_default',  // Base name for api include files.
+        'api' => 'feeds_importer_default',  // Base name for api include files.
         'minimum_version' => 1,
         'current_version' => 1,
       ),
@@ -182,5 +181,14 @@ function feeds_uninstall() {
 function feeds_update_6001() {
   $ret = array();
   db_drop_field($ret, 'feeds_config', 'class');
+  return $ret;
+}
+
+/**
+ * Rename table.
+ */
+function feeds_update_6002() {
+  $ret = array();
+  db_rename_table($ret, 'feeds_config', 'feeds_importer');
   return $ret;
 }

@@ -1,6 +1,6 @@
 ;$Id: feeds.info,v 1.2 2009/09/21 14:55:47 alexb Exp $
 name = Feeds
-description = Provides an API for importing feeds of data: Aggregate RSS/Atom/RDF feeds, import CSV files and more.
+description = Aggregates RSS/Atom/RDF feeds, imports CSV files and more.
 package = Feeds
 dependencies[] = ctools
 core = 6.x
