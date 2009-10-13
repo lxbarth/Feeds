@@ -51,22 +51,20 @@ function feeds_ui_mapping_help() {
 function feeds_ui_overview_page() {
 
   $rows = array();
-  if ($feeds = feeds_importer_load_all()) {
-    foreach ($feeds as $feed) {
-      if (empty($feed->config['content_type'])) {
-        $type = '[none]';
-      }
-      else {
-        $type = l(node_get_types('name', $feed->config['content_type']), 'node/add/'. $feed->config['content_type']);
-      }
-      $rows[] = array(
-        $feed->config['name'],
-        $type,
-        l(t('Edit'), 'admin/build/feeds/edit/'. $feed->id) .' | '.
-        l(t('Export'), 'admin/build/feeds/export/'. $feed->id) .' | '.
-        l(t('Delete'), 'admin/build/feeds/delete/'. $feed->id),
-      );
+  foreach (feeds_importer_load_all() as $feed) {
+    if (empty($feed->config['content_type'])) {
+      $type = '[none]';
     }
+    else {
+      $type = l(node_get_types('name', $feed->config['content_type']), 'node/add/'. $feed->config['content_type']);
+    }
+    $rows[] = array(
+      $feed->config['name'],
+      $type,
+      l(t('Edit'), 'admin/build/feeds/edit/'. $feed->id) .' | '.
+      l(t('Export'), 'admin/build/feeds/export/'. $feed->id) .' | '.
+      l(t('Delete'), 'admin/build/feeds/delete/'. $feed->id),
+    );
   }
   $rows[] = array(
     l(t('New configuration'), 'admin/build/feeds/create'),
