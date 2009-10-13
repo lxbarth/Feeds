@@ -106,8 +106,8 @@ function feeds_ui_forms() {
 /**
  * Title callback.
  */
-function feed_ui_title($feed) {
-  return t('Edit !feed', array('!feed' => $feed->config['name']));
+function feed_ui_title($importer) {
+  return t('Edit !feed', array('!feed' => $importer->config['name']));
 }
 
 /**
