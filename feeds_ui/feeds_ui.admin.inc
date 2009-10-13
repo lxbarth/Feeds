@@ -332,7 +332,7 @@ function _feeds_ui_list_plugins_by_type($importer, $type, $selected) {
     $actions = array();
     if ($key != $selected) {
       $param = array(
-        'feed_id' => $importer->id,
+        'importer_id' => $importer->id,
         'plugin_key' => $key,
       );
       $actions = array(feeds_ui_get_form('feeds_ui_button_form', 'Select', 'feeds_ui_select_plugin', $param));
@@ -351,7 +351,7 @@ function _feeds_ui_list_plugins_by_type($importer, $type, $selected) {
  */
 function feeds_ui_select_plugin($args) {
   $plugin_key = $args['plugin_key'];
-  $importer = feeds_importer($args['feed_id']);
+  $importer = feeds_importer($args['importer_id']);
 
   // Set the plugin and save feed.
   $importer->setPlugin($plugin_key);
