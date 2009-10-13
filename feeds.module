@@ -157,21 +157,21 @@ function feeds_theme() {
  * @param $action
  *   One of 'import' or 'purge'.
  * @param $param
- *   Node object or feed id.
+ *   Node object or FeedsImporter id.
  */
 function feeds_access($action, $param) {
   if (is_string($param)) {
-    $feed_id = $param;
+    $importer_id = $param;
   }
   elseif ($param->type) {
     if ($importer = feeds_get_by_content_type($param->type)) {
-      $feed_id = $importer->id;
+      $importer_id = $importer->id;
     }
   }
 
   // Check for permissions if feed id is present, otherwise return FALSE.
-  if (isset($feed_id)) {
-    if (user_access('administer feeds') || user_access($action .' '. $feed_id .' feeds')) {
+  if (isset($importer_id)) {
+    if (user_access('administer feeds') || user_access($action .' '. $importer_id .' feeds')) {
       return TRUE;
     }
   }
@@ -333,6 +333,102 @@ function feeds_scheduler_work($feed_info) {
 }
 
 /**
+ * Load all importers.
+ *
+ * @return
+ *   An array of all feed configurations available.
+ */
+function feeds_importer_load_all() {
+  ctools_include('export');
+  $configs = ctools_export_load_object('feeds_config', 'all');
+  $feeds = array();
+  foreach ($configs as $config) {
+    if ($config->id) {
+      $feeds[$config->id] = feeds_importer($config->id);
+    }
+  }
+  return $feeds;
+}
+
+/**
+ * Utility function: import a feed. Expects a stored source.
+ *
+ * @param $importer
+ *   FeedsImporter object.
+ * @param $feed_nid
+ *   The id of the node the source is attached to. Can be 0 if
+ *   the source is not attached to a node at all - e. g. if it
+ *   has been defined on a standalone import form.
+ *
+ * @throws FeedsNoSourceException
+ *   If source cannot be loaded with given information.
+ */
+function feeds_import($importer, $feed_nid = 0) {
+  $source = feeds_source($importer, $feed_nid);
+  if ($source->export_status & FEEDS_EXPORT_NONE) {
+    throw new FeedsNoSourceException('Expected source information in database for '. $importer->id .'/'. $feed_nid .'. Could not find any.');
+  }
+  $importer->import($source);
+}
+
+/**
+ * Export a feed configuration to code.
+ */
+function feeds_export($importer_id, $indent = '') {
+  ctools_include('export');
+  $result = ctools_export_load_object('feeds_config', 'names', array('id' => $importer_id));
+  if (isset($result[$importer_id])) {
+    return ctools_export_object('feeds_config', $result[$importer_id], $indent);
+  }
+}
+
+/**
+ * Get an importer instance.
+ *
+ * @param $id
+ *   The unique id of the importer object.
+ *
+ * @return
+ *   A FeedsImporter object or an object of a class defined by the Drupal
+ *   variable 'feeds_importer_class'. There is only one importer object
+ *   per $id system-wide.
+ */
+function feeds_importer($id) {
+  feeds_include('FeedsImporter');
+  return FeedsConfigurable::instance(variable_get('feeds_importer_class', 'FeedsImporter'), $id);
+}
+
+/**
+ * Get an instance of a source object.
+ *
+ * @param $importer
+ *   A FeedsImporter object.
+ * @param $feed_nid
+ *   The node id of a feed node if the source is attached to a feed node.
+ *
+ * @return
+ *   A FeedsSource object or an object of a class defiend by the Drupal
+ *   variable 'source_class'.
+ */
+function feeds_source($importer, $feed_nid = 0) {
+  feeds_include('FeedsImporter');
+  return FeedsSource::instance($importer, $feed_nid);
+}
+
+/**
+ * Get a scheduler instance.
+ *
+ * @return
+ *   A FeedsScheduler object or an object of a class defined by the Drupal
+ *   variable 'feeds_scheduler_class'.
+ */
+function feeds_scheduler() {
+  feeds_include('FeedsImporter');
+  feeds_include('FeedsScheduler');
+  return FeedsScheduler::instance();
+}
+
+/**
  * Get all available plugins. Does not list hidden plugins.
  *
  * @return
@@ -408,91 +504,6 @@ function feeds_load_plugin_class($plugin) {
 }
 
 /**
- * Load all importers.
- *
- * @return
- *   An array of all feed configurations available.
- */
-function feeds_importer_load_all() {
-  ctools_include('export');
-  $configs = ctools_export_load_object('feeds_config', 'all');
-  $feeds = array();
-  foreach ($configs as $config) {
-    if ($config->id) {
-      $feeds[$config->id] = feeds_importer($config->id);
-    }
-  }
-  return $feeds;
-}
-
-/**
- * Utility function: import a feed. Expects a stored source.
- *
- * @param $importer
- *   FeedsImporter object.
- * @param $feed_nid
- *   The id of the node the source is attached to. Can be 0 if
- *   the source is not attached to a node at all - e. g. if it
- *   has been defined on a standalone import form.
- *
- * @throws FeedsNoSourceException
- *   If source cannot be loaded with given information.
- */
-function feeds_import($importer, $feed_nid = 0) {
-  $source = feeds_source($importer, $feed_nid);
-  if ($source->export_status & FEEDS_EXPORT_NONE) {
-    throw new FeedsNoSourceException('Expected source information in database for '. $importer->id .'/'. $feed_nid .'. Could not find any.');
-  }
-  $importer->import($source);
-}
-
-/**
- * Get an importer instance.
- *
- * @param $id
- *   The unique id of the importer object.
- *
- * @return
- *   A FeedsImporter object or an object of a class defined by the Drupal
- *   variable 'feeds_importer_class'. There is only one importer object
- *   per $id system-wide.
- */
-function feeds_importer($id) {
-  feeds_include('FeedsImporter');
-  return FeedsConfigurable::instance(variable_get('feeds_importer_class', 'FeedsImporter'), $id);
-}
-
-/**
- * Get an instance of a source object.
- *
- * @param $importer
- *   A FeedsImporter object.
- * @param $feed_nid
- *   The node id of a feed node if the source is attached to a feed node.
- *
- * @return
- *   A FeedsSource object or an object of a class defiend by the Drupal
- *   variable 'source_class'.
- */
-function feeds_source($importer, $feed_nid = 0) {
-  feeds_include('FeedsImporter');
-  return FeedsSource::instance($importer, $feed_nid);
-}
-
-/**
- * Get a scheduler instance.
- *
- * @return
- *   A FeedsScheduler object or an object of a class defined by the Drupal
- *   variable 'feeds_scheduler_class'.
- */
-function feeds_scheduler() {
-  feeds_include('FeedsImporter');
-  feeds_include('FeedsScheduler');
-  return FeedsScheduler::instance();
-}
-
-/**
  * Get an instance of a class for a given plugin and id.
  *
  * @param $plugin
@@ -543,6 +554,65 @@ function feeds_get_by_content_type($content_type) {
 }
 
 /**
+ * Determines whether given plugin is derived from given base plugin.
+ *
+ * @todo: update variable names. Should be $plugin_key if it is a key string.
+ *
+ * @param $plugin
+ *   String that identifies a Feeds plugin key.
+ * @param $parent_plugin
+ *   String that identifies a Feeds plugin key to be tested against.
+ *
+ * @return
+ *   TRUE if $parent_plugin is directly *or indirectly* a parent of $plugin,
+ *   FALSE otherwise.
+ */
+function feeds_plugin_child($plugin, $parent_plugin) {
+  ctools_include('plugins');
+  $plugins = ctools_get_plugins('feeds', 'plugins');
+  $info = $plugins[$plugin];
+
+  if (empty($info['handler']['parent'])) {
+    return FALSE;
+  }
+  elseif ($info['handler']['parent'] == $parent_plugin) {
+    return TRUE;
+  }
+  else {
+    return feeds_plugin_child($info['handler']['parent'], $parent_plugin);
+  }
+}
+
+/**
+ * Determine the type of a plugin.
+ *
+ * @param $plugin_key
+ *   String that is a Feeds plugin key.
+ *
+ * @return
+ *   One of the following values:
+ *   'fetcher' if the plugin is a fetcher
+ *   'parser' if the plugin is a parser
+ *   'processor' if the plugin is a processor
+ *   FALSE otherwise.
+ */
+function feeds_plugin_type($plugin_key) {
+  if (feeds_plugin_child($plugin_key, 'FeedsFetcher')) {
+    return 'fetcher';
+  }
+  elseif (feeds_plugin_child($plugin_key, 'FeedsParser')) {
+    return 'parser';
+  }
+  elseif (feeds_plugin_child($plugin_key, 'FeedsProcessor')) {
+    return 'processor';
+  }
+  return FALSE;
+}
+
+/**
+ * @defgroup include Funtions for loading libraries
+ * @{
+ *
  * Includes a feeds module include file.
  *
  * @param $file
@@ -605,68 +675,5 @@ function feeds_library_exists($file, $library) {
 }
 
 /**
- * Determines whether given plugin is derived from given base plugin.
- *
- * @todo: update variable names. Should be $plugin_key if it is a key string.
- *
- * @param $plugin
- *   String that identifies a Feeds plugin key.
- * @param $parent_plugin
- *   String that identifies a Feeds plugin key to be tested against.
- *
- * @return
- *   TRUE if $parent_plugin is directly *or indirectly* a parent of $plugin,
- *   FALSE otherwise.
+ * @} End of "defgroup include".
  */
-function feeds_plugin_child($plugin, $parent_plugin) {
-  ctools_include('plugins');
-  $plugins = ctools_get_plugins('feeds', 'plugins');
-  $info = $plugins[$plugin];
-
-  if (empty($info['handler']['parent'])) {
-    return FALSE;
-  }
-  elseif ($info['handler']['parent'] == $parent_plugin) {
-    return TRUE;
-  }
-  else {
-    return feeds_plugin_child($info['handler']['parent'], $parent_plugin);
-  }
-}
-
-/**
- * Determine the type of a plugin.
- *
- * @param $plugin_key
- *   String that is a Feeds plugin key.
- *
- * @return
- *   One of the following values:
- *   'fetcher' if the plugin is a fetcher
- *   'parser' if the plugin is a parser
- *   'processor' if the plugin is a processor
- *   FALSE otherwise.
- */
-function feeds_plugin_type($plugin_key) {
-  if (feeds_plugin_child($plugin_key, 'FeedsFetcher')) {
-    return 'fetcher';
-  }
-  elseif (feeds_plugin_child($plugin_key, 'FeedsParser')) {
-    return 'parser';
-  }
-  elseif (feeds_plugin_child($plugin_key, 'FeedsProcessor')) {
-    return 'processor';
-  }
-  return FALSE;
-}
-
-/**
- * Export a feed configuration to code.
- */
-function feeds_export($feed_id, $indent = '') {
-  ctools_include('export');
-  $result = ctools_export_load_object('feeds_config', 'names', array('id' => $feed_id));
-  if (isset($result[$feed_id])) {
-    return ctools_export_object('feeds_config', $result[$feed_id], $indent);
-  }
-}
