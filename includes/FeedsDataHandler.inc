@@ -5,7 +5,7 @@
  * @file
  * Data handler used in FeedsDataProcessor.
  *
- * @todo: move to data module.
+ * @todo: Move to data module?
  */
 
 /**
