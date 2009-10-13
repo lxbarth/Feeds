@@ -57,13 +57,23 @@ class FeedsNoSourceException extends Exception {}
  * source (e. g. the URL) and provides all the information for necessary for
  * fetching, parsing and processing of a feed source.
  *
+ * FeedsPlugins that implement FeedsSourceInterface and return TRUE on
+ * hasSourceConfig() can define default values and forms that allow for
+ * configuration of the FeedsSource. For an example, see FeedsFetcher and
+ * FeedsHttpFetcher.
+ *
+ * It is important that a FeedsPlugin does not directly hold information about
+ * a source but leave all storage up to FeedsSource. An instance of a
+ * FeedsPlugin class only exists once per FeedsImporter configuration, while an
+ * instance of a FeedsSource class exists once per feed_nid to be imported.
+ *
  * As with Feed, the idea with FeedsSource is that it can be used without
  * actually saving the object to the database.
  */
 class FeedsSource extends FeedsConfigurable {
 
   // Contains the node id of the feed this source info object is attached to.
-  // If not attached to any node, contains 0 - i. e. if used on a
+  // Equals 0 if not attached to any node - i. e. if used on a
   // standalone import form within Feeds or by other API users.
   protected $feed_nid;
 
