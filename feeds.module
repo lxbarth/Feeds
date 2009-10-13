@@ -22,7 +22,7 @@ define('FEEDS_EXPORT_NONE', 0x0);
 
 
 /**
- * @defgroup hooks Hooks and callbacks.
+ * @defgroup hooks Hooks and callbacks
  * @{
  */
 
