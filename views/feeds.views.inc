@@ -35,7 +35,9 @@ function feeds_views_data() {
       'help' => 'Filter on a Feeds Source\'s feed_nid field.',
     ),
     'argument' => array(
-      'handler' => 'views_handler_argument_mumeric',
+      'handler' => 'views_handler_argument_numeric',
+      'numeric' => TRUE,
+      'validate type' => 'nid',
       'help' => 'Argument on a Feeds Source\'s feed_nid field.',
     ),
     'sort' => array(

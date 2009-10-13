@@ -54,27 +54,45 @@ function feeds_ui_overview_page() {
   $rows = array();
   foreach (feeds_importer_load_all() as $importer) {
     if (empty($importer->config['content_type'])) {
-      $type = '[none]';
+      $attached = '[none]';
     }
     else {
-      $type = l(node_get_types('name', $importer->config['content_type']), 'node/add/'. $importer->config['content_type']);
+      $attached = l(node_get_types('name', $importer->config['content_type']), 'node/add/'. $importer->config['content_type']);
+    }
+    if ($importer->export_type == EXPORT_IN_CODE) {
+      $status = t('Default');
+      $edit = t('Override');
+      $delete = '';
+    }
+    else if ($importer->export_type == EXPORT_IN_DATABASE) {
+      $status = t('Normal');
+      $edit = t('Edit');
+      $delete = t('Delete');
+    }
+    else if ($importer->export_type == (EXPORT_IN_CODE | EXPORT_IN_DATABASE)) {
+      $status = t('Overridden');
+      $edit = t('Edit');
+      $delete = t('Revert');
     }
     $rows[] = array(
       $importer->config['name'],
-      $type,
-      l(t('Edit'), 'admin/build/feeds/edit/'. $importer->id) .' | '.
-      l(t('Export'), 'admin/build/feeds/export/'. $importer->id) .' | '.
-      l(t('Delete'), 'admin/build/feeds/delete/'. $importer->id),
+      $attached,
+      $status,
+      l($edit, 'admin/build/feeds/edit/'. $importer->id) .' | '.
+      l(t('Export'), 'admin/build/feeds/export/'. $importer->id) .
+      (empty($delete) ? '' :  ' | '. l($delete, 'admin/build/feeds/delete/'. $importer->id)),
     );
   }
   $rows[] = array(
     l(t('New configuration'), 'admin/build/feeds/create'),
     '&nbsp;',
     '&nbsp;',
+    '&nbsp;',
   );
   $header = array(
     t('Configuration'),
     t('Attached to'),
+    t('Status'),
     t('Operations'),
   );
   return theme('table', $header, $rows);

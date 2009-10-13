@@ -14,9 +14,9 @@ function feeds_schema() {
     'export' => array(
       'key' => 'id',
       'identifier' => 'feeds_importer',
-      'default hook' => 'feeds_importer',  // Function hook name.
+      'default hook' => 'feeds_importer_default',  // Function hook name.
       'api' => array(
-        'owner' => 'data',
+        'owner' => 'feeds',
         'api' => 'feeds_importer_default',  // Base name for api include files.
         'minimum_version' => 1,
         'current_version' => 1,

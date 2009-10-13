@@ -41,7 +41,7 @@ class FeedsSimplePieParser extends FeedsParser {
     for ($i = 0; $i < $items_num; $i++) {
       $item = array();
       $simplepie_item = $parser->get_item($i);
-      $item['title'] = ($title = $parser->get_title()) ? $title : $this->createTitle($simplepie_item->get_content());
+      $item['title'] = ($title = $simplepie_item->get_title()) ? $title : $this->createTitle($simplepie_item->get_content());
       $item['description'] = $simplepie_item->get_content();
       $item['url'] = html_entity_decode($simplepie_item->get_link());
       // U = std. unix timestamp
