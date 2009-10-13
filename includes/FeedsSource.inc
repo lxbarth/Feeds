@@ -9,15 +9,13 @@
 /**
  * Describes a class that defines default values and form descriptions for
  * a FeedSource.
- *
- * @todo: Call IFeedsSourceClient?
- * @todo: comment.
  */
 interface FeedsSourceInterface {
+
   /**
-   * Crook: for ease of use, we implement FeedsSourceInterface for every plugin,
-   * but then we need to have a handle which plugin actually implements a
-   * source.
+   * Crutch: for ease of use, we implement FeedsSourceInterface for every
+   * plugin, but then we need to have a handle which plugin actually implements
+   * a source.
    *
    * @see FeedsPlugin class.
    *
@@ -25,8 +23,21 @@ interface FeedsSourceInterface {
    *   TRUE if a plugin handles source specific configuration, FALSE otherwise.
    */
   public function hasSourceConfig();
+
+  /**
+   * Return an associative array of default values.
+   */
   public function sourceDefaults();
+
+  /**
+   * Return a Form API form array that defines a form configuring values. Keys
+   * correspond to the keys of the return value of sourceDefaults().
+   */
   public function sourceForm($source_config);
+
+  /**
+   * Validate user entered values submitted by sourceForm().
+   */
   public function sourceFormValidate(&$values);
 }
 
@@ -35,16 +46,16 @@ interface FeedsSourceInterface {
  * for a given feed_nid.
  *
  * @todo: don't use internal source loading + exception, but load source
- * object and pass it into Feed object.
+ * object and pass it into FeedsImporter object.
  */
 class FeedsNoSourceException extends Exception {}
 
 /**
- * This class encapsulates a source of a feed. While a Feed object contains
- * a feed import configuration, a FeedsSource object is what passes through
- * such an import configuration, holds information about the feed's source
- * (e. g. the URL) and provides all the information for proper fetching,
- * parsing and processing of a feed source.
+ * This class encapsulates a source of a feed. While a FeedsImporter object
+ * contains a feed import configuration, a FeedsSource object is what passes
+ * through such an import configuration, holds information about the feed's
+ * source (e. g. the URL) and provides all the information for necessary for
+ * fetching, parsing and processing of a feed source.
  *
  * As with Feed, the idea with FeedsSource is that it can be used without
  * actually saving the object to the database.
