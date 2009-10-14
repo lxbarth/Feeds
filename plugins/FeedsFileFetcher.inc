@@ -18,7 +18,7 @@ class FeedsFileFetcher extends FeedsFetcher {
     $source_config = $source->getConfigFor($this);
     // Just return path to file, contents can be read easily with
     // file_get_contents($file_path);
-    return new FeedsFetcherResult($source_config['feeds_source'], 'text/filepath');
+    return new FeedsFetcherResult($source_config['file'], 'text/filepath');
   }
 
   /**
@@ -26,15 +26,14 @@ class FeedsFileFetcher extends FeedsFetcher {
    */
   public function sourceForm($source_config) {
     $form = array();
-    // @todo: rename feeds_source to file.
     // When renaming, do not forget feeds_vews_handler_field_source class.
-    $form['feeds_source'] = array(
+    $form['file'] = array(
       '#type' => 'textfield',
       '#title' => t('File'),
       '#description' => t('Specify a file in the site\'s file system path or upload a file below.'),
-      '#default_value' => isset($source_config['feeds_source']) ? $source_config['feeds_source'] : '',
+      '#default_value' => isset($source_config['file']) ? $source_config['file'] : '',
     );
-    $form['feeds_upload'] = array(
+    $form['upload'] = array(
       '#type' => 'file',
       '#title' => t('Upload'),
       '#description' => t('Choose a file from your local computer, then click "Import".'),
@@ -50,16 +49,16 @@ class FeedsFileFetcher extends FeedsFetcher {
     file_check_directory($feed_dir, TRUE);
 
     // If there is a file uploaded, save it, otherwise validate input on
-    // feeds_source.
+    // file.
     if ($file = file_save_upload('feeds', array(), $feed_dir)) {
       file_set_status($file, FILE_STATUS_PERMANENT);
-      $values['feeds_source'] = $file->filepath;
+      $values['file'] = $file->filepath;
     }
-    elseif (empty($values['feeds_source'])) {
-      form_set_error('feeds][feeds_source', t('Upload a file first.'));
+    elseif (empty($values['file'])) {
+      form_set_error('feeds][file', t('Upload a file first.'));
     }
-    elseif (!file_check_location($values['feeds_source'], file_directory_path())) {
-      form_set_error('feeds][feeds_source', t('File needs to point to a file in your Drupal file system path.'));
+    elseif (!file_check_location($values['file'], file_directory_path())) {
+      form_set_error('feeds][file', t('File needs to point to a file in your Drupal file system path.'));
     }
   }
 }
