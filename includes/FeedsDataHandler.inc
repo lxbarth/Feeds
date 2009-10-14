@@ -58,7 +58,8 @@ class FeedsDataHandler extends DataHandler {
   }
 
   /**
-   * Instantiate a FeedsDataHandler object.
+   * Instantiate a FeedsDataHandler object. We implement our own instantiator
+   * method because DataHandler::instance() does not support a $key parameter.
    *
    * @param $table
    *   The name of the table to access with this DataHandler object.
@@ -68,7 +69,14 @@ class FeedsDataHandler extends DataHandler {
   public static function instance($table, $key) {
     static $handlers;
     if (!isset($handlers[$table][$key])) {
-      $handlers[$table][$key] = new FeedsDataHandler($table, $key);
+      $class = 'FeedsDataHandler';
+      // @todo: this is an undocumented stop gap until data modules supports
+      // handler plugins.
+      if ($info = variable_get($table .'_handler', NULL)) {
+        $class = $info['class'];
+        include_once drupal_get_path('module', $info['module']) .'/'. $info['file'];
+      }
+      $handlers[$table][$key] = new $class($table, $key);
     }
     return $handlers[$table][$key];
   }
