@@ -14,7 +14,7 @@
  * HTML document, function attempts to discover RSS or Atom feeds and downloads
  * them.
  *
- * @todo: test
+ * @todo: debug
  * @todo: cache detected rss feeds in url.
  * @todo: use exceptions, not string or false return values.
  *
@@ -39,13 +39,24 @@ function http_request_get_common_syndication($url, $settings = NULL) {
   if ($download->data == FALSE) {
     return FALSE;
   }
-  $downloaded_string = $download->data;
 
   // Do the autodiscovery at this level, pass back the real data.
   // Maybe it's HTML. If it's not HTML, not worth to take a look into the
   // downloaded string.
-  if (strpos(strtolower($downloaded_string), "<html") !== FALSE) {
+  $downloaded_string = $download->data;
+  if (strpos(strtolower($downloaded_string), "<html") === FALSE) {
+    return $download;
+  }
+  else {
+    // Ugly hack to be able to retrieve the xml:base property, no way to access
+    // xml:lang inside <feed>
+    $downloaded_string = preg_replace('/xml:base *=/', 'base=', $downloaded_string);
+    // Filter out strange tags.
+    $downloaded_string_filtered = preg_replace(array('@<script[^>]*?.*?</script>@si', '@<object[^>]*?.*?</object>@si', '@<embed[^>]*?.*?</embed>@si', '@<applet[^>]*?.*?</applet>@si', '@<noframes[^>]*?.*?</noframes>@si', '@<noscript[^>]*?.*?</noscript>@si', '@<noembed[^>]*?.*?</noembed>@si'), '', $downloaded_string);
+    $downloaded_string = $downloaded_string_filtered ? $downloaded_string_filtered : $downloaded_string;
+
     $allowed_mime = array("text/xml", "application/rss+xml", "application/atom+xml", "application/rdf+xml", "application/xml");
+
     $matches = array();
     // Get all the links tag
     preg_match_all('/<link\s+(.*?)\s*\/?>/si', $downloaded_string, $matches);
@@ -78,19 +89,11 @@ function http_request_get_common_syndication($url, $settings = NULL) {
               $rss_link = $original_url['scheme'] .'://'. $original_url['host'] . (isset($original_url['port']) ? ':' : '') . $original_url['port'] . $parsed_url['path'] .'?'. $parsed_url['query']  .'#'. $parsed_url['fragment'];
             }
           }
-          $downloaded_string = http_request_get_common_syndication($rss_link);
-          break;
+          return http_request_get_common_syndication($rss_link, $settings);
         }
       }
     }
   }
-  // Ugly hack to be able to retrieve the xml:base property, no way to access
-  // xml:lang inside <feed>
-  $downloaded_string = preg_replace('/xml:base *=/', 'base=', $downloaded_string);
-
-  // Filter out strange tags. Without this, the text would contain strange stuff.
-  $downloaded_string_filtered = preg_replace(array('@<script[^>]*?.*?</script>@si', '@<object[^>]*?.*?</object>@si', '@<embed[^>]*?.*?</embed>@si', '@<applet[^>]*?.*?</applet>@si', '@<noframes[^>]*?.*?</noframes>@si', '@<noscript[^>]*?.*?</noscript>@si', '@<noembed[^>]*?.*?</noembed>@si'), '', $downloaded_string);
-  return empty($downloaded_string_filtered) ? $downloaded_string : $downloaded_string_filtered;
 }
 
 /**
