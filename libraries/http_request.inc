@@ -186,9 +186,9 @@ function http_request_get($url, $username = NULL, $password = NULL, $accept_inva
 
   $result->code = isset($result->code) ? $result->code : 200;
 
-  // In this case return the cached data.
+  // In case of 304 Not Modified try to return cached data.
   if ($result->code == 304) {
-    $cached_data = http_request_cache_get($url);
+    $cached_data = cache_get('feeds_http_download_'. md5($url), 'cache');
     if (is_object($cached_data)) {
       $cached_data->from_cache = TRUE;
       return $cached_data;
@@ -227,43 +227,4 @@ function http_request_get($url, $username = NULL, $password = NULL, $accept_inva
 function http_request_use_curl() {
   $basedir = ini_get("open_basedir");
   return function_exists('curl_init') && !ini_get('safe_mode') && empty($basedir);
-}
-
-/**
- * Get the cached version of the <var>$url</var>
- */
-function http_request_cache_get($url) {
-  $cache_file = http_request_sanitize_cache() .'/'. md5($url);
-  if (file_exists($cache_file)) {
-    $file_content = file_get_contents($cache_file);
-    return unserialize($file_content);
-  }
-  return FALSE;
-}
-
-/**
- * Store the parsed feed into the cache
- */
-function http_request_cache_set($url, $parsed_feed) {
-  $cache_file = http_request_sanitize_cache() .'/'. md5($url);
-  $cache_fp = fopen($cache_file, 'w');
-  fwrite($cache_fp, serialize($parsed_feed));
-  fclose($cache_fp);
-}
-
-/**
- * Set the default caching directory if the current setting is not useable
- */
-function http_request_sanitize_cache() {
-  $cache_location = file_directory_path() .'/parser_common_syndication_cache';
-  if (!is_writeable($cache_location) || !is_dir($cache_location)) {
-    $cache_location = file_create_path($cache_location);
-    if (!file_exists($cache_location) && is_writable(file_directory_path())) {
-      mkdir($cache_location);
-    }
-    if (!is_writeable($cache_location)) {
-      return FALSE;
-    }
-  }
-  return $cache_location;
 }
