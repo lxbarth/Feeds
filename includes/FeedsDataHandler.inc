@@ -153,16 +153,44 @@ class FeedsDataHandler extends DataHandler {
 
   /**
    * Delete records from this handler's base table and all joined tables.
+   *
+   * @param $clause
+   *   Array that is a WHERE clause for the delete statement. The keys of the
+   *   array are the field of the WHERE clause. If the value for a key is a
+   *   simple type, then key = value is assumed. If the value is an array, then
+   *   the first value of that array is the operation, the second value is the
+   *   value to compare against.
+   *
+   *   Example:
+   *
+   *   This where clause would delete all records
+   *   WHERE feed_nid = 10 AND timestamp < 1255623780
+   *
+   *   array(
+   *     'feed_nid' => 10,
+   *     'timestamp' => array(
+   *       '<',
+   *       1255623780,
+   *     ),
+   *   );
+   *
+   * @todo: push this functionality into DataHandler.
    */
-  public function delete($keys) {
+  public function delete($clause) {
 
     // Assemble where clause for delete query.
     $where = $values = array();
     $schema = drupal_get_schema($this->table);
     $fields = $schema['fields'];
-    foreach ($keys as $key => $value) {
-      $where[] = 'base.'. db_escape_string($key) ." = ". db_type_placeholder($fields[$key]['type']);
-      $values[] = $value;
+    foreach ($clause as $key => $value) {
+      if (is_array($value)) {
+        $where[] = 'base.'. db_escape_string($key) ." {$value[0]} ". db_type_placeholder($fields[$key]['type']);
+        $values[] = $value[1];
+      }
+      else {
+        $where[] = 'base.'. db_escape_string($key) ." = ". db_type_placeholder($fields[$key]['type']);
+        $values[] = $value;
+      }
     }
 
     // Only execute delete statement if where clause has been populated.
