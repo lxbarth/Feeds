@@ -130,6 +130,15 @@ function feeds_delete_tab_form(&$form_state, $feed_id, $node = NULL) {
     $form['#feed_nid'] = $node->nid;
     $path = 'node/'. $node->nid;
   }
+  $options = array(0, 1800, 3600, 43200, 86400, 604800, 2419200, 31536000);
+  $options = drupal_map_assoc($options, 'format_interval');
+  $options[0] = t('Delete all items');
+  $form['time'] = array(
+    '#type' => 'select',
+    '#title' => t('Delete items older than'),
+    '#description' => t(''),
+    '#options' => $options,
+  );
   // Form cannot pass on feed object.
   $form['#feed_id'] = $feed->id;
   return confirm_form($form, t('Delete all items from feed?'), $path, '', t('Delete'), t('Cancel'), 'confirm feeds update');
@@ -141,5 +150,5 @@ function feeds_delete_tab_form(&$form_state, $feed_id, $node = NULL) {
 function feeds_delete_tab_form_submit($form, &$form_state) {
   $feed = feeds_importer($form['#feed_id']);
   $source = feeds_source($feed, empty($form['#feed_nid']) ? 0 : $form['#feed_nid']);
-  $feed->expire($source);
+  $feed->expire($source, $form_state['values']['time']);
 }
