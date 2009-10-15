@@ -141,5 +141,5 @@ function feeds_delete_tab_form(&$form_state, $feed_id, $node = NULL) {
 function feeds_delete_tab_form_submit($form, &$form_state) {
   $feed = feeds_importer($form['#feed_id']);
   $source = feeds_source($feed, empty($form['#feed_nid']) ? 0 : $form['#feed_nid']);
-  $feed->purge($source);
+  $feed->expire($source);
 }

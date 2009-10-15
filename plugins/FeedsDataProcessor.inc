@@ -53,11 +53,13 @@ class FeedsDataProcessor extends FeedsProcessor {
   }
 
   /**
-   * Implementation of FeedsProcessor::purge().
+   * Implementation of FeedsProcessor::expire().
    *
    * Delete all data records for feed_nid in this table.
+   *
+   * @todo: handle $time.
    */
-  public function purge(FeedsSource $source) {
+  public function expire(FeedsSource $source, $time = 0) {
     $num = $this->handler()->delete(array('feed_nid' => $source->feed_nid));
     drupal_set_message(t('Deleted !number records from !table.', array('!number' => $num, '!table' => $this->tableName())));
   }

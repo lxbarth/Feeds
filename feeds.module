@@ -53,7 +53,7 @@ function feeds_perm() {
   $perms = array('administer feeds');
   foreach (feeds_importer_load_all() as $importer) {
     $perms[] = 'import '. $importer->id .' feeds';
-    $perms[] = 'purge '. $importer->id .' feeds';
+    $perms[] = 'expire '. $importer->id .' feeds';
   }
   return $perms;
 }
@@ -99,7 +99,7 @@ function feeds_menu() {
         'page callback' => 'drupal_get_form',
         'page arguments' => array('feeds_delete_tab_form', 1),
         'access callback' => 'feeds_access',
-        'access arguments' => array('purge', $importer->id),
+        'access arguments' => array('expire', $importer->id),
         'file' => 'feeds.pages.inc',
         'type' => MENU_LOCAL_TASK,
       );
@@ -120,7 +120,7 @@ function feeds_menu() {
         'page callback' => 'drupal_get_form',
         'page arguments' => array('feeds_delete_tab_form', NULL, 1),
         'access callback' => 'feeds_access',
-        'access arguments' => array('purge', 1),
+        'access arguments' => array('expire', 1),
         'file' => 'feeds.pages.inc',
         'type' => MENU_LOCAL_TASK,
         'weight' => 11,
@@ -161,7 +161,7 @@ function feeds_theme() {
  * Menu access callback.
  *
  * @param $action
- *   One of 'import' or 'purge'.
+ *   One of 'import' or 'expire'.
  * @param $param
  *   Node object or FeedsImporter id.
  */

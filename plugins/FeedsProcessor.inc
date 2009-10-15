@@ -22,9 +22,20 @@ abstract class FeedsProcessor extends FeedsPlugin {
   public abstract function process(FeedsParserResult $parserResult, FeedsSource $source);
 
   /**
-   * Remove all stored results for this configuration/this source.
+   * Remove all stored results or stored results up to a certain time for this
+   * configuration/this source.
+   *
+   * @param FeedsSource $source
+   *   Source information for this expiry. Implementers should only delete items
+   *   pertaining to this source. The preferred way of determining whether an
+   *   item pertains to a certain souce is by using $source->feed_nid. It is the
+   *   processor's responsibility to store the feed_nid of an imported item in
+   *   the processing stage.
+   *   @todo: pass in feed_nid instead of source?
+   * @param $time
+   *   A UNIX time. If 0, all items of $source will be removed.
    */
-  public abstract function purge(FeedsSource $source);
+  public abstract function expire(FeedsSource $source, $time = 0);
 
   /**
    * Execute mapping on an item.

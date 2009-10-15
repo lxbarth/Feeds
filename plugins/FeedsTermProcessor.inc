@@ -68,9 +68,16 @@ class FeedsTermProcessor extends FeedsProcessor {
   }
 
   /**
-   * Implement purge.
+   * Implement expire.
+   *
+   * @param $source
+   *   FeedsSource of this term. FeedsTermProcessor does not heed this
+   *   parameter, it deletes all terms from a vocabulary.
+   * @param $time
+   *   FeedsSource does not heed this parameter and always deletes all terms
+   *   from a vocabulary.
    */
-  public function purge(FeedsSource $source) {
+  public function expire(FeedsSource $source, $time = 0) {
     $deleted = 0;
 
     $result = db_query('SELECT tid FROM term_data WHERE vid = %d', $this->config['vocabulary']);

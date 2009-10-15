@@ -89,7 +89,7 @@ abstract class FeedsResult {
  * many sources per feeds configuration.
  *
  * @see import()
- * @see purge()
+ * @see expire()
  */
 class FeedsImporter extends FeedsConfigurable {
 
@@ -146,10 +146,10 @@ class FeedsImporter extends FeedsConfigurable {
   /**
    * Remove all Items from a feed.
    *
-   * @todo: Run purge on fetcher, parser and processor.
+   * @todo: Run expire() on fetcher, parser and processor.
    */
-  public function purge(FeedsSource $source) {
-    $this->processor->purge($source);
+  public function expire(FeedsSource $source, $time = 0) {
+    $this->processor->expire($source, $time);
   }
 
   /**

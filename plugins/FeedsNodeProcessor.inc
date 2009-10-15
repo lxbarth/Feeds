@@ -60,10 +60,11 @@ class FeedsNodeProcessor extends FeedsProcessor {
   }
 
   /**
-   * Implementation of FeedsProcessor::purge().
+   * Implementation of FeedsProcessor::expire().
    * @todo: use batch API.
+   * @todo: handle $time.
    */
-  public function purge(FeedsSource $source) {
+  public function expire(FeedsSource $source, $time = 0) {
     // Count number of deleted nodes.
     $deleted = 0;
 
@@ -152,7 +153,7 @@ class FeedsNodeProcessor extends FeedsProcessor {
     $form['content_type'] = array(
       '#type' => 'select',
       '#title' => t('Content type'),
-      '#description' => t('Choose node type to create from this feed. <strong>Note:</strong> Users with "import !feed_id feeds" permissions will be able to <strong>import</strong> nodes of the content type selected here regardless of the node level permissions. However, users with "purge !feed_id permissions" need to have sufficient node level permissions to delete the imported nodes.', array('!feed_id' => $this->id)),
+      '#description' => t('Choose node type to create from this feed. <strong>Note:</strong> Users with "import !feed_id feeds" permissions will be able to <strong>import</strong> nodes of the content type selected here regardless of the node level permissions. However, users with "expire !feed_id permissions" need to have sufficient node level permissions to delete the imported nodes.', array('!feed_id' => $this->id)),
       '#options' => $types,
       '#default_value' => $this->config['content_type'],
     );

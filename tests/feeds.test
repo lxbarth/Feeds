@@ -151,14 +151,14 @@ class FeedsRSStoNodesTest extends FeedsWebTestCase {
     $this->assertRaw('node/'. $nid .'/import');
     $this->assertNoRaw('node/'. $nid .'/delete-items');
 
-    // Login with new user with access content and purge syndication feeds
+    // Login with new user with access content and expire syndication feeds
     // permissions.
     $this->drupalLogout();
     $this->drupalLogin(
-      $this->drupalCreateUser(array('purge syndication feeds'))
+      $this->drupalCreateUser(array('expire syndication feeds'))
     );
     // Navigate to feed node, there should be no Feeds tabs visible.
-    // @todo: actually push purge.
+    // @todo: actually push expire.
     $this->drupalGet('node/'. $nid);
     $this->assertNoRaw('node/'. $nid .'/import');
     $this->assertRaw('node/'. $nid .'/delete-items');
