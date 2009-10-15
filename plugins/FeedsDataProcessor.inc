@@ -58,16 +58,16 @@ class FeedsDataProcessor extends FeedsProcessor {
    * Delete all data records for feed_nid in this table.
    */
   public function expire(FeedsSource $source, $time = 0) {
-    $where = array(
+    $clause = array(
       'feed_nid' => $source->feed_nid,
     );
     if ($time) {
-      $where['timestamp'] = array(
+      $clause['timestamp'] = array(
         '<',
-        $time,
+        FEEDS_REQUEST_TIME - $time,
       );
     }
-    $num = $this->handler()->delete($where);
+    $num = $this->handler()->delete($clause);
     drupal_set_message(t('Deleted !number records from !table.', array('!number' => $num, '!table' => $this->tableName())));
   }
 
