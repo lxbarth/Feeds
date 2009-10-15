@@ -14,6 +14,8 @@
  * HTML document, function attempts to discover RSS or Atom feeds and downloads
  * them.
  *
+ * @todo: test
+ * @todo: cache detected rss feeds in url.
  * @todo: use exceptions, not string or false return values.
  *
  * @return
@@ -31,16 +33,13 @@ function http_request_get_common_syndication($url, $settings = NULL) {
   }
 
   $accept_invalid_cert = isset($settings['accept_invalid_cert']) ? $settings['accept_invalid_cert'] : FALSE;
-  $downloaded_string = http_request_get($url, $username, $password, $accept_invalid_cert);
+  $download = http_request_get($url, $username, $password, $accept_invalid_cert);
 
-  // Cannot get the feed, pass the problem to one level up.
-  if ($downloaded_string == FALSE) {
+  // Cannot get the feed, return.
+  if ($download->data == FALSE) {
     return FALSE;
   }
-  // The data comes from cache, just pass one level up.
-  else if (is_object($downloaded_string)) {
-    return $downloaded_string;
-  }
+  $downloaded_string = $download->data;
 
   // Do the autodiscovery at this level, pass back the real data.
   // Maybe it's HTML. If it's not HTML, not worth to take a look into the
@@ -104,7 +103,8 @@ function http_request_get_common_syndication($url, $settings = NULL) {
  * @param $password
  *  If the URL use authentication, here you can supply the password for this.
  * @return
- *  The data pulled from the URL or FALSE if the feed does not need refresh.
+ *  A stdClass object that describes the data downloaded from $url. The object's
+ *  data property contains the actual document at the URL.
  */
 function http_request_get($url, $username = NULL, $password = NULL, $accept_invalid_cert = FALSE) {
   // Intra-pagedownload cache, avoid to download the same content twice within one page download (it's possible, compatible and parse calls).
@@ -119,22 +119,24 @@ function http_request_get($url, $username = NULL, $password = NULL, $accept_inva
   // Based on "Last-Modified" and "If-Modified-Since".
   $headers = array();
   if ($cache = cache_get('feeds_http_download_'. md5($url))) {
-    $data = $cache->data;
+    $last_result = $cache->data;
+    $last_headers = $last_result->headers;
+
     $has_etag = TRUE;
-    if (!empty($data->etag)) {
+    if (!empty($last_headers['ETag'])) {
       if ($curl) {
-        $headers[] = 'If-None-Match: '. $data->etag;
+        $headers[] = 'If-None-Match: '. $last_headers['ETag'];
       }
       else {
-        $headers['If-None-Match'] = $data->etag;
+        $headers['If-None-Match'] = $last_headers['ETag'];
       }
     }
-    if (!empty($data->last_modified)) {
+    if (!empty($last_headers['Last-Modified'])) {
       if ($curl) {
-        $headers[] = 'If-Modified-Since: '. $data->last_modified;
+        $headers[] = 'If-Modified-Since: '. $last_headers['Last-Modified'];
       }
       else {
-        $headers['If-Modified-Since'] = $data->last_modified;
+        $headers['If-Modified-Since'] = $last_headers['Last-Modified'];
       }
     }
     if (!empty($username) && !$curl) {
@@ -188,10 +190,10 @@ function http_request_get($url, $username = NULL, $password = NULL, $accept_inva
 
   // In case of 304 Not Modified try to return cached data.
   if ($result->code == 304) {
-    $cached_data = cache_get('feeds_http_download_'. md5($url), 'cache');
-    if (is_object($cached_data)) {
-      $cached_data->from_cache = TRUE;
-      return $cached_data;
+
+    if (isset($last_result)) {
+      $last_result->from_cache = TRUE;
+      return $last_result;
     }
     else {
       // It's a tragedy, this file must exist and contain good data.
@@ -208,14 +210,10 @@ function http_request_get($url, $username = NULL, $password = NULL, $accept_inva
   }
 
   // Set caches.
-  $data = new stdClass();
-  $data->etag = $result->headers['ETag'];
-  $data->last_modified = $result->headers['Last-Modified'];
+  cache_set('feeds_http_download_'. md5($url), $result);
+  $download_cache[$url] = $result;
 
-  cache_set('feeds_http_download_'. md5($url), $data);
-  $download_cache[$url] = $result->data;
-
-  return empty($result->data) ? FALSE : $result->data;
+  return $result;
 }
 
 /**

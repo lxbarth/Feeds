@@ -25,11 +25,12 @@ class FeedsHttpFetcher extends FeedsFetcher {
     $url = $source_config['url'];
     feeds_include_library('http_request.inc', 'http_request');
     if ($this->config['auto_detect_feeds']) {
-      return new FeedsFetcherResult(http_request_get_common_syndication($url), 'text/xml');
+      $result = http_request_get_common_syndication($url);
     }
     else {
-      return new FeedsFetcherResult(http_request_get($url), 'text/xml');
+      $result = http_request_get($url);
     }
+    return new FeedsFetcherResult($result->data, 'text/xml');
   }
 
   /**
@@ -60,7 +61,7 @@ class FeedsHttpFetcher extends FeedsFetcher {
     $form = array();
     $form['auto_detect_feeds'] = array(
       '#type' => 'checkbox',
-      '#title' => t('Auto detect feeds'),
+      '#title' => t('Auto detect feeds (not tested)'),
       '#description' => t('Auto detect RSS or Atom feeds in the downloaded document and use them instead of the given URL.'),
       '#default_value' => $this->config['auto_detect_feeds'],
       );
