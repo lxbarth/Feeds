@@ -443,27 +443,6 @@ function feeds_importer_by_content_type($content_type) {
 }
 
 /**
- * Utility function: import a feed. Expects a stored source.
- *
- * @param $importer
- *   FeedsImporter object.
- * @param $feed_nid
- *   The id of the node the source is attached to. Can be 0 if
- *   the source is not attached to a node at all - e. g. if it
- *   has been defined on a standalone import form.
- *
- * @throws FeedsNoSourceException
- *   If source cannot be loaded with given information.
- */
-function feeds_import($importer, $feed_nid = 0) {
-  $source = feeds_source($importer, $feed_nid);
-  if ($source->export_status & FEEDS_EXPORT_NONE) {
-    throw new FeedsNoSourceException('Expected source information in database for '. $importer->id .'/'. $feed_nid .'. Could not find any.');
-  }
-  $importer->import($source);
-}
-
-/**
  * Export a FeedsImporter configuration to code.
  */
 function feeds_export($importer_id, $indent = '') {

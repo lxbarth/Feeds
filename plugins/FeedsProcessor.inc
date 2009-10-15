@@ -39,6 +39,13 @@ abstract class FeedsProcessor extends FeedsPlugin {
   public abstract function expire(FeedsSource $source, $time = 0);
 
   /**
+   * Get the expiry time of this configuration.
+   */
+  public function getExpiryTime() {
+    return 0;
+  }
+
+  /**
    * Execute mapping on an item.
    */
   protected function map($source_item, $target_item = NULL) {

@@ -72,6 +72,13 @@ class FeedsDataProcessor extends FeedsProcessor {
   }
 
   /**
+   * Get the expiry time for this configuration.
+   */
+  public function getExpiryTime() {
+    return $this->config['expire'];
+  }
+
+  /**
    * Override parent::addMapping() and create a new field for new mapping
    * targets.
    *
@@ -203,6 +210,7 @@ class FeedsDataProcessor extends FeedsProcessor {
   public function configDefaults() {
     return array(
       'update_existing' => FALSE,
+      'expire' => 0, // Never expire items by default.
       'mappings' => array(),
     );
   }
@@ -216,6 +224,24 @@ class FeedsDataProcessor extends FeedsProcessor {
       '#title' => t('Update existing items'),
       '#description' => t('Check if existing items should be updated from the feed.'),
       '#default_value' => $this->config['update_existing'],
+    );
+    if (feeds_importer($this->id)->config['refresh_period'] == FEEDS_SCHEDULE_NEVER) {
+      $period = array('Select a mimum refresh period on basic settings');
+      $expire = 0;
+      $disabled = TRUE;
+    }
+    else {
+      $period = drupal_map_assoc(array(0, 900, 1800, 3600, 10800, 21600, 43200, 86400, 259200, 604800, 2419200), 'feeds_format_expire');
+      $expire = $this->config['expire'];
+      $disabled = FALSE;
+    }
+    $form['expire'] = array(
+      '#type' => 'select',
+      '#title' => t('Expire items'),
+      '#options' => $period,
+      '#description' => t('Select after how much time data records should be deleted. Items can only be expired on configurations that have a minimum refresh period other than "Never", see Basic settings. The timestamp target value will be used for determining the item\'s age, see Mapping settings.'),
+      '#default_value' => $expire,
+      '#disabled' => $disabled,
     );
     return $form;
   }

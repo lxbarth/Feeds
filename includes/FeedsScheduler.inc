@@ -116,6 +116,8 @@ class FeedsScheduler implements IFeedsScheduler {
       // Iterate over feed configurations, pick $num feeds for each
       // configuration, push to queue or refresh feeds.
       foreach ($importers as $importer) {
+        // @todo: if we wanted to expire without having refreshes scheduled,
+        // we would start doing this here.
         if ($importer->config['refresh_period'] != FEEDS_SCHEDULE_NEVER) {
 
           // Refresh feeds that have a refresh time older than now minus
@@ -196,11 +198,16 @@ class FeedsScheduler implements IFeedsScheduler {
       // next time.
       $this->unmark($feed_info['feed_nid']);
 
-      try {
-        feeds_import($importer, $feed_info['feed_nid']);
+      // Import feed if source is available.
+      $source = feeds_source($importer, $feed_info['feed_nid']);
+      if ($source->export_status & FEEDS_EXPORT_NONE) {
+        watchdog('feeds_refresh', 'Expected source information in database for '. $importer->id .'/'. $feed_info['feed_nid'] .'. Could not find any.', array(), WATCHDOG_ERROR);
+        return;
       }
-      catch (Exception $e) {
-        watchdog('feeds_refresh', $e->getMessage() .'<br /><pre>'. $e->getTraceAsString() .'</pre>', array(), WATCHDOG_ERROR);
+      $importer->import($source);
+      // Invoke expire if expiry time is not 0.
+      if ($importer->processor->getExpiryTime()) {
+        $importer->expire($source, $importer->processor->getExpiryTime());
       }
     }
   }

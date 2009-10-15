@@ -295,3 +295,13 @@ class FeedsImporter extends FeedsConfigurable {
     return $form;
   }
 }
+
+/**
+ * Helper, see FeedsDataProcessor class.
+ */
+function feeds_format_expire($timestamp) {
+  if ($timestamp == 0) {
+    return t('Never');
+  }
+  return t('after !time', array('!time' => format_interval($timestamp)));
+}
