@@ -132,7 +132,7 @@ function feeds_delete_tab_form(&$form_state, $feed_id, $node = NULL) {
   }
   // Form cannot pass on feed object.
   $form['#feed_id'] = $feed->id;
-  return confirm_form($form, t('Delete all content from feed?'), $path, '', t('Delete'), t('Cancel'), 'confirm feeds update');
+  return confirm_form($form, t('Delete all items from feed?'), $path, '', t('Delete'), t('Cancel'), 'confirm feeds update');
 }
 
 /**

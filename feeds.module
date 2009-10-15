@@ -129,7 +129,7 @@ function feeds_menu() {
   }
   if (count($items)) {
     $items['import'] = array(
-      'title' => 'Import content',
+      'title' => 'Import',
       'page callback' => 'feeds_page',
       'access callback' => 'feeds_page_access',
       'file' => 'feeds.pages.inc',
