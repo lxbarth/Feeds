@@ -33,8 +33,8 @@ abstract class FeedsProcessor extends FeedsPlugin {
    *   the processing stage.
    *   @todo: pass in feed_nid instead of source?
    * @param $time
-   *   A UNIX time. If 0, all items of $source will be removed. If not 0, only
-   *   items older than FEEDS_REQUEST_TIME - $time will be removed.
+   *   A UNIX time. If 0, all items of $source should be removed. If not 0, only
+   *   items older than FEEDS_REQUEST_TIME - $time should be removed.
    */
   public abstract function expire(FeedsSource $source, $time = 0);
 

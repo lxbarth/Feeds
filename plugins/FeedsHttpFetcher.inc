@@ -34,6 +34,16 @@ class FeedsHttpFetcher extends FeedsFetcher {
   }
 
   /**
+   * Clear caches.
+   */
+  public function expire(FeedsSource $source, $time) {
+    $source_config = $source->getConfigFor($this);
+    $url = $source_config['url'];
+    feeds_include_library('http_request.inc', 'http_request');
+    http_request_clear_cache($url);
+  }
+
+  /**
    * Expose source form.
    */
   public function sourceForm($source_config) {

@@ -226,3 +226,10 @@ function http_request_use_curl() {
   $basedir = ini_get("open_basedir");
   return function_exists('curl_init') && !ini_get('safe_mode') && empty($basedir);
 }
+
+/**
+ * Clear cache for a specific URL.
+ */
+function http_request_clear_cache($url) {
+  cache_clear_all('feeds_http_download_'. md5($url), 'cache');
+}

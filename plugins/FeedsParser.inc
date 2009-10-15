@@ -43,6 +43,18 @@ abstract class FeedsParser extends FeedsPlugin {
   public abstract function parse(FeedsFetcherResult $fetcherResult, FeedsSource $source);
 
   /**
+   * Clear all caches for results for given source.
+   *
+   * @param FeedsSource $source
+   *   Source information for this expiry. Implementers can choose to only clear
+   *   caches pertaining to this source.
+   * @param $time
+   *   A UNIX time. If 0, all items of $source will be expired. If not 0, only
+   *   items older than FEEDS_REQUEST_TIME - $time will be expired.
+   */
+  public function expire(FeedsSource $source, $time = 0) {}
+
+  /**
    * Declare the possible mapping sources that this parser produces.
    *
    * @return

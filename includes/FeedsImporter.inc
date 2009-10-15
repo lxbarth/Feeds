@@ -144,12 +144,17 @@ class FeedsImporter extends FeedsConfigurable {
   }
 
   /**
-   * Remove all Items from a feed.
-   *
-   * @todo: Run expire() on fetcher, parser and processor.
+   * Remove all items or items older than now - $time from a feed.
    */
   public function expire(FeedsSource $source, $time = 0) {
-    $this->processor->expire($source, $time);
+    try {
+      $this->fetcher->expire($source, $time);
+      $this->parser->expire($source, $time);
+      $this->processor->expire($source, $time);
+    }
+    catch (Exception $e) {
+      drupal_set_message($e->getMessage(), 'error');
+    }
   }
 
   /**
