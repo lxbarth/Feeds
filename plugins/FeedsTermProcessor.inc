@@ -78,6 +78,12 @@ class FeedsTermProcessor extends FeedsProcessor {
    *   from a vocabulary.
    */
   public function expire(FeedsSource $source, $time = 0) {
+
+    // Assert $time paremeter is not anything else than 0.
+    if ($time) {
+      throw new Exception('Taxonomy term processor does not support deleting items by time.');
+    }
+
     $deleted = 0;
 
     $result = db_query('SELECT tid FROM term_data WHERE vid = %d', $this->config['vocabulary']);
