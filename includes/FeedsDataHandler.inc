@@ -49,8 +49,7 @@ class FeedsDataHandler extends DataHandler {
         continue;
       }
       $meta = $join_table->get('meta');
-      $joins = $meta['join'];
-      if (isset($joins[$this->table]) && $joins[$this->table]['left_field'] == $this->key) {
+      if (isset($meta['join'][$this->table]) && $meta['join'][$this->table]['left_field'] == $this->key) {
         // table has a field that joins to this table on $this->key
         $this->joined_tables[$join_table->get('name')] = $join_table->get('name');
       }
