@@ -32,6 +32,7 @@ class FeedsFileFetcher extends FeedsFetcher {
       '#title' => t('File'),
       '#description' => t('Specify a file in the site\'s file system path or upload a file below.'),
       '#default_value' => isset($source_config['file']) ? $source_config['file'] : '',
+      '#required' => TRUE,
     );
     $form['upload'] = array(
       '#type' => 'file',
