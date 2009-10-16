@@ -554,16 +554,16 @@ function feeds_ui_mapping_form_add_submit($form, &$form_state) {
  * Submit handler for save button on feeds_ui_mapping_form().
  */
 function feeds_ui_mapping_form_submit($form, &$form_state) {
-  if (!isset($form_state['values']['unique_flags'])) {
-    return;
-  }
   $processor = $form['#importer']->processor;
   $mappings = $processor->config['mappings'];
-  // We may set some unique flags here that we remove in the subsequent step.
-  // That's fine.
-  foreach ($form_state['values']['unique_flags'] as $k => $v) {
-    $processor->setUnique($mappings[$k]['source'], $mappings[$k]['target'], $v);
+  // We may set some unique flags to mappings that we remove in the subsequent
+  // step, that's fine.
+  if (isset($form_state['values']['unique_flags'])) {
+    foreach ($form_state['values']['unique_flags'] as $k => $v) {
+      $processor->setUnique($mappings[$k]['source'], $mappings[$k]['target'], $v);
+    }
   }
+
   foreach ($form_state['values']['remove_flags'] as $k => $v) {
     if ($v) {
       $processor->removeMapping($mappings[$k]['source'], $mappings[$k]['target']);
