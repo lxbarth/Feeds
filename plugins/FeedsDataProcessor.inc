@@ -209,7 +209,7 @@ class FeedsDataProcessor extends FeedsProcessor {
    */
   public function configDefaults() {
     return array(
-      'update_existing' => FALSE,
+      'update_existing' => 0,
       'expire' => 0, // Never expire items by default.
       'mappings' => array(),
     );
@@ -231,7 +231,7 @@ class FeedsDataProcessor extends FeedsProcessor {
       $disabled = TRUE;
     }
     else {
-      $period = drupal_map_assoc(array(0, 900, 1800, 3600, 10800, 21600, 43200, 86400, 259200, 604800, 2419200), 'feeds_format_expire');
+      $period = drupal_map_assoc(array(0, 3600, 10800, 21600, 43200, 86400, 259200, 604800, 2419200, 14515200, 31536000), 'feeds_format_expire');
       $expire = $this->config['expire'];
       $disabled = FALSE;
     }

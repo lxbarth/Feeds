@@ -124,7 +124,7 @@ class FeedsScheduler implements IFeedsScheduler {
           // refresh period.
           $time = $this->time() - $importer->config['refresh_period'];
 
-          $result = db_query_range('SELECT feed_nid, id AS importer_id, last_scheduled_time FROM {feeds_schedule} WHERE scheduled = 0 AND (last_scheduled_time < %d OR last_scheduled_time = 0) ORDER BY last_scheduled_time DESC', $time, 0, $num);
+          $result = db_query_range('SELECT feed_nid, id AS importer_id, last_scheduled_time FROM {feeds_schedule} WHERE id = "%s" AND scheduled = 0 AND (last_scheduled_time < %d OR last_scheduled_time = 0) ORDER BY last_scheduled_time DESC', $importer->id, $time, 0, $num);
           while ($feed_info = db_fetch_array($result)) {
 
             // If drupal_queue is present, add to queue, otherwise work off
@@ -204,6 +204,7 @@ class FeedsScheduler implements IFeedsScheduler {
         watchdog('feeds_refresh', 'Expected source information in database for '. $importer->id .'/'. $feed_info['feed_nid'] .'. Could not find any.', array(), WATCHDOG_ERROR);
         return;
       }
+
       $importer->import($source);
       // Invoke expire if expiry time is not 0.
       if ($importer->processor->getExpiryTime()) {

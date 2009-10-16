@@ -69,6 +69,8 @@ class FeedsHttpFetcher extends FeedsFetcher {
    */
   public function configForm(&$form_state) {
     $form = array();
+    return $form;
+    // @todo:
     $form['auto_detect_feeds'] = array(
       '#type' => 'checkbox',
       '#title' => t('Auto detect feeds (not tested)'),
