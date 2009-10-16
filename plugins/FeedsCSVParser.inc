@@ -30,7 +30,7 @@ class FeedsCSVParser extends FeedsParser {
     // @todo: push this functionality into ParserCSV.
     $header = array_shift($rows);
     foreach ($header as $i => $title) {
-      $header[$i] = strtolower($title);
+      $header[$i] = strtolower($title); // Use lower case only.
     }
     $result_rows = array();
     foreach ($rows as $i => $row) {
@@ -44,6 +44,14 @@ class FeedsCSVParser extends FeedsParser {
 
     // Return result.
     return new FeedsParserResult(array('items' => $result_rows));
+  }
+
+  /**
+   * Override parent::getSourceElement to use only lower keys.
+   */
+  public function getSourceElement($item, $element_key) {
+    $element_key = strtolower($element_key);
+    return isset($item[$element_key]) ? $item[$element_key] : '';
   }
 
   /**
