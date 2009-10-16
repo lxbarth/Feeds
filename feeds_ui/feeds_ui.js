@@ -51,7 +51,7 @@ Drupal.behaviors.feeds = function() {
   // Replace it with a link.
   $('.feeds-ui-checkbox-link:not(.processed)').each(function(i) {
     $(this).addClass('processed').after(
-      '<a href="#" class="feeds-ui-trigger-remove">' + $(this.id + ' label:first').text() + '</a>'
+      '<a href="#" class="feeds-ui-trigger-remove">' + $(this).children(' label').text() + '</a>'
     ).hide();
   });
 
