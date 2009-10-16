@@ -96,6 +96,16 @@ function _feeds_feeds_plugins() {
       'path' => $path,
     ),
   );
+  $info['FeedsOPMLParser'] = array(
+    'name' => 'OPML parser',
+    'description' => 'Parse OPML files.',
+    'handler' => array(
+      'parent' => 'FeedsParser',
+      'class' => 'FeedsOPMLParser',
+      'file' => 'FeedsOPMLParser.inc',
+      'path' => $path,
+    ),
+  );
   if (feeds_library_exists('simplepie.inc', 'simplepie')) {
     $info['FeedsSimplePieParser'] = array(
       'name' => 'SimplePie parser',
