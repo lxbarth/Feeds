@@ -96,10 +96,10 @@ class FeedsScheduler implements IFeedsScheduler {
 
     // Logging and timeout tracking.
     if ($this->time() == FEEDS_REQUEST_TIME) {
-      watchdog('FeedsScheduler', 'Start - !date (FEEDS_REQUEST_TIME, !time)', array('!date' => format_date($this->time(), 'small'), '!time' => $this->time()));
+      watchdog('FeedsScheduler', 'Start processing');
     }
     else {
-      watchdog('FeedsScheduler', 'Start - !date (debug time !time)', array('!date' => format_date($this->time(), 'small'), '!time' => $this->time()));
+      watchdog('FeedsScheduler', 'Start - !date (debug time !time)', array('!date' => format_date($this->time()), '!time' => $this->time()));
     }
     if (variable_get('feeds_scheduler_cron', FALSE)) {
       watchdog('FeedsScheduler', 'Last cron process did not finish.', array(), WATCHDOG_ERROR);
