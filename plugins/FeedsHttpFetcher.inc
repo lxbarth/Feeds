@@ -52,7 +52,7 @@ class FeedsHttpFetcher extends FeedsFetcher {
     $form['url'] = array(
       '#type' => 'textfield',
       '#title' => t('URL'),
-      '#description' => t('Enter the URL for this feed.'),
+      '#description' => t('Enter a feed URL.'),
       '#default_value' => isset($source_config['url']) ? $source_config['url'] : '',
       '#required' => TRUE,
     );
