@@ -88,7 +88,8 @@ function _feeds_feeds_plugins() {
   );
   $info['FeedsSyndicationParser'] = array(
     'name' => 'Common syndication parser',
-    'description' => 'Parse XML feeds in RSS 1, RSS 2 or Atom format.',
+    'description' => 'Parse RSS and Atom feeds.',
+    'help' => 'Parse XML feeds in RSS 1, RSS 2 and Atom format.',
     'handler' => array(
       'parent' => 'FeedsParser',
       'class' => 'FeedsSyndicationParser',
@@ -109,7 +110,8 @@ function _feeds_feeds_plugins() {
   if (feeds_library_exists('simplepie.inc', 'simplepie')) {
     $info['FeedsSimplePieParser'] = array(
       'name' => 'SimplePie parser',
-      'description' => 'Use <a href="http://simplepie.org">SimplePie</a> to parse XML feeds in RSS 1, RSS 2 or Atom format.',
+      'description' => 'Parse RSS and Atom feeds.',
+      'help' => 'Use <a href="http://simplepie.org">SimplePie</a> to parse XML feeds in RSS 1, RSS 2 and Atom format.',
       'handler' => array(
         'parent' => 'FeedsParser',
         'class' => 'FeedsSimplePieParser',
