@@ -300,7 +300,10 @@ class FeedsRSStoDataTest extends FeedsWebTestCase {
     $this->createFeedConfiguration('Data feed', 'rss');
 
     // Go to edit page and select the data processor.
-    $this->drupalPost('admin/build/feeds/edit/rss/processor', array(), 'Select');
+    $edit = array(
+      'plugin_key' => 'FeedsDataProcessor',
+    );
+    $this->drupalPost('admin/build/feeds/edit/rss/processor', $edit, 'Save');
     $this->assertPlugins('rss', 'FeedsHttpFetcher', 'FeedsSyndicationParser', 'FeedsDataProcessor');
 
     // Go to mapping page and create a couple of mappings.
