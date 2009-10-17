@@ -122,6 +122,9 @@ class FeedsFeedNodeProcessor extends FeedsProcessor {
         $types[$feed->config['content_type']] = node_get_types('name', $feed->config['content_type']);
       }
     }
+    if (empty($types)) {
+      $types[''] = t('No feed node content type available');
+    }
     $form = array();
     $form['content_type'] = array(
       '#type' => 'select',
