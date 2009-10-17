@@ -542,39 +542,18 @@ function feeds_get_plugins() {
 }
 
 /**
- * Get all available plugins categorized by whether they are a
- * fetcher, a parser or a processor plugin.
+ * Get all available plugins of a particular type.
  *
- * Does not list hidden plugins.
- *
- * @return
- *   An array where the keys are plugin types and the elements are
- *   arrays of plugin info arrays.
- *
- *   Example:
- *   array(
- *     'fetcher' => array(
- *       'FeedsFileFetcher' => array(
- *          // File fetcher info.
- *       ),
- *       'FeedsHttpFetcher' => array(
- *          // Http fetcher info.
- *     ),
- *     'parser' => array(
- *       // All available processors, following the pattern of the fetcher array.
- *     ),
- *     'processor => array(
- *       // All available parsers, following the pattern of the fetcher array.
- *     ),
- *   );
+ * @param $type
+ *   'fetcher', 'parser' or 'processor'
  */
-function feeds_get_plugins_by_type() {
+function feeds_get_plugins_by_type($type) {
   $plugins = feeds_get_plugins();
 
   $result = array();
   foreach ($plugins as $key => $info) {
-    if ($plugin_type = feeds_plugin_type($key)) {
-      $result[$plugin_type][$key] = $info;
+    if ($type == feeds_plugin_type($key)) {
+      $result[$key] = $info;
     }
   }
   return $result;

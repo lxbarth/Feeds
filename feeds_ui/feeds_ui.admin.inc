@@ -220,7 +220,7 @@ function feeds_ui_edit_page($importer, $active = 'help', $plugin_key = '') {
     case 'parser':
     case 'processor':
       $active_container['title'] = $configure . t('select a !plugin_type', array('!plugin_type' => $active));
-      $active_container['body'] = _feeds_ui_list_plugins_by_type($importer, $active, $config[$active]['plugin_key']);
+      $active_container['body'] = drupal_get_form('feeds_ui_plugin_form', $importer, $active);
       break;
     case 'settings':
       if (empty($plugin_key)) {
@@ -326,54 +326,55 @@ function feeds_ui_edit_page($importer, $active = 'help', $plugin_key = '') {
 }
 
 /**
- * Helper for building a list of plugins of a specific type.
+ * Build a form of plugins to pick from.
  *
+ * @param $form_state
+ *   Form API form state array.
  * @param $importer
  *   FeedsImporter object.
  * @param $type
  *   Plugin type. One of 'fetcher', 'parser', 'processor'.
- * @param $selected
- *   The plugin(s) that are currently selected.
  *
  * @return
- *   An array themeable by theme_feeds_ui_container().
- *
- * @todo: make this a single form. Simpletest can't push buttons on forms
- *   with the same label on submit buttons.
+ *   A Form API form definition.
  */
-function _feeds_ui_list_plugins_by_type($importer, $type, $selected) {
-  $plugins = feeds_get_plugins_by_type();
-  $plugins = $plugins[$type];
+function feeds_ui_plugin_form(&$form_state, $importer, $type) {
+  $plugins = feeds_get_plugins_by_type($type);
 
-  $containers = array();
+  $form = array();
+  $form['#importer'] = $importer;
+
   foreach ($plugins as $key => $plugin) {
-    $actions = array();
-    if ($key != $selected) {
-      $param = array(
-        'importer_id' => $importer->id,
-        'plugin_key' => $key,
-      );
-      $actions = array(feeds_ui_get_form('feeds_ui_button_form', 'Select', 'feeds_ui_select_plugin', $param));
-    }
-    $containers[] = array(
-      'title' => $plugin['name'],
-      'body' => isset($plugin['help']) ? $plugin['help'] : $plugin['description'],
-      'actions' => $actions,
+    $form['plugin_key'][$key] = array(
+      '#type' => 'radio',
+      '#parents' => array('plugin_key'),
+      '#title' => $plugin['name'],
+      '#description' => isset($plugin['help']) ? $plugin['help'] : $plugin['description'],
+      '#return_value' => $key,
+      '#default_value' => ($plugin['handler']['class'] == get_class($importer->$type)) ? $key : '',
     );
   }
-  return $containers;
+  $form['submit'] = array(
+    '#type' => 'submit',
+    '#value' => t('Save'),
+  );
+  return $form;
 }
 
 /**
- * Select callback, helper for _feeds_ui_list_plugins_by_type().
+ * Theme feeds_ui_plugin_form().
  */
-function feeds_ui_select_plugin($args) {
-  $plugin_key = $args['plugin_key'];
-  $importer = feeds_importer($args['importer_id']);
+function theme_feeds_ui_plugin_form($form) {
+  return drupal_render($form);
+}
 
+/**
+ * Submit handler for feeds_ui_plugin_form().
+ */
+function feeds_ui_plugin_form_submit($form, &$form_state) {
   // Set the plugin and save feed.
-  $importer->setPlugin($plugin_key);
-  $importer->save();
+  $form['#importer']->setPlugin($form_state['values']['plugin_key']);
+  $form['#importer']->save();
 }
 
 /**
