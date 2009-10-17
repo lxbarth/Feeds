@@ -122,7 +122,8 @@ function _feeds_feeds_plugins() {
   }
   $info['FeedsNodeProcessor'] = array(
     'name' => 'Node processor',
-    'description' => 'Create nodes from parsed content.',
+    'description' => 'Create nodes.',
+    'help' => 'Create nodes from parsed content.',
     'handler' => array(
       'parent' => 'FeedsProcessor',
       'class' => 'FeedsNodeProcessor',
@@ -132,7 +133,7 @@ function _feeds_feeds_plugins() {
   );
   $info['FeedsFeedNodeProcessor'] = array(
     'name' => 'Feed Node processor',
-    'description' => 'Create <em>Feed nodes</em> from parsed content.',
+    'description' => 'Create <em>Feed nodes</em>.',
     'help' => 'Create <em>Feed nodes</em> from parsed content. Feed nodes are nodes that can import feeds themselves. This can be useful for instance when importing OPML feeds.',
     'handler' => array(
       'parent' => 'FeedsProcessor',
@@ -144,7 +145,8 @@ function _feeds_feeds_plugins() {
   if (module_exists('data')) {
     $info['FeedsDataProcessor'] = array(
       'name' => 'Data processor',
-      'description' => 'Create data table records from parsed content.',
+      'description' => 'Create data table records.',
+      'help' => 'Create data table records from parsed content.',
       'handler' => array(
         'parent' => 'FeedsProcessor',
         'class' => 'FeedsDataProcessor',
@@ -156,7 +158,8 @@ function _feeds_feeds_plugins() {
   if (module_exists('taxonomy')) {
     $info['FeedsTermProcessor'] = array(
       'name' => 'Taxonomy term processor',
-      'description' => 'Create taxonomy terms from parsed content.',
+      'description' => 'Create taxonomy terms.',
+      'help' => 'Create taxonomy terms from parsed content.',
       'handler' => array(
         'parent' => 'FeedsProcessor',
         'class' => 'FeedsTermProcessor',
