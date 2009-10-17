@@ -124,6 +124,8 @@ class FeedsFeedNodeProcessor extends FeedsProcessor {
     }
     if (empty($types)) {
       $types[''] = t('No feed node content type available');
+      // @todo: configForm() is executed 4 times - why?
+      // drupal_set_message(t('There is no feed content type available. In order to import feed nodes, you must first create at least configuration that is attached to a content type.'), 'error');
     }
     $form = array();
     $form['content_type'] = array(
