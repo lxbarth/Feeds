@@ -83,24 +83,13 @@ function feeds_ui_theme() {
     'feeds_ui_edit_page' => array(
       'file' => 'feeds_ui.admin.inc',
     ),
+    'feeds_ui_plugin_form' => array(
+      'file' => 'feeds_ui.admin.inc',
+    ),
     'feeds_ui_container' => array(
       'file' => 'feeds_ui.admin.inc',
     ),
   );
-}
-
-/**
- * Implementation of hook_forms().
- */
-function feeds_ui_forms() {
-  // Declare form callbacks for all known classes derived from FeedsConfigurable.
-  $forms = array();
-  $plugins = feeds_get_plugins();
-  foreach ($plugins as $plugin) {
-    $forms[$plugin['handler']['class'] .'_feeds_ui_select_form']['callback'] = 'feeds_ui_select_form';
-  }
-  $forms += feeds_ui_register_form();
-  return $forms;
 }
 
 /**
@@ -110,30 +99,3 @@ function feed_ui_title($importer) {
   return t('Edit !feed', array('!feed' => $importer->config['name']));
 }
 
-/**
- * Register a form callback and generate a unique form_id for it.
- *
- * @param $form_callback
- *   A callback that returns a Form API form definition.
- *
- * @return
- *   If $form_callback is given, a unique form id for the callback.
- *   If $form_callback is not given, a hook_forms() compatible array
- *   of all registered forms.
- */
-function feeds_ui_register_form($form_callback = NULL) {
-  static $registered = array();
-  static $count = 1;
-
-  if ($form_callback) {
-
-    while (TRUE) {
-      $callback = $form_callback .'_'. ($count++);
-      if (!isset($registered[$callback])) {
-        $registered[$callback]['callback'] = $form_callback;
-        return $callback;
-      }
-    }
-  }
-  return $registered;
-}

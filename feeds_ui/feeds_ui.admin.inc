@@ -343,6 +343,7 @@ function feeds_ui_plugin_form(&$form_state, $importer, $type) {
 
   $form = array();
   $form['#importer'] = $importer;
+  $form['#plugin_type'] = $type;
 
   foreach ($plugins as $key => $plugin) {
     $form['plugin_key'][$key] = array(
@@ -362,89 +363,35 @@ function feeds_ui_plugin_form(&$form_state, $importer, $type) {
 }
 
 /**
- * Theme feeds_ui_plugin_form().
- */
-function theme_feeds_ui_plugin_form($form) {
-  return drupal_render($form);
-}
-
-/**
  * Submit handler for feeds_ui_plugin_form().
  */
 function feeds_ui_plugin_form_submit($form, &$form_state) {
   // Set the plugin and save feed.
   $form['#importer']->setPlugin($form_state['values']['plugin_key']);
   $form['#importer']->save();
+  drupal_set_message(t('Changed !type plugin.', array('!type' => $form['#plugin_type'])));
+  // @todo: redirect to plugin's settings form if available.
 }
 
 /**
- * Wrapper or drupal_get_form().
- *
- * Generate a form with a unique, anonymous form_id. Use like drupal_get_form()
- * but build as many same forms on one page as you'd like AND submit them
- * independently. Make sure that forms that are being built with this wrapper
- * declare their validation and submit handlers explicitely ($form['#validate']
- * and $form['#submit']).
- *
- * @see drupal_get_form()
- * @see feeds_ui_register_form()
- *
- * @param $form_callback
- *   Form callback for this form.
- * @param ... Parameters to pass into form
+ * Theme feeds_ui_plugin_form().
  */
-function feeds_ui_get_form($form_callback) {
-  $args = func_get_args();
-  array_shift($args);
+function theme_feeds_ui_plugin_form($form) {
+  $output = '';
 
-  // Register the form callback generates a random id and exposes the form id to
-  // FormAPI.
-  $form_id = feeds_ui_register_form($form_callback);
-  array_unshift($args, $form_id);
-
-  // Build form with drupal_get_form().
-  return call_user_func_array('drupal_get_form', $args);
-}
-
-/**
- * Form that has one button that fires an action.
- *
- * Use together with feeds_ui_get_form for using multiple times on one page.
- *
- * $output =
- *   feeds_ui_get_form('feeds_ui_button_form', 'Select', 'call_back_func', $param);
- *
- * @param $form_state
- *   Form API form state.
- * @param $label
- *   Label on the button. Don't wrap in t().
- * @param $callback
- *   Callback to invoke when button is pushed.
- * @param $param
- *   Parameter to pass to callback.
- */
-function feeds_ui_button_form(&$form_state, $label, $callback, $param) {
-  $form = array();
-  $form['#button_callback'] = $callback;
-  $form['#callback_param'] = $param;
-  $form['#submit'] = array('feeds_ui_button_form_submit');
-  $form['submit'] = array(
-    '#type' => 'submit',
-    '#value' => t($label),
-    '#attributes' => array('class' => 'feeds-ui-button'),
-  );
-  return $form;
-}
-
-/**
- * Submit handler for feeds_ui_button_form().
- */
-function feeds_ui_button_form_submit($form, &$form_state) {
-  if (isset($form['#button_callback'])) {
-    $callback = $form['#button_callback'];
-    $param = $form['#callback_param'];
-    $callback($param);
+  foreach (element_children($form['plugin_key']) as $key) {
+    $container = array(
+      'title' => $form['plugin_key'][$key]['#title'],
+      'body' => $form['plugin_key'][$key]['#description'],
+    );
+    $form['plugin_key'][$key]['#title'] = t('Select');
+    unset($form['plugin_key'][$key]['#description']);
+    $container['actions'] = array(drupal_render($form['plugin_key'][$key]));
+    $output .= theme_feeds_ui_container($container);
   }
+
+  $output .= drupal_render($form);
+  return $output;
 }
 
 /**
