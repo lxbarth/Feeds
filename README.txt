@@ -104,16 +104,26 @@ Description: Whether or not to use default content type and importer
 Glossary
 ========
 
+This glossary is introductory and therefore not ordered alphabetically.
+
 Plugin       A plugin is a swappable handler. It can be either a fetcher, a
              parser or a processor.
 
+             See FeedsPlugin class.
+
 Fetcher      A plugin responsible for downloading, loading or receiving data.
+
+             See FeedsFetcher and extending classes.
 
 Parser       A plugin responsible for bringing fetched data into a digestable
              format for processors.
 
+             See FeedsParser and extending classes.
+
 Processor    A plugin that "does stuff" with data. Usually a processor stores
              data in one or the other form (a node, a user, a simple DB record).
+
+             See FeedsProcessor and extending classes.
 
 Feed         A body of data. Can contain a title and feed items. A feed can
              appear in different forms depending on the import stage: before
@@ -125,8 +135,17 @@ Feed         A body of data. Can contain a title and feed items. A feed can
              Depending on the import stage, a feed is represented by a
              FeedsFetcherResult or a FeedsParserResult.
 
+             See FeedsFetcherResult class, FeedsParserResult class.
+
 Feed item    A feed is assumed to have an array of equally formed entities: feed
              items. The composition of these items depends on the parser.
+
+Feed source  This is the description of the source of a feed. This can be for
+             example a URL. But a feed source can also have other properties
+             describing a source. For instance, which field delimiter is being
+             used in a CSV file.
+
+             See FeedsSource class.
 
 Importer     An importer contains a specific configuration of one fetcher, one
              parser and one processor. It is used to import a feed. Importers
@@ -138,11 +157,14 @@ Importer     An importer contains a specific configuration of one fetcher, one
              Importers are configured on admin/build/feeds. They are sometimes
              referred to as "Importer configuration or "Configuration".
 
-Feed node    A node that is used for importing feeds. A feed node is of a
-             content type that has an Importer attached.
+             See FeedsImporter class.
 
 Import stage The state of the importing process. The import stages are:
              fetching, parsing and processing.
+
+Feed node    A node that is used for importing feeds. A feed node is of a
+             content type that has an Importer attached.
+
 
 Todos
 =====
