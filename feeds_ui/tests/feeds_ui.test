@@ -119,7 +119,7 @@ class FeedsUIUserInterfaceTestCase extends FeedsWebTestCase {
     // Create a feed node.
     $edit = array(
       'title' => 'Development Seed',
-      'feeds[FeedsHttpFetcher][url]' => $GLOBALS['base_url'] .'/'. drupal_get_path('module', 'feeds') .'/tests/feeds/developmentseed.rss2',
+      'feeds[FeedsHttpFetcher][source]' => $GLOBALS['base_url'] .'/'. drupal_get_path('module', 'feeds') .'/tests/feeds/developmentseed.rss2',
       );
     $this->drupalPost('node/add/page', $edit, 'Save');
     $this->assertText('Page Development Seed has been created.');
