@@ -3,7 +3,11 @@
 
 /**
  * @file
- * Create a taxonomy terms from feed items.
+ * FeedsTermProcessor class.
+ */
+
+/**
+ * Feeds processor plugin. Create taxonomy terms from feed items.
  */
 class FeedsTermProcessor extends FeedsProcessor {
 
