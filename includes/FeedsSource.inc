@@ -114,10 +114,18 @@ class FeedsSource extends FeedsConfigurable {
    * Save configuration.
    */
   public function save() {
+    $config = $this->getConfig();
+    // Store the source property of the fetcher in a separate column so that we
+    // can do fast lookups on it.
+    $source = '';
+    if (isset($config[get_class($this->importer->fetcher)]['source'])) {
+      $source = $config[get_class($this->importer->fetcher)]['source'];
+    }
     $object = array(
       'id' => $this->id,
       'feed_nid' => $this->feed_nid,
-      'config' => $this->getConfig(),
+      'config' => $config,
+      'source' => $source,
     );
     // Make sure a source record is present at all time, try to update first,
     // then insert.

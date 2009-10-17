@@ -23,7 +23,7 @@ class FeedsHttpFetcher extends FeedsFetcher {
    */
   public function fetch(FeedsSource $source) {
     $source_config = $source->getConfigFor($this);
-    $url = $source_config['url'];
+    $url = $source_config['source'];
     feeds_include_library('http_request.inc', 'http_request');
     if ($this->config['auto_detect_feeds']) {
       $result = http_request_get_common_syndication($url);
@@ -39,7 +39,7 @@ class FeedsHttpFetcher extends FeedsFetcher {
    */
   public function expire(FeedsSource $source, $time) {
     $source_config = $source->getConfigFor($this);
-    $url = $source_config['url'];
+    $url = $source_config['source'];
     feeds_include_library('http_request.inc', 'http_request');
     http_request_clear_cache($url);
   }
@@ -49,11 +49,11 @@ class FeedsHttpFetcher extends FeedsFetcher {
    */
   public function sourceForm($source_config) {
     $form = array();
-    $form['url'] = array(
+    $form['source'] = array(
       '#type' => 'textfield',
       '#title' => t('URL'),
       '#description' => t('Enter a feed URL.'),
-      '#default_value' => isset($source_config['url']) ? $source_config['url'] : '',
+      '#default_value' => isset($source_config['source']) ? $source_config['source'] : '',
       '#required' => TRUE,
     );
     return $form;
