@@ -9,7 +9,7 @@
 require_once(dirname(__FILE__) .'/../../tests/feeds.test.inc');
 
 /**
- * Test basic Data API functionality.
+ * Test basic Feeds UI functionality.
  */
 class FeedsUIUserInterfaceTestCase extends FeedsWebTestCase {
 
@@ -19,7 +19,7 @@ class FeedsUIUserInterfaceTestCase extends FeedsWebTestCase {
   public function getInfo() {
     return array(
       'name' => t('Feeds UI user interface'),
-      'description' => t('Tests Feeds Admin UI module\'s GUI. <strong>Requires Data module</strong>.'),
+      'description' => t('Tests Feeds Admin UI module\'s GUI.'),
       'group' => t('Feeds'),
     );
   }
@@ -28,7 +28,7 @@ class FeedsUIUserInterfaceTestCase extends FeedsWebTestCase {
    * Set up test.
    */
   public function setUp() {
-    parent::setUp('feeds', 'feeds_ui', 'ctools', 'data');
+    parent::setUp('feeds', 'feeds_ui', 'ctools');
 
     $this->drupalLogin(
       $this->drupalCreateUser(
@@ -73,18 +73,27 @@ class FeedsUIUserInterfaceTestCase extends FeedsWebTestCase {
 
     $this->clickLink('Change', 0);
     $this->assertText('select a fetcher');
-    $this->drupalPost('admin/build/feeds/edit/test_feed/fetcher', array(), 'Select');
+    $edit = array(
+      'plugin_key' => 'FeedsFileFetcher',
+    );
+    $this->drupalPost('admin/build/feeds/edit/test_feed/fetcher', $edit, 'Save');
 
     $this->clickLink('Change', 1);
     $this->assertText('select a parser');
-    $this->drupalPost('admin/build/feeds/edit/test_feed/parser', array(), 'Select');
+    $edit = array(
+      'plugin_key' => 'FeedsCSVParser',
+    );
+    $this->drupalPost('admin/build/feeds/edit/test_feed/parser', $edit, 'Save');
 
     $this->clickLink('Change', 2);
     $this->assertText('select a processor');
-    $this->drupalPost('admin/build/feeds/edit/test_feed/processor', array(), 'Select');
+    $edit = array(
+      'plugin_key' => 'FeedsFeedNodeProcessor',
+    );
+    $this->drupalPost('admin/build/feeds/edit/test_feed/processor', $edit, 'Save');
 
     // Assert changed configuration.
-    $this->assertPlugins('test_feed', 'FeedsFileFetcher', 'FeedsCSVParser', 'FeedsDataProcessor');
+    $this->assertPlugins('test_feed', 'FeedsFileFetcher', 'FeedsCSVParser', 'FeedsFeedNodeProcessor');
 
     // Delete feed.
     $this->drupalPost('admin/build/feeds/delete/test_feed', array(), 'Delete');
