@@ -21,7 +21,7 @@ class FeedsUserProcessor extends FeedsProcessor {
 
     foreach ($parserResult->value['items'] as $item) {
 
-      if (!$uid = $this->existingItemId($item, $source) || $this->config['update_existing']) {
+      if (!($uid = $this->existingItemId($item, $source)) || $this->config['update_existing']) {
 
         // Map item to a term.
         $account = $this->map($item);
