@@ -1,15 +1,16 @@
 <?php
-// $Id: FeedsNodeProcessor.inc,v 1.2 2009/09/19 15:52:46 alexb Exp $
+// $Id$
 
 /**
  * @file
- * Class definition of FeedsNodeProcessor.
+ * Class definition of FeedsFeedNodeProcessor.
  */
 
 /**
- * Creates nodes from feed items.
+ * Creates *feed* nodes from feed items. The difference to FeedsNodeProcessor is
+ * that this plugin only creates nodes that are feed nodes themselves.
  */
-class FeedsNodeProcessor extends FeedsProcessor {
+class FeedsFeedNodeProcessor extends FeedsProcessor {
 
   /**
    * Implementation of FeedsProcessor::process().
@@ -20,6 +21,7 @@ class FeedsNodeProcessor extends FeedsProcessor {
     $created  = $updated = 0;
 
     foreach ($parserResult->value['items'] as $item) {
+
       // If the target item does not exist OR if update_existing is enabled,
       // map and save.
       if (!$nid = $this->existingItemId($item, $source) || $this->config['update_existing']) {
@@ -27,10 +29,7 @@ class FeedsNodeProcessor extends FeedsProcessor {
         // Map item to a node.
         $node = $this->map($item);
 
-        // Add some default information.
-        $node->feeds_node_item->id = $this->id;
-        $node->feeds_node_item->imported = FEEDS_REQUEST_TIME;
-        $node->feeds_node_item->feed_nid = $source->feed_nid;
+        // Set node id if available.
         if (!empty($nid)) {
           $node->nid = $nid;
         }
@@ -61,26 +60,12 @@ class FeedsNodeProcessor extends FeedsProcessor {
 
   /**
    * Implementation of FeedsProcessor::expire().
-   * @todo: use batch API.
-   * @todo: handle $time.
    */
   public function expire(FeedsSource $source, $time = 0) {
-    // Count number of deleted nodes.
-    $deleted = 0;
-
-    $result = db_query('SELECT nid FROM {feeds_node_item} WHERE feed_nid = %d', $source->feed_nid);
-    while ($node = db_fetch_object($result)) {
-      node_delete($node->nid);
-      $deleted++;
-    }
-
-    // Set message.
-    if ($deleted) {
-      drupal_set_message(t('Deleted !number nodes.', array('!number' => $deleted)));
-    }
-    else {
-      drupal_set_message(t('There is no content to be deleted.'));
-    }
+    // Do not support deleting imported items as we would have to delete all
+    // items of the content type we imported which may contain nodes that a
+    // user created by hand.
+    throw new Exception(t('This configuration does not support deleting imported items.'));
   }
 
   /**
@@ -95,11 +80,17 @@ class FeedsNodeProcessor extends FeedsProcessor {
     }
     $target_node = new stdClass();
     $target_node->type = $this->config['content_type'];
-    $target_node->feeds_node_item = new stdClass();
+    $target_node->feeds = array();
+    // Suppress auto import when creating many feeds
+    $target_node->feeds['suppress_import'] = TRUE;
     node_object_prepare($target_node);
-    // Assign an aggregated node always to anonymous.
-    // @todo: change to feed node uid to keep in line with feedapi.
-    $target_node->uid = 0;
+    // Assign an aggregated node always to current user.
+    // @todo: this won't work in all cases as the assumption here is that
+    // import is happening one off when user is logged in. Assumption breaks if
+    // feed node processor is being used for aggregation on cron time and a
+    // specific user should still be the owner of the imported feed nodes.
+    global $user;
+    $target_node->uid = $user->uid;
 
     // Have parent class do the iterating.
     return parent::map($source_item, $target_node);
@@ -109,38 +100,10 @@ class FeedsNodeProcessor extends FeedsProcessor {
    * Override parent::configDefaults().
    */
   public function configDefaults() {
-    $types = node_get_types('names');
-    $type = isset($types['story']) ? 'story' : key($types);
     return array(
-      'content_type' => $type, // @todo: provide default content type feed_item.
+      'content_type' => '',
       'update_existing' => 0,
-      'mappings' => array(
-        '0' => array(
-          'source' => 'title',
-          'target' => 'title',
-          'unique' => FALSE,
-        ),
-        '1' => array(
-          'source' => 'description',
-          'target' => 'teaser',
-          'unique' => FALSE,
-        ),
-        '2' => array(
-          'source' => 'timestamp',
-          'target' => 'created',
-          'unique' => FALSE,
-        ),
-        '3' => array(
-          'source' => 'url',
-          'target' => 'url',
-          'unique' => TRUE,
-        ),
-        '4' => array(
-          'source' => 'guid',
-          'target' => 'guid',
-          'unique' => TRUE,
-        ),
-      ),
+      'mappings' => array(),
     );
   }
 
@@ -148,12 +111,18 @@ class FeedsNodeProcessor extends FeedsProcessor {
    * Override parent::configForm().
    */
   public function configForm(&$form_state) {
-    $types = node_get_types('names');
+    $feeds = feeds_importer_load_all();
+    $types = array();
+    foreach ($feeds as $feed) {
+      if ($feed->id != $this->id && !empty($feed->config['content_type'])) {
+        $types[$feed->config['content_type']] = node_get_types('name', $feed->config['content_type']);
+      }
+    }
     $form = array();
     $form['content_type'] = array(
       '#type' => 'select',
       '#title' => t('Content type'),
-      '#description' => t('Choose node type to create from this feed. <strong>Note:</strong> Users with "import !feed_id feeds" permissions will be able to <strong>import</strong> nodes of the content type selected here regardless of the node level permissions. However, users with "expire !feed_id permissions" need to have sufficient node level permissions to delete the imported nodes.', array('!feed_id' => $this->id)),
+      '#description' => t('Choose node type to create from this feed. Only node types with attached importer configurations are listed here. <strong>Note:</strong> Users with "import !feed_id feeds" permissions will be able to <strong>import</strong> nodes of the content type selected here regardless of the node level permissions. However, users with "expire !feed_id permissions" need to have sufficient node level permissions to delete the imported nodes.', array('!feed_id' => $this->id)),
       '#options' => $types,
       '#default_value' => $this->config['content_type'],
     );
@@ -170,8 +139,11 @@ class FeedsNodeProcessor extends FeedsProcessor {
    * Override setTargetElement to operate on a target item that is a node.
    */
   public function setTargetElement($target_node, $target_element, $value) {
-    if (in_array($target_element, array('url', 'guid'))) {
-      $target_node->feeds_node_item->$target_element = $value;
+    if ($target_element == 'source') {
+      // Get the class of the feed node importer's fetcher and set the source
+      // property. See feeds_nodeapi() how $node->feeds gets stored.
+      $class = get_class($this->feedNodeImporter()->fetcher);
+      $target_node->feeds[$class]['source'] = $value;
     }
     elseif (in_array($target_element, array('title', 'teaser', 'status', 'created'))) {
       $target_node->$target_element = $value;
@@ -184,7 +156,7 @@ class FeedsNodeProcessor extends FeedsProcessor {
   public function getMappingTargets() {
     $targets = array(
       'title' => array(
-        'name' => t('Title'),
+        'name' => t('Title'), // @todo: write out.
        ),
       'status' => array(
         'name' => t('Published status'),
@@ -192,16 +164,13 @@ class FeedsNodeProcessor extends FeedsProcessor {
       'created' => array(
         'name' => t('Published date'),
       ),
-      // Using 'teaser' instead of 'body' forces entire content above the break.
       'teaser' => array(
         'name' => t('Body'),
       ),
-      'url' => array(
-        'name' => t('URL'),
-        'optional_unique' => TRUE,
-        ),
-      'guid' => array(
-        'name' => t('GUID'),
+      'source' => array(
+        'name' => t('Feed source'),
+        // @todo: support and show descriptions.
+        'description' => t('Depending on the selected fetcher, this could be for example a URL or a path to a file.'),
         'optional_unique' => TRUE,
         ),
         /* @todo: move to mapper api.
@@ -210,8 +179,6 @@ class FeedsNodeProcessor extends FeedsProcessor {
         ),
         */
     );
-    // @todo: document.
-    drupal_alter('feeds_node_processor_targets', $targets);
     return $targets;
   }
 
@@ -220,22 +187,24 @@ class FeedsNodeProcessor extends FeedsProcessor {
    */
   protected function existingItemId($source_item, FeedsSource $source) {
 
-    // Iterate through all unique targets and test whether they do already
-    // exist in the database.
+    // We only support one unique target: source
     foreach ($this->uniqueTargets($source_item) as $target => $value) {
-      switch ($target) {
-        case 'url':
-          $nid = db_result(db_query('SELECT nid FROM {feeds_node_item} WHERE feed_nid = %d AND url = "%s"', $source->feed_nid, $value));
-          break;
-        case 'guid':
-          $nid = db_result(db_query('SELECT nid FROM {feeds_node_item} WHERE feed_nid = %d AND guid = "%s"', $source->feed_nid, $value));
-          break;
-      }
-      if ($nid) {
-        // Return with the first nid found.
-        return $nid;
+      if ($target == 'source') {
+        return db_result(db_query('SELECT fs.feed_nid FROM {node} n JOIN {feeds_source} fs ON n.nid = fs.feed_nid WHERE fs.id = "%s" AND fs.source = "%s"', $this->feedNodeImporter()->id, $value));
       }
     }
     return 0;
+  }
+
+  /**
+   * Helper for retrieving the importer object for the feed nodes to produce.
+   */
+  protected function feedNodeImporter() {
+   if ($importer = feeds_importer_by_content_type($this->config['content_type'])) {
+      return $importer;
+    }
+    else {
+      throw new Exception(t('Content type to be created is not a valid Feed content type.'));
+    }
   }
 }

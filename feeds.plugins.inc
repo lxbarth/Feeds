@@ -128,6 +128,17 @@ function _feeds_feeds_plugins() {
       'path' => $path,
     ),
   );
+  $info['FeedsFeedNodeProcessor'] = array(
+    'name' => 'Feed Node processor',
+    'description' => 'Create <em>Feed nodes</em> from parsed content.',
+    'help' => 'Create <em>Feed nodes</em> from parsed content. Feed nodes are nodes that can import feeds themselves. This can be useful for instance when importing OPML feeds.',
+    'handler' => array(
+      'parent' => 'FeedsProcessor',
+      'class' => 'FeedsFeedNodeProcessor',
+      'file' => 'FeedsFeedNodeProcessor.inc',
+      'path' => $path,
+    ),
+  );
   if (module_exists('data')) {
     $info['FeedsDataProcessor'] = array(
       'name' => 'Data processor',

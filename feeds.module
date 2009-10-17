@@ -284,14 +284,14 @@ function feeds_nodeapi(&$node, $op, $form) {
         break;
       case 'insert':
       case 'update':
-
         // Add configuration to feed source and save.
         $source = feeds_source($importer, $node->nid);
         $source->addConfig($node->feeds);
         $source->save();
 
-        // Refresh feed if import on create is selected.
-        if ($op == 'insert' && $importer->config['import_on_create']) {
+        // Refresh feed if import on create is selected and suppress_import is
+        // not set.
+        if ($op == 'insert' && $importer->config['import_on_create'] && !isset($node->feeds['suppress_import'])) {
           $importer->import($source);
         }
         // Add feed to scheduler.

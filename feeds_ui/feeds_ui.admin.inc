@@ -357,7 +357,7 @@ function _feeds_ui_list_plugins_by_type($importer, $type, $selected) {
     }
     $containers[] = array(
       'title' => $plugin['name'],
-      'body' => $plugin['description'],
+      'body' => isset($plugin['help']) ? $plugin['help'] : $plugin['description'],
       'actions' => $actions,
     );
   }

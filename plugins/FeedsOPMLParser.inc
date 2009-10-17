@@ -22,7 +22,7 @@ class FeedsOPMLParser extends FeedsParser {
       $string = $fetcherResult->value;
     }
     feeds_include_library('opml_parser.inc', 'opml_parser');
-    return new FeedsParserResult(array('items' => array()), 'syndication');
+    return new FeedsParserResult(opml_parser_parse($string), 'syndication');
   }
 
   /**

@@ -32,7 +32,6 @@ class FeedsFileFetcher extends FeedsFetcher {
       '#title' => t('File'),
       '#description' => t('Specify a file in the site\'s file system path or upload a file below.'),
       '#default_value' => isset($source_config['source']) ? $source_config['source'] : '',
-      '#required' => TRUE,
     );
     $form['upload'] = array(
       '#type' => 'file',
@@ -58,7 +57,7 @@ class FeedsFileFetcher extends FeedsFetcher {
     elseif (empty($values['source'])) {
       form_set_error('feeds][source', t('Upload a file first.'));
     }
-    elseif (!file_check_location($values['file'], file_directory_path())) {
+    elseif (!file_check_location($values['source'], file_directory_path())) {
       form_set_error('feeds][source', t('File needs to point to a file in your Drupal file system path.'));
     }
   }
