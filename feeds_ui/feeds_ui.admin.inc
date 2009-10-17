@@ -358,6 +358,7 @@ function feeds_ui_plugin_form(&$form_state, $importer, $type) {
   $form['submit'] = array(
     '#type' => 'submit',
     '#value' => t('Save'),
+    '#attributes' => array('class' => 'feeds-ui-hidden-submit'),
   );
   return $form;
 }
@@ -377,16 +378,21 @@ function feeds_ui_plugin_form_submit($form, &$form_state) {
  * Theme feeds_ui_plugin_form().
  */
 function theme_feeds_ui_plugin_form($form) {
+  drupal_add_js(drupal_get_path('module', 'feeds_ui') .'/feeds_ui.js');
   $output = '';
 
   foreach (element_children($form['plugin_key']) as $key) {
+
+    // Assemble container, render form elements.
     $container = array(
       'title' => $form['plugin_key'][$key]['#title'],
       'body' => $form['plugin_key'][$key]['#description'],
     );
     $form['plugin_key'][$key]['#title'] = t('Select');
+    $form['plugin_key'][$key]['#attributes']['class'] = 'feeds-ui-radio-link';
     unset($form['plugin_key'][$key]['#description']);
     $container['actions'] = array(drupal_render($form['plugin_key'][$key]));
+
     $output .= theme_feeds_ui_container($container);
   }
 
@@ -478,7 +484,7 @@ function feeds_ui_mapping_form(&$form_state, $importer) {
   $form['save'] = array(
     '#type' => 'submit',
     '#value' => t('Save'),
-    '#attributes' => array('class' => 'feeds-ui-mapping-save'),
+    '#attributes' => array('class' => 'feeds-ui-hidden-submit'),
   );
   return $form;
 }

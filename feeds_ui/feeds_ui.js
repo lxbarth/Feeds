@@ -34,12 +34,14 @@ Drupal.behaviors.feeds = function() {
     $(this).val('');
   });
 
+
+  // Hide submit buttons of .feeds-ui-hidden-submit class.
+  $('input.form-submit.feeds-ui-hidden-submit').hide();
+
   /**
    * Tune checkboxes on mapping forms.
    * @see feeds_ui_mapping_form() in feeds_ui.admin.inc
    */
-  // Hide save button.
-  $('input.form-submit.feeds-ui-mapping-save').hide();
 
   // Attach submit behavior to elements with feeds-ui-trigger-submit class.
   $('.feeds-ui-trigger-submit').click(function() {
@@ -48,19 +50,41 @@ Drupal.behaviors.feeds = function() {
     $('input.form-submit.feeds-ui-mapping-save').click();
   });
 
-  // Replace it with a link.
+  // Replace checkbox with .feeds-ui-checkbox-link class with a link.
   $('.feeds-ui-checkbox-link:not(.processed)').each(function(i) {
     $(this).addClass('processed').after(
-      '<a href="#" class="feeds-ui-trigger-remove">' + $(this).children(' label').text() + '</a>'
+      '<a href="#" onclick="return false;" class="feeds-ui-trigger-remove">' + $(this).children(' label').text() + '</a>'
     ).hide();
   });
 
-  // Attach slightly different submit behavior to remove links.
-  // We are going to check the box and then submit.
+  // Check the box and then submit.
   $('.feeds-ui-trigger-remove').click(function() {
     // Use click, not form.submit() - submit() would use the wrong submission
     // handler.
     $(this).prev().children().children().children().attr('checked', 1);
     $('input.form-submit.feeds-ui-mapping-save').click();
+  });
+
+  // Replace radio with .feeds-ui-radio-link class with a link.
+  $('.feeds-ui-radio-link:not(.processed)').parent().each(function(i) {
+    checked = '';
+    if ($(this).children('input').attr('checked')) {
+      checked = ' checked';
+    }
+    $(this).addClass('processed').after(
+      '<a href="#" onclick="return false;" class="feeds-ui-check-submit' + checked + '" id="' + $(this).children('input').attr('id') + '">' + $(this).parent().text() + '</a>'
+    );
+    $(this).hide();
+  });
+
+  // Hide the the radio that is selected.
+  $('.feeds-ui-check-submit.checked').parent().hide();
+
+  // Check the radio and then submit.
+  $('.feeds-ui-check-submit').click(function() {
+    // Use click, not form.submit() - submit() would use the wrong submission
+    // handler.
+    $('#' + $(this).attr('id')).attr('checked', 1);
+    $('input.form-submit.feeds-ui-hidden-submit').click();
   });
 };

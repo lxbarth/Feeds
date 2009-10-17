@@ -58,6 +58,7 @@ div.feeds-container.plain {
       margin: 0;
       padding: 0;
       }
+      div.item-list .form-item,
       div.item-list ul.container-actions li form,
       div.item-list ul.container-actions li form input {
         padding: 0;
