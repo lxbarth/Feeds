@@ -47,7 +47,7 @@ Drupal.behaviors.feeds = function() {
   $('.feeds-ui-trigger-submit').click(function() {
     // Use click, not form.submit() - submit() would use the wrong submission
     // handler.
-    $('input.form-submit.feeds-ui-mapping-save').click();
+    $('input.form-submit.feeds-ui-hidden-submit').click();
   });
 
   // Replace checkbox with .feeds-ui-checkbox-link class with a link.
@@ -62,7 +62,7 @@ Drupal.behaviors.feeds = function() {
     // Use click, not form.submit() - submit() would use the wrong submission
     // handler.
     $(this).prev().children().children().children().attr('checked', 1);
-    $('input.form-submit.feeds-ui-mapping-save').click();
+    $('input.form-submit.feeds-ui-hidden-submit').click();
   });
 
   // Replace radio with .feeds-ui-radio-link class with a link.
