@@ -56,13 +56,13 @@ function _feeds_feeds_plugins() {
       'path' => $path,
     ),
   );
-  $info['FeedsHttpFetcher'] = array(
+  $info['FeedsHTTPFetcher'] = array(
     'name' => 'HTTP Fetcher',
     'description' => 'Download content from a URL.',
     'handler' => array(
       'parent' => 'FeedsFetcher', // This is the key name, not the class name.
-      'class' => 'FeedsHttpFetcher',
-      'file' => 'FeedsHttpFetcher.inc',
+      'class' => 'FeedsHTTPFetcher',
+      'file' => 'FeedsHTTPFetcher.inc',
       'path' => $path,
     ),
   );
@@ -70,7 +70,7 @@ function _feeds_feeds_plugins() {
     'name' => 'File fetcher',
     'description' => 'Upload content from a local file.',
     'handler' => array(
-      'parent' => 'FeedsHttpFetcher',
+      'parent' => 'FeedsFetcher',
       'class' => 'FeedsFileFetcher',
       'file' => 'FeedsFileFetcher.inc',
       'path' => $path,

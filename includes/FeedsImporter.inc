@@ -236,7 +236,7 @@ class FeedsImporter extends FeedsConfigurable {
       'name' => '',
       'description' => '',
       'fetcher' => array(
-        'plugin_key' => 'FeedsHttpFetcher',
+        'plugin_key' => 'FeedsHTTPFetcher',
       ),
       'parser' => array(
         'plugin_key' => 'FeedsSyndicationParser',

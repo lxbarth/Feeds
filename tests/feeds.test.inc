@@ -43,7 +43,7 @@ class FeedsWebTestCase extends DrupalWebTestCase {
 
     // Assert message and presence of default plugins.
     $this->assertText('Your feed has been created with default settings.');
-    $this->assertPlugins($id, 'FeedsHttpFetcher', 'FeedsSyndicationParser', 'FeedsNodeProcessor');
+    $this->assertPlugins($id, 'FeedsHTTPFetcher', 'FeedsSyndicationParser', 'FeedsNodeProcessor');
   }
 
   /**
@@ -73,7 +73,7 @@ class FeedsWebTestCase extends DrupalWebTestCase {
     // Create a feed node.
     $edit = array(
       'title' => $title,
-      'feeds[FeedsHttpFetcher][source]' => $feed_url,
+      'feeds[FeedsHTTPFetcher][source]' => $feed_url,
     );
     $this->drupalPost('node/add/'. $content_type, $edit, 'Save');
     $this->assertText('Page '. $title .' has been created.');
@@ -89,7 +89,7 @@ class FeedsWebTestCase extends DrupalWebTestCase {
     $this->assertEqual(1, db_result(db_query('select COUNT(*) from {feeds_source} WHERE id = "%s" AND feed_nid = %d', $id, $nid)));
     $source = db_fetch_object(db_query('select * from {feeds_source} WHERE id = "%s" AND feed_nid = %d', $id, $nid));
     $config = unserialize($source->config);
-    $this->assertEqual($config['FeedsHttpFetcher']['source'], $feed_url, t('URL in DB correct.'));
+    $this->assertEqual($config['FeedsHTTPFetcher']['source'], $feed_url, t('URL in DB correct.'));
 
     // Check whether feed got properly added to scheduler.
     $this->assertEqual(1, db_result(db_query('select COUNT(*) from {feeds_schedule} WHERE id = "%s" AND feed_nid = %d', $id, $nid)));
@@ -116,14 +116,14 @@ class FeedsWebTestCase extends DrupalWebTestCase {
   }
 
   /**
-   * Import a URL through the import form. Assumes FeedsHttpFetcher in place.
+   * Import a URL through the import form. Assumes FeedsHTTPFetcher in place.
    */
   public function importURL($id, $feed_url = NULL) {
     if (empty($feed_url)) {
       $feed_url = $GLOBALS['base_url'] .'/'. drupal_get_path('module', 'feeds') .'/tests/feeds/developmentseed.rss2';
     }
     $edit = array(
-      'feeds[FeedsHttpFetcher][source]' => $feed_url,
+      'feeds[FeedsHTTPFetcher][source]' => $feed_url,
       );
     $nid = $this->drupalPost('import/'. $id, $edit, 'Import');
 
@@ -131,7 +131,7 @@ class FeedsWebTestCase extends DrupalWebTestCase {
     $this->assertEqual(1, db_result(db_query('select COUNT(*) from {feeds_source} WHERE id = "%s" AND feed_nid = 0', $id)));
     $source = db_fetch_object(db_query('select * from {feeds_source} WHERE id = "%s" AND feed_nid = 0', $id));
     $config = unserialize($source->config);
-    $this->assertEqual($config['FeedsHttpFetcher']['source'], $feed_url, t('URL in DB correct.'));
+    $this->assertEqual($config['FeedsHTTPFetcher']['source'], $feed_url, t('URL in DB correct.'));
 
     // Check whether feed got properly added to scheduler.
     $this->assertEqual(1, db_result(db_query('select COUNT(*) from {feeds_schedule} WHERE id = "%s" AND feed_nid = 0', $id)));

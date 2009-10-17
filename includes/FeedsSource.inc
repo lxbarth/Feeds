@@ -60,7 +60,7 @@ class FeedsNoSourceException extends Exception {}
  * FeedsPlugins that implement FeedsSourceInterface and return TRUE on
  * hasSourceConfig() can define default values and forms that allow for
  * configuration of the FeedsSource. For an example, see FeedsFetcher and
- * FeedsHttpFetcher.
+ * FeedsHTTPFetcher.
  *
  * It is important that a FeedsPlugin does not directly hold information about
  * a source but leave all storage up to FeedsSource. An instance of a
