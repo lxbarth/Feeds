@@ -21,7 +21,7 @@ class FeedsUserProcessor extends FeedsProcessor {
 
     foreach ($parserResult->value['items'] as $item) {
 
-      if (!($uid = $this->existingItemId($item, $source)) || $this->config['update_existing']) {
+      if (!$uid = $this->existingItemId($item, $source) || $this->config['update_existing']) {
 
         // Map item to a term.
         $account = $this->map($item);
@@ -46,7 +46,6 @@ class FeedsUserProcessor extends FeedsProcessor {
         else {
           $created++;
         }
-
       }
     }
 
@@ -87,10 +86,11 @@ class FeedsUserProcessor extends FeedsProcessor {
   protected function map($source_item) {
     // Prepare term object.
     $target_account = new stdClass();
-    $target_account['roles'] = $this->config['roles'];
+    $target_account->uid = 0;
+    $target_account->roles = $this->config['roles'];
 
     // Have parent class do the iterating.
-    return parent::map($source_item, $target_term);
+    return parent::map($source_item, $target_account);
   }
 
   /**
@@ -99,6 +99,7 @@ class FeedsUserProcessor extends FeedsProcessor {
   public function configDefaults() {
     return array(
       'roles' => array(),
+      'update_existing' => FALSE,
       'mappings' => array(),
     );
   }
@@ -120,7 +121,21 @@ class FeedsUserProcessor extends FeedsProcessor {
         '#options' => $roles,
       );
     }
+
+    $form['update_existing'] = array(
+      '#type' => 'checkbox',
+      '#title' => t('Update existing items'),
+      '#description' => t('Check if existing users should be updated from the feed.'),
+      '#default_value' => $this->config['update_existing'],
+    );
     return $form;
+  }
+
+  /**
+   * Set target element.
+   */
+  public function setTargetElement(&$target_item, $target_element, $value) {
+    $target_item->$target_element = $value;
   }
 
   /**
