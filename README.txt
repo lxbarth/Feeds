@@ -101,6 +101,49 @@ Description: Whether or not to use default content type and importer
              configurations. Set to FALSE if you would like to use Feeds without
              any default configurations.
 
+Glossary
+========
+
+Plugin       A plugin is a swappable handler. It can be either a fetcher, a
+             parser or a processor.
+
+Fetcher      A plugin responsible for downloading, loading or receiving data.
+
+Parser       A plugin responsible for bringing fetched data into a digestable
+             format for processors.
+
+Processor    A plugin that "does stuff" with data. Usually a processor stores
+             data in one or the other form (a node, a user, a simple DB record).
+
+Feed         A body of data. Can contain a title and feed items. A feed can
+             appear in different forms depending on the import stage: before
+             fetching a feed would be the external document to be fetched. After
+             fetching it would be the raw data dump handed to the parser. After
+             parsing it would be the normalized PHP array that is passed to the
+             processor.
+
+             Depending on the import stage, a feed is represented by a
+             FeedsFetcherResult or a FeedsParserResult.
+
+Feed item    A feed is assumed to have an array of equally formed entities: feed
+             items. The composition of these items depends on the parser.
+
+Importer     An importer contains a specific configuration of one fetcher, one
+             parser and one processor. It is used to import a feed. Importers
+             can be used through a standalone import form available on
+             http://www.example.com/import/ or they can be attached to a content
+             type. In the latter case feeds are imported by creating nodes of
+             such a content type.
+
+             Importers are configured on admin/build/feeds. They are sometimes
+             referred to as "Importer configuration or "Configuration".
+
+Feed node    A node that is used for importing feeds. A feed node is of a
+             content type that has an Importer attached.
+
+Import stage The state of the importing process. The import stages are:
+             fetching, parsing and processing.
+
 Todos
 =====
 
