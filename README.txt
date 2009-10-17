@@ -164,12 +164,3 @@ Import stage The state of the importing process. The import stages are:
 
 Feed node    A node that is used for importing feeds. A feed node is of a
              content type that has an Importer attached.
-
-
-Todos
-=====
-
-- http://drupal.org/project/issues/feeds
-- Revisit @todo tags in code
-- Option for greying out plugins that miss requirements + message to user.
-- Revisit get/set naming conventions.
