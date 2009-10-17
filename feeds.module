@@ -538,7 +538,17 @@ function feeds_get_plugins() {
     }
     $result[$key] = $info;
   }
+
+  // Sort plugins by name and return.
+  uasort($result, 'feeds_plugin_compare');
   return $result;
+}
+
+/**
+ * Sort callback for feeds_get_plugins().
+ */
+function feeds_plugin_compare($a, $b) {
+  return strcasecmp($a['name'], $b['name']);
 }
 
 /**
