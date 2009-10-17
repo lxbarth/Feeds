@@ -142,6 +142,17 @@ function _feeds_feeds_plugins() {
       'path' => $path,
     ),
   );
+  $info['FeedsUserProcessor'] = array(
+    'name' => 'User processor',
+    'description' => 'Create users.',
+    'help' => 'Create users from parsed content.',
+    'handler' => array(
+      'parent' => 'FeedsProcessor',
+      'class' => 'FeedsUserProcessor',
+      'file' => 'FeedsUserProcessor.inc',
+      'path' => $path,
+    ),
+  );
   if (module_exists('data')) {
     $info['FeedsDataProcessor'] = array(
       'name' => 'Data processor',

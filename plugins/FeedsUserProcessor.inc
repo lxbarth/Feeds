@@ -1,0 +1,169 @@
+<?php
+// $Id$
+
+/**
+ * @file
+ * FeedsUserProcessor class.
+ */
+
+/**
+ * Feeds processor plugin. Create users from feed items.
+ */
+class FeedsUserProcessor extends FeedsProcessor {
+
+  /**
+   * Implementation of FeedsProcessor::process().
+   */
+  public function process(FeedsParserResult $parserResult, FeedsSource $source) {
+
+    // Count number of created and updated nodes.
+    $created  = $updated = $failed = 0;
+
+    foreach ($parserResult->value['items'] as $item) {
+
+      if (!($uid = $this->existingItemId($item, $source)) || $this->config['update_existing']) {
+
+        // Map item to a term.
+        $account = $this->map($item);
+
+        // Check if user name and mail are set, otherwise continue.
+        if (empty($account->name) || empty($account->mail) || !valid_email_address($account->mail)) {
+          $failed++;
+          continue;
+        }
+
+        // Add term id if available.
+        if (!empty($uid)) {
+          $account->uid = $uid;
+        }
+
+        // Save the user.
+        user_save($account);
+
+        if ($uid) {
+          $updated++;
+        }
+        else {
+          $created++;
+        }
+
+      }
+    }
+
+    // Set messages.
+    if ($failed) {
+      drupal_set_message(t('There were !number users that could not be imported because either their name or their email was empty or not valid. Check import data and mapping settings on User processor.', array('!number' => $failed)), 'error');
+    }
+    if ($created) {
+      drupal_set_message(t('Created !number users.', array('!number' => $created)));
+    }
+    elseif ($updated) {
+      drupal_set_message(t('Updated !number users.', array('!number' => $updated)));
+    }
+    else {
+      drupal_set_message(t('There are no new users.'));
+    }
+  }
+
+  /**
+   * Implement expire.
+   *
+   * @param $source
+   *   FeedsSource of this term. FeedsTermProcessor does not heed this
+   *   parameter, it deletes all terms from a vocabulary.
+   * @param $time
+   *   FeedsSource does not heed this parameter and always deletes all terms
+   *   from a vocabulary.
+   */
+  public function expire(FeedsSource $source, $time = 0) {
+    // Do not support deleting users as we have no way of knowing which ones we
+    // imported.
+    throw new Exception(t('User processor does not support deleting users.'));
+  }
+
+  /**
+   * Execute mapping on an item.
+   */
+  protected function map($source_item) {
+    // Prepare term object.
+    $target_account = new stdClass();
+    $target_account['roles'] = $this->config['roles'];
+
+    // Have parent class do the iterating.
+    return parent::map($source_item, $target_term);
+  }
+
+  /**
+   * Override parent::configDefaults().
+   */
+  public function configDefaults() {
+    return array(
+      'roles' => array(),
+      'mappings' => array(),
+    );
+  }
+
+  /**
+   * Override parent::configForm().
+   */
+  public function configForm(&$form_state) {
+    $form = array();
+
+    $roles = user_roles(TRUE);
+    unset($roles[2]);
+    if (count($roles)) {
+      $form['roles'] = array(
+        '#type' => 'checkboxes',
+        '#title' => t('Additional roles'),
+        '#description' => t('Every user will be assigned the "autenticated user" role. Select additional roles here.'),
+        '#default_value' => $this->config['roles'],
+        '#options' => $roles,
+      );
+    }
+    return $form;
+  }
+
+  /**
+   * Return available mapping targets.
+   */
+  public function getMappingTargets() {
+    $targets = array(
+      'name' => array(
+        'name' => t('User name'),
+        'optional_unique' => TRUE,
+       ),
+      'mail' => array(
+        'name' => t('E-mail address'),
+        'optional_unique' => TRUE,
+       ),
+      'created' => array(
+        'name' => t('Created date'),
+       ),
+    );
+    return $targets;
+  }
+
+  /**
+   * Get id of an existing feed item term if available.
+   */
+  protected function existingItemId($source_item, FeedsSource $source) {
+
+    // Iterate through all unique targets and try to find a user for the
+    // target's value.
+    foreach ($this->uniqueTargets($source_item) as $target => $value) {
+      switch ($target) {
+        case 'name':
+          $nid = db_result(db_query('SELECT uid FROM {users} WHERE name = "%s"', $value));
+          break;
+        case 'mail':
+          $nid = db_result(db_query('SELECT uid FROM {users} WHERE mail = "%s"', $value));
+          break;
+      }
+      if ($nid) {
+        // Return with the first nid found.
+        return $nid;
+      }
+    }
+    return 0;
+  }
+}
