@@ -72,6 +72,7 @@ class FeedsFeedNodeProcessor extends FeedsProcessor {
    * Execute mapping on an item.
    */
   protected function map($source_item) {
+
     // Prepare node object.
     static $included;
     if (!$included) {
@@ -81,14 +82,17 @@ class FeedsFeedNodeProcessor extends FeedsProcessor {
     $target_node = new stdClass();
     $target_node->type = $this->config['content_type'];
     $target_node->feeds = array();
-    // Suppress auto import when creating many feeds
+    // Suppress auto import, we may be creating many feeds
     $target_node->feeds['suppress_import'] = TRUE;
     node_object_prepare($target_node);
-    // Assign an aggregated node always to current user.
-    // @todo: this won't work in all cases as the assumption here is that
-    // import is happening one off when user is logged in. Assumption breaks if
-    // feed node processor is being used for aggregation on cron time and a
-    // specific user should still be the owner of the imported feed nodes.
+
+    /*
+    Assign an aggregated node always to current user.
+    @todo: this won't work in all cases as the assumption here is that
+    import is happening one off when user is logged in. Assumption breaks if
+    feed node processor is being used for aggregation on cron time and a
+    specific user should still be the owner of the imported feed nodes.
+    */
     global $user;
     $target_node->uid = $user->uid;
 
@@ -172,12 +176,7 @@ class FeedsFeedNodeProcessor extends FeedsProcessor {
         // @todo: support and show descriptions.
         'description' => t('Depending on the selected fetcher, this could be for example a URL or a path to a file.'),
         'optional_unique' => TRUE,
-        ),
-        /* @todo: move to mapper api.
-      'taxonomy' => array(
-        'options' => taxonomy_get_vocabularies(),
-        ),
-        */
+      ),
     );
     return $targets;
   }
