@@ -51,7 +51,8 @@ function feeds_schema() {
       ),
       'feed_nid' => array(
         'type' => 'int',
-        'not null' => FALSE,
+        'not null' => TRUE,
+        'default' => 0,
         'unsigned' => TRUE,
         'description' => 'Node nid if this particular source is attached to a feed node.',
       ),
@@ -61,19 +62,26 @@ function feeds_schema() {
         'description' => 'Configuration of the source.',
         'serialize' => TRUE,
       ),
+      'source' => array(
+        'type' => 'text',
+        'not null' => TRUE,
+        'description' => t('Main source resource identifier. E. g. a path or a URL.'),
+      ),
     ),
     'primary key' => array('id', 'feed_nid'),
     'indexes' => array(
-        'id' => array('id'),
-        'feed_nid' => array('feed_nid'),
-      ),
+      'id' => array('id'),
+      'feed_nid' => array('feed_nid'),
+      'id_source' => array('id', array('source', 255)),
+    ),
   );
   $schema['feeds_schedule'] = array(
     'description' => t('Contains feeds scheduled for refresh.'),
     'fields' => array(
       'feed_nid' => array(
         'type' => 'int',
-        'not null' => FALSE,
+        'not null' => TRUE,
+        'default' => 0,
         'unsigned' => TRUE,
         'description' => 'Node nid if this particular source is attached to a feed node.',
       ),
@@ -200,5 +208,43 @@ function feeds_update_6003() {
   db_drop_index($ret, 'feeds_importer', 'id');
   db_add_primary_key($ret, 'feeds_importer', array('id'));
   db_add_primary_key($ret, 'feeds_source', array('id', 'feed_nid'));
+  return $ret;
+}
+
+/**
+ * Add source field to feeds_source, make fields part of PKs not null.
+ */
+function feeds_update_6004() {
+  $ret = array();
+
+  $spec = array(
+    'type' => 'text',
+    'not null' => TRUE,
+    'description' => t('Main source resource identifier. E. g. a path or a URL.'),
+  );
+  db_add_field($ret, 'feeds_source', 'source', $spec);
+  db_add_index($ret, 'feeds_source', 'id_source', array('id', array('source', 255)));
+
+  // Make feed_nid not null, default 0. It is part of the primary key.
+  $spec = array(
+    'type' => 'int',
+    'not null' => TRUE,
+    'default' => 0,
+    'unsigned' => TRUE,
+    'description' => 'Node nid if this particular source is attached to a feed node.',
+  );
+  db_change_field($ret, 'feeds_schedule', 'feed_nid', 'feed_nid', $spec);
+
+
+  // Same thing for feeds_source table.
+  $spec = array(
+    'type' => 'int',
+    'not null' => TRUE,
+    'default' => 0,
+    'unsigned' => TRUE,
+    'description' => 'Node nid if this particular source is attached to a feed node.',
+  );
+  db_change_field($ret, 'feeds_source', 'feed_nid', 'feed_nid', $spec);
+
   return $ret;
 }
