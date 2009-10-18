@@ -81,7 +81,8 @@ function feeds_ui_overview_page() {
       $status,
       l($edit, 'admin/build/feeds/edit/'. $importer->id) .' | '.
       l(t('Export'), 'admin/build/feeds/export/'. $importer->id) .
-      (empty($delete) ? '' :  ' | '. l($delete, 'admin/build/feeds/delete/'. $importer->id)),
+      (empty($delete) ? '' :  ' | '. l($delete, 'admin/build/feeds/delete/'. $importer->id)) .' | '.
+      l(t('Clone'), 'admin/build/feeds/clone/'. $importer->id),
     );
   }
   $rows[] = array(
@@ -103,10 +104,17 @@ function feeds_ui_overview_page() {
 
 /**
  * Create a new configuration.
+ *
+ * @param $form_state
+ *  Form API form state array.
+ * @param $from_importer
+ *   FeedsImporter object. If given, form will create a new importer as a copy
+ *   of $from_importer.
  */
-function feeds_ui_create_form(&$form_state) {
+function feeds_ui_create_form(&$form_state, $from_importer = NULL) {
   drupal_add_js(drupal_get_path('module', 'feeds_ui') .'/feeds_ui.js');
   $form = array();
+  $form['#from_importer'] = $from_importer;
   $form['name'] = array(
     '#type' => 'textfield',
     '#title' => t('Name'),
@@ -151,11 +159,21 @@ function feeds_ui_create_form_validate($form, &$form_state) {
 function feeds_ui_create_form_submit($form, &$form_state) {
   // Create feed.
   $importer = feeds_importer($form_state['values']['id']);
+  // If from_importer is given, copy its configuration.
+  if (!empty($form['#from_importer'])) {
+    $importer->copy($form['#from_importer']);
+  }
+  // In any case, we want to set this configuration's title and description.
   $importer->addConfig($form_state['values']);
   $importer->save();
 
   // Set a message and redirect to settings form.
-  drupal_set_message(t('Your feed has been created with default settings. If they do not fit your use case you can change them here.'));
+  if (empty($form['#from_importer'])) {
+    drupal_set_message(t('Your importer configuration has been created with default settings. If they do not fit your use case you can adjust them here.'));
+  }
+  else {
+    drupal_set_message(t('A copy of the !name configuration has been created.', array('!name' => $form['#from_importer']->config['name'])));
+  }
   $form_state['redirect'] = 'admin/build/feeds/edit/'. $importer->id;
 }
 

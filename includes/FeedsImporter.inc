@@ -219,6 +219,19 @@ class FeedsImporter extends FeedsConfigurable {
   }
 
   /**
+   * Copy a FeedsImporter configuration into this importer.
+   *
+   * @param FeedsImporter $importer
+   *   The feeds importer object to copy from.
+   */
+  public function copy(FeedsImporter $importer) {
+    $this->config = $importer->config;
+    foreach ($this->plugin_types as $plugin_type) {
+      $this->setPlugin($importer->config[$plugin_type]['plugin_key']);
+    }
+  }
+
+  /**
    * Get configuration of this feed.
    */
   public function getConfig() {
