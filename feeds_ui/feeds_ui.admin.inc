@@ -76,6 +76,7 @@ function feeds_ui_overview_page() {
     }
     $rows[] = array(
       $importer->config['name'],
+      $importer->config['description'],
       $attached,
       $status,
       l($edit, 'admin/build/feeds/edit/'. $importer->id) .' | '.
@@ -88,9 +89,11 @@ function feeds_ui_overview_page() {
     '&nbsp;',
     '&nbsp;',
     '&nbsp;',
+    '&nbsp;',
   );
   $header = array(
-    t('Configuration'),
+    t('Name'),
+    t('Description'),
     t('Attached to'),
     t('Status'),
     t('Operations'),
