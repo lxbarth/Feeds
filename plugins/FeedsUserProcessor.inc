@@ -89,6 +89,7 @@ class FeedsUserProcessor extends FeedsProcessor {
     $target_account = new stdClass();
     $target_account->uid = 0;
     $target_account->roles = $this->config['roles'];
+    $target_account->status = $this->config['status'];
 
     // Have parent class do the iterating.
     return parent::map($source_item, $target_account);
@@ -101,6 +102,7 @@ class FeedsUserProcessor extends FeedsProcessor {
     return array(
       'roles' => array(),
       'update_existing' => FALSE,
+      'status' => 1,
       'mappings' => array(),
     );
   }
@@ -110,6 +112,14 @@ class FeedsUserProcessor extends FeedsProcessor {
    */
   public function configForm(&$form_state) {
     $form = array();
+
+    $form['status'] = array(
+      '#type' => 'radios',
+      '#title' => t('Status'),
+      '#description' => t('Select whether users should be imported active or blocked.'),
+      '#options' => array(0 => t('Blocked'), 1 => t('Active')),
+      '#default_value' => $this->config['status'],
+    );
 
     $roles = user_roles(TRUE);
     unset($roles[2]);
@@ -125,8 +135,8 @@ class FeedsUserProcessor extends FeedsProcessor {
 
     $form['update_existing'] = array(
       '#type' => 'checkbox',
-      '#title' => t('Update existing items'),
-      '#description' => t('Check if existing users should be updated from the feed.'),
+      '#title' => t('Update existing users'),
+      '#description' => t('Check if existing users should be updated from imported data.'),
       '#default_value' => $this->config['update_existing'],
     );
     return $form;
