@@ -21,7 +21,9 @@ class FeedsWebTestCase extends DrupalWebTestCase {
   }
 
   /**
-   * Create feed config.
+   * Create an importer configuration.
+   *
+   * @todo: rename to createImporterConfig()
    *
    * @param $name
    *   The natural name of the feed.
@@ -44,6 +46,28 @@ class FeedsWebTestCase extends DrupalWebTestCase {
     // Assert message and presence of default plugins.
     $this->assertText('Your feed has been created with default settings.');
     $this->assertPlugins($id, 'FeedsHTTPFetcher', 'FeedsSyndicationParser', 'FeedsNodeProcessor');
+  }
+
+  /**
+   * Choose a plugin for a importer configuration and assert it.
+   *
+   * @param $id
+   *   The importer configuration's id.
+   * @param $plugin_key
+   *   The key string of the plugin to choose (one of the keys defined in
+   *   feeds_feeds_plugins()).
+   */
+  public function setPlugin($id, $plugin_key) {
+    if ($type = feeds_plugin_type($plugin_key)) {
+      $edit = array(
+        'plugin_key' => $plugin_key,
+      );
+      $this->drupalPost("admin/build/feeds/edit/$id/$type", $edit, 'Save');
+
+      // Assert actual configuration.
+      $config = unserialize(db_result(db_query('SELECT config FROM {feeds_importer} WHERE id = "%s"', $id)));
+      $this->assertEqual($config[$type]['plugin_key'], $plugin_key, 'Verified correct '. $type .' ('. $plugin_key .').');
+    }
   }
 
   /**
@@ -142,6 +166,12 @@ class FeedsWebTestCase extends DrupalWebTestCase {
 
   /**
    * Assert a feeds configuration's plugins.
+   *
+   * @deprecated:
+   *   Use setPlugin() instead.
+   *
+   * @todo:
+   *   Refactor users of assertPlugin() and make them use setPugin() instead.
    */
   public function assertPlugins($id, $fetcher, $parser, $processor) {
     // Assert actual configuration.

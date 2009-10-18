@@ -422,9 +422,100 @@ class FeedsRSStoDataTest extends FeedsWebTestCase {
 }
 
 /**
+ * Test aggregating a feed as data records.
+ */
+class FeedsCSVtoUsersTest extends FeedsWebTestCase {
+
+  /**
+   * Describe this test.
+   */
+  public function getInfo() {
+    return array(
+      'name' => t('CSV import to users'),
+      'description' => t('Tests a standalone import configuration that uses file fetcher and CSV parser to import users from a CSV file.'),
+      'group' => t('Feeds'),
+    );
+  }
+
+  /**
+   * Set up test.
+   */
+  public function setUp() {
+    parent::setUp('feeds', 'feeds_ui', 'ctools');
+
+    $this->drupalLogin(
+      $this->drupalCreateUser(
+        array(
+          'administer feeds', 'administer users',
+        )
+      )
+    );
+  }
+
+  /**
+   * Test node creation, refreshing/deleting feeds and feed items.
+   */
+  public function test() {
+
+    // Create a feed.
+    $this->createFeedConfiguration('User import', 'user_import');
+
+    // Set and configure plugins.
+    $this->setPlugin('user_import', 'FeedsFileFetcher');
+    $this->setPlugin('user_import', 'FeedsCSVParser');
+    $this->setPlugin('user_import', 'FeedsUserProcessor');
+
+    // Go to mapping page and create a couple of mappings.
+    $mappings = array(
+      '0' => array(
+        'source' => 'name',
+        'target' => 'name',
+        'unique' => 0,
+      ),
+      '1' => array(
+        'source' => 'mail',
+        'target' => 'mail',
+        'unique' => 1,
+      ),
+      '2' => array(
+        'source' => 'since',
+        'target' => 'created',
+        'unique' => FALSE,
+      ),
+    );
+    $this->addMappings('user_import', $mappings);
+
+    // Change some of the basic configuration.
+    $edit = array(
+      'content_type' => '',
+      'refresh_period' => FEEDS_SCHEDULE_NEVER,
+    );
+    $this->drupalPost('admin/build/feeds/edit/user_import/settings', $edit, 'Save');
+
+    // Import CSV file.
+    $file = dirname($GLOBALS['_SERVER']['SCRIPT_FILENAME']) .'/'. drupal_get_path('module', 'feeds') .'/tests/feeds/users.csv';
+    $this->assertTrue(file_exists($file), 'Source file exists');
+    $edit = array(
+      'files[feeds]' => $file,
+    );
+    $this->drupalPost('import/user_import', $edit, 'Import');
+
+    // Assert result.
+    $this->assertText('Created 4 users.');
+    // 1 user has an invalid email address.
+    $this->assertText('There were 1 users that could not be imported because either their name or their email was empty or not valid. Check import data and mapping settings on User processor.');
+    $this->drupalGet('admin/user/user');
+    $this->assertText('Morticia');
+    $this->assertText('Fester');
+    $this->assertText('Gomez');
+    $this->assertText('Pugsley');
+
+    // @todo: test status setting, update existing and role settings.
+  }
+}
+
+/**
  * Test cron scheduling.
- *
- * @todo.
  */
 class FeedsSchedulerTestCase extends FeedsWebTestCase {
 
