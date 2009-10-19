@@ -152,14 +152,14 @@ class FeedsWebTestCase extends DrupalWebTestCase {
     $nid = $this->drupalPost('import/'. $id, $edit, 'Import');
 
     // Check whether feed got recorded in feeds_source table.
-    $this->assertEqual(1, db_result(db_query('select COUNT(*) from {feeds_source} WHERE id = "%s" AND feed_nid = 0', $id)));
-    $source = db_fetch_object(db_query('select * from {feeds_source} WHERE id = "%s" AND feed_nid = 0', $id));
+    $this->assertEqual(1, db_result(db_query('SELECT COUNT(*) FROM {feeds_source} WHERE id = "%s" AND feed_nid = 0', $id)));
+    $source = db_fetch_object(db_query('SELECT * FROM {feeds_source} WHERE id = "%s" AND feed_nid = 0', $id));
     $config = unserialize($source->config);
     $this->assertEqual($config['FeedsHTTPFetcher']['source'], $feed_url, t('URL in DB correct.'));
 
     // Check whether feed got properly added to scheduler.
-    $this->assertEqual(1, db_result(db_query('select COUNT(*) from {feeds_schedule} WHERE id = "%s" AND feed_nid = 0', $id)));
-    $schedule = db_fetch_object(db_query('select * from {feeds_schedule} WHERE id = "%s" AND feed_nid = 0', $id));
+    $this->assertEqual(1, db_result(db_query('SELECT COUNT(*) FROM {feeds_schedule} WHERE id = "%s" AND feed_nid = 0', $id)));
+    $schedule = db_fetch_object(db_query('SELECT * FROM {feeds_schedule} WHERE id = "%s" AND feed_nid = 0', $id));
     $this->assertEqual($schedule->scheduled, 0, 'Feed is not set scheduled.');
     $this->assertEqual($schedule->last_scheduled_time, 0, 'Last scheduled time is 0.');
   }
