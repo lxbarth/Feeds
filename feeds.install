@@ -28,7 +28,7 @@ function feeds_schema() {
     'fields' => array(
       'id' => array(
         'type' => 'varchar',
-        'length' => '128',
+        'length' => 128,
         'not null' => TRUE,
         'default' => '',
         'description' => 'Id of the fields object.',
@@ -47,7 +47,7 @@ function feeds_schema() {
     'fields' => array(
       'id' => array(
         'type' => 'varchar',
-        'length' => '128',
+        'length' => 128,
         'not null' => TRUE,
         'default' => '',
         'description' => 'Id of the feed configuration.',
@@ -90,14 +90,14 @@ function feeds_schema() {
       ),
       'id' => array(
         'type' => 'varchar',
-        'length' => '128',
+        'length' => 128,
         'not null' => TRUE,
         'default' => '',
         'description' => 'Id of the feed configuration.',
       ),
       'callback' => array(
         'type' => 'varchar',
-        'length' => '255',
+        'length' => 128,
         'not null' => TRUE,
         'default' => '',
         'description' => 'Callback to be invoked.',
@@ -137,7 +137,7 @@ function feeds_schema() {
       ),
       'id' => array(
         'type' => 'varchar',
-        'length' => '128',
+        'length' => 128,
         'not null' => TRUE,
         'default' => '',
         'description' => 'The id of the fields object that is the producer of this item.',
@@ -269,7 +269,7 @@ function feeds_update_6005() {
   // Add a callback column and an index.
   $spec = array(
     'type' => 'varchar',
-    'length' => '255',
+    'length' => 128,
     'not null' => TRUE,
     'default' => '',
     'description' => 'Callback to be invoked.',
