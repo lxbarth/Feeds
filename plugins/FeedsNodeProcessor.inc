@@ -190,7 +190,7 @@ class FeedsNodeProcessor extends FeedsProcessor {
       '#description' => t('Check if existing items should be updated from the feed.'),
       '#default_value' => $this->config['update_existing'],
     );
-    $period = drupal_map_assoc(array(FEEDS_EXPIRE_NEVER, 3600, 10800, 21600, 43200, 86400, 259200, 604800, 2419200, 14515200, 31536000), 'feeds_format_expire');
+    $period = drupal_map_assoc(array(FEEDS_EXPIRE_NEVER, 3600, 10800, 21600, 43200, 86400, 259200, 604800, 604800 * 4, 604800 * 12, 604800 * 24, 31536000), 'feeds_format_expire');
     $form['expire'] = array(
       '#type' => 'select',
       '#title' => t('Expire nodes'),
