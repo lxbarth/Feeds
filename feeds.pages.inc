@@ -4,8 +4,6 @@
 /**
  * @file
  * Menu callbacks, form callbacks and helpers.
- *
- * @todo: rename $feed to $importer.
  */
 
 /**
@@ -15,19 +13,19 @@
  */
 function feeds_page() {
   $rows = array();
-  if ($feeds = feeds_importer_load_all()) {
-    foreach ($feeds as $feed) {
-      if (empty($feed->config['content_type'])) {
-        $link = 'import/'. $feed->id;
-        $title = $feed->config['name'];
+  if ($importers = feeds_importer_load_all()) {
+    foreach ($importers as $importer) {
+      if (empty($importer->config['content_type'])) {
+        $link = 'import/'. $importer->id;
+        $title = $importer->config['name'];
       }
-      elseif (user_access('create '. $feed->config['content_type'] .' content')) {
-        $link = 'node/add/'. $feed->config['content_type'];
-        $title = t('!type (!config)', array('!type' => node_get_types('name', $feed->config['content_type']), '!config' => $feed->config['name']));
+      elseif (user_access('create '. $importer->config['content_type'] .' content')) {
+        $link = 'node/add/'. $importer->config['content_type'];
+        $title = t('!type (!config)', array('!type' => node_get_types('name', $importer->config['content_type']), '!config' => $importer->config['name']));
       }
       $rows[] = array(
         l($title, $link),
-        $feed->config['description'],
+        $importer->config['description'],
       );
     }
   }
@@ -42,17 +40,15 @@ function feeds_page() {
  * Render a feeds import form on import/[config] pages.
  */
 function feeds_import_form(&$form_state, $feed_id) {
-  $feed = feeds_importer($feed_id);
-  $source = feeds_source($feed, empty($form['nid']['#value']) ? 0 : $form['nid']['#value']);
+  $importer = feeds_importer($feed_id);
+  $source = feeds_source($importer, empty($form['nid']['#value']) ? 0 : $form['nid']['#value']);
 
   $form = array();
-  $form['#feed_id'] = $feed->id;
+  $form['#importer_id'] = $importer->id;
   // @todo: Move this into fetcher?
   $form['#attributes']['enctype'] = 'multipart/form-data';
-  // @todo: let fetchers build this fieldset, allows for tweaking the title and adding description.
   $form['feeds'] = array(
     '#type' => 'fieldset',
-    '#title' => t('Feed'),
     '#tree' => TRUE,
   );
   $form['feeds'] += $source->configForm($form_state);
@@ -69,8 +65,8 @@ function feeds_import_form(&$form_state, $feed_id) {
  * Has to live in feeds.module, needs to be callable from node form.
  */
 function feeds_import_form_validate($form, &$form_state) {
-  $feed = feeds_importer($form['#feed_id']);
-  $source = feeds_source($feed);
+  $importer = feeds_importer($form['#importer_id']);
+  $source = feeds_source($importer);
   // @todo: this may be a problem here, as we don't have a feed_nid at this point.
   $source->configFormValidate($form_state['values']['feeds']);
 }
@@ -79,20 +75,20 @@ function feeds_import_form_validate($form, &$form_state) {
  * Submit handler for feeds_import_form().
  */
 function feeds_import_form_submit($form, &$form_state) {
-  $feed = feeds_importer($form['#feed_id']);
-  $source = feeds_source($feed);
+  $importer = feeds_importer($form['#importer_id']);
+  $source = feeds_source($importer);
 
   // Save source and import.
   $source->addConfig($form_state['values']['feeds']);
   $source->save();
 
   // Refresh feed if import on create is selected.
-  if ($feed->config['import_on_create']) {
-    $feed->import($source);
+  if ($importer->config['import_on_create']) {
+    $importer->import($source);
   }
 
   // Add importer to schedule.
-  feeds_scheduler()->add($feed->id, 'import');
+  feeds_scheduler()->add($importer->id, 'import');
   feeds_scheduler()->add($importer->id, 'expire');
 }
 
@@ -100,11 +96,11 @@ function feeds_import_form_submit($form, &$form_state) {
  * Render a feeds import form on node/id/import pages.
  */
 function feeds_import_tab_form(&$form_state, $node) {
-  $feed = feeds_importer_by_content_type($node->type);
+  $importer = feeds_importer_by_content_type($node->type);
 
   $form = array();
   $form['#feed_nid'] = $node->nid;
-  $form['#feed_id'] = $feed->id;
+  $form['#importer_id'] = $importer->id;
   return confirm_form($form, t('Import all content from feed?'), 'node/'. $node->nid, '', t('Import'), t('Cancel'), 'confirm feeds update');
 }
 
@@ -112,9 +108,9 @@ function feeds_import_tab_form(&$form_state, $node) {
  * Submit handler for feeds_import_tab_form().
  */
 function feeds_import_tab_form_submit($form, $form_state) {
-  $feed = feeds_importer($form['#feed_id']);
-  $source = feeds_source($feed, $form['#feed_nid']);
-  $feed->import($source);
+  $importer = feeds_importer($form['#importer_id']);
+  $source = feeds_source($importer, $form['#feed_nid']);
+  $importer->import($source);
 }
 
 /**
@@ -125,16 +121,16 @@ function feeds_import_tab_form_submit($form, $form_state) {
  */
 function feeds_delete_tab_form(&$form_state, $feed_id, $node = NULL) {
   if (empty($node)) {
-    $feed = feeds_importer($feed_id);
+    $importer = feeds_importer($feed_id);
     $path = 'import/'. $feed_id .'/delete-items';
   }
   else {
-    $feed = feeds_importer_by_content_type($node->type);
+    $importer = feeds_importer_by_content_type($node->type);
     $form['#feed_nid'] = $node->nid;
     $path = 'node/'. $node->nid;
   }
   // Form cannot pass on feed object.
-  $form['#feed_id'] = $feed->id;
+  $form['#importer_id'] = $importer->id;
   return confirm_form($form, t('Delete all items from feed?'), $path, '', t('Delete'), t('Cancel'), 'confirm feeds update');
 }
 
@@ -142,7 +138,7 @@ function feeds_delete_tab_form(&$form_state, $feed_id, $node = NULL) {
  * Submit handler for feeds_delete_tab_form().
  */
 function feeds_delete_tab_form_submit($form, &$form_state) {
-  $feed = feeds_importer($form['#feed_id']);
-  $source = feeds_source($feed, empty($form['#feed_nid']) ? 0 : $form['#feed_nid']);
-  $feed->clear($source);
+  $importer = feeds_importer($form['#importer_id']);
+  $source = feeds_source($importer, empty($form['#feed_nid']) ? 0 : $form['#feed_nid']);
+  $importer->clear($source);
 }
