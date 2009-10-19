@@ -13,23 +13,23 @@
 function feeds_ui_edit_help() {
   return t('
     <p>
-    You can create as many feed configurations as you would like to. Every one of them can have a distinct purpose like letting your users aggregate RSS feeds or importing a CSV file for content migration. Here are a couple of things that are important to understand in order to get started with Feeds:
+    You can create as many Feeds importer configurations as you would like to. Each can have a distinct purpose like letting your users aggregate RSS feeds or importing a CSV file for content migration. Here are a couple of things that are important to understand in order to get started with Feeds:
     </p>
     <ul>
     <li>
-    Every feed configuration consists of basic settings, a fetcher, a parser and a processor and their settings.
+    Every importer configuration consists of basic settings, a fetcher, a parser and a processor and their settings.
     </li>
     <li>
-    The <strong>basic settings</strong> define the general behavior of the feed. <strong>Fetchers</strong> are responsible for loading data, <strong>parsers</strong> for organizing it and <strong>processors</strong> for "doing stuff" with it, usually storing it.
+    The <strong>basic settings</strong> define the general behavior of the importer. <strong>Fetchers</strong> are responsible for loading data, <strong>parsers</strong> for organizing it and <strong>processors</strong> for "doing stuff" with it, usually storing it.
     </li>
     <li>
-    In Basic settings, you can <strong>attach a feed configuration to a content type</strong>. This is for example useful for enabling your users to create as many feeds of a configuration as they would like to. If you don\'t attach a configuration to a content type, you can use it on the !import page.
+    In Basic settings, you can <strong>attach an importer configuration to a content type</strong>. This is useful when many imports of a kind should be created, for example in an RSS aggregation scenario. If you don\'t attach a configuration to a content type, you can use it on the !import page.
     </li>
     <li>
-    Feeds can be <strong>refreshed periodically</strong> - see the minimum refresh period in the Basic settings.
+    Imports can be <strong>refreshed periodically</strong> - see the minimum refresh period in the Basic settings.
     </li>
     <li>
-    Processors can have <strong>mappings</strong> in addition to settings. Mappings allow you to define what elements of a feed should be mapped to what content fields on a granular level. For instance, you can specify that a feed\'s author should be mapped to a node\'s body.
+    Processors can have <strong>mappings</strong> in addition to settings. Mappings allow you to define what elements of a data feed should be mapped to what content fields on a granular level. For instance, you can specify that a feed\'s author should be mapped to a node\'s body.
     </li>
     </ul>
     ', array('!import' => l(t('Import'), 'import')));
@@ -228,13 +228,13 @@ function feeds_ui_edit_page($importer, $active = 'help', $plugin_key = '') {
   // Base path for changing the active container.
   $path = 'admin/build/feeds/edit/'. $importer->id .'/';
 
-  $configure = t('!configure - ', array('!configure' => l(t('Configure your feed'), $path)));
+  $configure = t('!configure - ', array('!configure' => l(t('Configure importer'), $path)));
   $active_container = array(
     'class' => 'active-container',
   );
   switch ($active) {
     case 'help':
-      $active_container['title'] = t('Configure your feed');
+      $active_container['title'] = t('Configure importer');
       $active_container['body'] = '<div class="help feeds-admin-ui">'. feeds_ui_edit_help() .'</div>';
       break;
     case 'fetcher':
