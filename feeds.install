@@ -115,8 +115,8 @@ function feeds_schema() {
         'description' => 'Flags whether a feed is scheduled to be refreshed or not.',
       ),
     ),
-    'primary key' => array('feed_nid'),
     'indexes' => array(
+      'feed_nid' => array('feed_nid'),
       'id' => array('id'),
       'id_callback' => array('id', 'callback'),
       'last_scheduled_time' => array('last_scheduled_time'),
@@ -274,5 +274,18 @@ function feeds_update_6005() {
   db_add_field($ret, 'feeds_schedule', 'callback', $spec);
 
   db_add_index($ret, 'feeds_schedule', 'id_callback', array('id', 'callback'));
+
+  return $ret;
+}
+
+/**
+ * Remove primary key from feeds_schedule and replace it by an index.
+ */
+function feeds_update_6006() {
+  $ret = array();
+
+  db_drop_primary_key($ret, 'feeds_schedule');
+  db_add_index($ret, 'feeds_schedule', 'feed_nid', array('feed_nid'));
+
   return $ret;
 }

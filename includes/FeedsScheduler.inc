@@ -173,7 +173,7 @@ class FeedsScheduler implements IFeedsScheduler {
       'last_scheduled_time' => 0,
       'scheduled' => 0, // Means NOT scheduled at the moment.
     );
-    drupal_write_record('feeds_schedule', $save, 'feed_nid');
+    drupal_write_record('feeds_schedule', $save, array('id', 'callback', 'feed_nid'));
     if (!db_affected_rows()) {
       drupal_write_record('feeds_schedule', $save);
     }
@@ -266,7 +266,7 @@ class FeedsScheduler implements IFeedsScheduler {
       'last_scheduled_time' => $this->time(),
       'scheduled' => 1,
     );
-    drupal_write_record('feeds_schedule', $save, 'feed_nid');
+    drupal_write_record('feeds_schedule', $save, array('id', 'callback', 'feed_nid'));
   }
 
   /**
@@ -289,6 +289,6 @@ class FeedsScheduler implements IFeedsScheduler {
       'feed_nid' => $feed_nid,
       'scheduled' => 0,
     );
-    drupal_write_record('feeds_schedule', $save, 'feed_nid');
+    drupal_write_record('feeds_schedule', $save, array('id', 'callback', 'feed_nid'));
   }
 }
