@@ -191,6 +191,7 @@ class FeedsDataHandler extends DataHandler {
         $values[] = $value;
       }
     }
+
     // Only execute delete statement if where clause has been populated.
     if (!empty($where)) {
 

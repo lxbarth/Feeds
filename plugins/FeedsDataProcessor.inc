@@ -76,14 +76,13 @@ class FeedsDataProcessor extends FeedsProcessor {
       return;
     }
     $clause = array(
-      'id' => $this->id,
       'timestamp' => array(
         '<',
         FEEDS_REQUEST_TIME - $time,
       ),
     );
     $num = $this->handler()->delete($clause);
-    drupal_set_message(t('Deleted !number records from !table.', array('!number' => $num, '!table' => $this->tableName())));
+    drupal_set_message(t('Expired !number records from !table.', array('!number' => $num, '!table' => $this->tableName())));
   }
 
   /**
