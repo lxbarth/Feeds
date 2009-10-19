@@ -68,6 +68,13 @@ abstract class FeedsConfigurable {
   public abstract function save();
 
   /**
+   * Copy a configuration.
+   */
+  public function copy(FeedsConfigurable $configurable) {
+    $this->setConfig($configurable->config);
+  }
+
+  /**
    * Set configuration.
    *
    * @param $config

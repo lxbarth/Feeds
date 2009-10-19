@@ -225,9 +225,13 @@ class FeedsImporter extends FeedsConfigurable {
    *   The feeds importer object to copy from.
    */
   public function copy(FeedsImporter $importer) {
-    $this->config = $importer->config;
+    $this->setConfig($importer->config);
+
+    // Instantiate new fetcher, parser and processor and initialize their
+    // configurations.
     foreach ($this->plugin_types as $plugin_type) {
       $this->setPlugin($importer->config[$plugin_type]['plugin_key']);
+      $this->$plugin_type->setConfig($importer->config[$plugin_type]['config']);
     }
   }
 
