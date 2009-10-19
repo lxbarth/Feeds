@@ -135,14 +135,14 @@ class FeedsScheduler implements IFeedsScheduler {
               // immediately.
               if ($use_queue) {
                 if ($queue->createItem($feed_info)) {
-                  $this->flag($feed_info['id'], $feed_info['callback'], $feed_info['feed_nid']);
+                  $this->flag($feed_info['importer_id'], $feed_info['callback'], $feed_info['feed_nid']);
                 }
                 else {
                   watchdog('FeedsScheduler', 'Error adding item to queue.', WATCHDOG_ALERT);
                 }
               }
               else {
-                $this->flag($feed_info['id'], $feed_info['callback'], $feed_info['feed_nid']);
+                $this->flag($feed_info['importer_id'], $feed_info['callback'], $feed_info['feed_nid']);
                 $this->work($feed_info);
               }
             }
@@ -202,7 +202,7 @@ class FeedsScheduler implements IFeedsScheduler {
 
       // Remove scheduled flag, if we fail after this we'd like to try again
       // next time around.
-      $this->unflag($feed_info['id'], $feed_info['callback'], $feed_info['feed_nid']);
+      $this->unflag($feed_info['importer_id'], $feed_info['callback'], $feed_info['feed_nid']);
 
       if ($feed_info['callback'] == 'expire') {
         $importer->expire();
@@ -210,7 +210,7 @@ class FeedsScheduler implements IFeedsScheduler {
       elseif ($feed_info['callback'] == 'import') {
         // Import feed if source is available.
         $source = feeds_source($importer, $feed_info['feed_nid']);
-        if ($source->export_status & FEEDS_EXPORT_NONE) {
+        if ($source->export_type & FEEDS_EXPORT_NONE) {
           watchdog('feeds_refresh', 'Expected source information in database for '. $importer->id .'/'. $feed_info['feed_nid'] .'. Could not find any.', array(), WATCHDOG_ERROR);
           return;
         }
