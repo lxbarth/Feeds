@@ -72,6 +72,9 @@ class FeedsDataProcessor extends FeedsProcessor {
     if ($time === NULL) {
       $time = $this->expiryTime();
     }
+    if ($time == FEEDS_EXPIRE_NEVER) {
+      return;
+    }
     $clause = array(
       'id' => $this->id,
       'timestamp' => array(

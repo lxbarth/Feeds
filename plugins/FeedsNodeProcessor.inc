@@ -84,11 +84,22 @@ class FeedsNodeProcessor extends FeedsProcessor {
 
   /**
    * Implement expire().
-   *
-   * @todo
    */
-  public function expire($time) {
-
+  public function expire($time = NULL) {
+    if ($time === NULL) {
+      $time = $this->expiryTime();
+    }
+    if ($time == FEEDS_EXPIRE_NEVER) {
+      return;
+    }
+    // @todo: expires 50 at a time at the moment.
+    // Create a way of letting the caller know whether all nodes could be
+    // deleted. Has to be thought through in a larger context of batch
+    // processing support for import and expiry.
+    $result = db_query('SELECT n.nid FROM {node} n JOIN {feeds_node_item} fni ON n.nid = fni.nid WHERE fni.id = "%s" AND n.created < %d', $this->id, FEEDS_REQUEST_TIME - $time, 0, 50);
+    while ($node = db_fetch_object($result)) {
+      node_delete($node->nid);
+    }
   }
 
   /**
@@ -114,6 +125,13 @@ class FeedsNodeProcessor extends FeedsProcessor {
   }
 
   /**
+   * Return expiry time.
+   */
+  public function expiryTime() {
+    return $this->config['expire'];
+  }
+
+  /**
    * Override parent::configDefaults().
    */
   public function configDefaults() {
@@ -122,6 +140,7 @@ class FeedsNodeProcessor extends FeedsProcessor {
     return array(
       'content_type' => $type, // @todo: provide default content type feed_item.
       'update_existing' => 0,
+      'expire' => FEEDS_EXPIRE_NEVER,
       'mappings' => array(
         '0' => array(
           'source' => 'title',
@@ -170,6 +189,14 @@ class FeedsNodeProcessor extends FeedsProcessor {
       '#title' => t('Update existing items'),
       '#description' => t('Check if existing items should be updated from the feed.'),
       '#default_value' => $this->config['update_existing'],
+    );
+    $period = drupal_map_assoc(array(FEEDS_EXPIRE_NEVER, 3600, 10800, 21600, 43200, 86400, 259200, 604800, 2419200, 14515200, 31536000), 'feeds_format_expire');
+    $form['expire'] = array(
+      '#type' => 'select',
+      '#title' => t('Expire nodes'),
+      '#options' => $period,
+      '#description' => t('Select after how much time nodes should be deleted. The node\'s published date will be used for determining the node\'s age, see Mapping settings.'),
+      '#default_value' => $this->config['expire'],
     );
     return $form;
   }
