@@ -28,7 +28,7 @@ function feeds_schema() {
     'fields' => array(
       'id' => array(
         'type' => 'varchar',
-        'length' => '255',
+        'length' => '128',
         'not null' => TRUE,
         'default' => '',
         'description' => 'Id of the fields object.',
@@ -47,7 +47,7 @@ function feeds_schema() {
     'fields' => array(
       'id' => array(
         'type' => 'varchar',
-        'length' => '255',
+        'length' => '128',
         'not null' => TRUE,
         'default' => '',
         'description' => 'Id of the feed configuration.',
@@ -75,7 +75,7 @@ function feeds_schema() {
     'indexes' => array(
       'id' => array('id'),
       'feed_nid' => array('feed_nid'),
-      'id_source' => array('id', array('source', 255)),
+      'id_source' => array('id', array('source', 128)),
     ),
   );
   $schema['feeds_schedule'] = array(
@@ -90,7 +90,7 @@ function feeds_schema() {
       ),
       'id' => array(
         'type' => 'varchar',
-        'length' => '255',
+        'length' => '128',
         'not null' => TRUE,
         'default' => '',
         'description' => 'Id of the feed configuration.',
@@ -137,7 +137,7 @@ function feeds_schema() {
       ),
       'id' => array(
         'type' => 'varchar',
-        'length' => '255',
+        'length' => '128',
         'not null' => TRUE,
         'default' => '',
         'description' => 'The id of the fields object that is the producer of this item.',

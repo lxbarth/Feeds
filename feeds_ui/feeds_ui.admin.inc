@@ -120,6 +120,7 @@ function feeds_ui_create_form(&$form_state, $from_importer = NULL) {
     '#title' => t('Name'),
     '#description' => t('A natural name for this configuration. Example: RSS Feed. You can always change this name later.'),
     '#required' => TRUE,
+    '#maxlength' => 128,
     '#attributes' => array('class' => 'feed-name'),
   );
   $form['id'] = array(
@@ -127,6 +128,7 @@ function feeds_ui_create_form(&$form_state, $from_importer = NULL) {
     '#title' => t('Machine name'),
     '#description' => t('A unique identifier for this configuration. Example: rss_feed. Must only contain lower case characters, numbers and underscores.'),
     '#required' => TRUE,
+    '#maxlength' => 128,
     '#attributes' => array('class' => 'feed-id'),
   );
   $form['description'] = array(
