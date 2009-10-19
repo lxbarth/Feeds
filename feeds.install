@@ -3,12 +3,15 @@
 
 /**
  * @file
+ * Schema definitions install/update/uninstall hooks.
  */
 
 /**
  * Implementation of hook_schema().
  */
 function feeds_schema() {
+  $schema = array();
+
   $schema['feeds_importer'] = array(
     'description' => 'Configuration of feeds objects.',
     'export' => array(
