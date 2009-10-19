@@ -72,22 +72,13 @@ class FeedsTermProcessor extends FeedsProcessor {
   }
 
   /**
-   * Implement expire.
+   * Implement clear.
    *
    * @param $source
    *   FeedsSource of this term. FeedsTermProcessor does not heed this
    *   parameter, it deletes all terms from a vocabulary.
-   * @param $time
-   *   FeedsSource does not heed this parameter and always deletes all terms
-   *   from a vocabulary.
    */
-  public function expire(FeedsSource $source, $time = 0) {
-
-    // Assert $time paremeter is not anything else than 0.
-    if ($time) {
-      throw new Exception('Taxonomy term processor does not support deleting items by time.');
-    }
-
+  public function clear(FeedsSource $source) {
     $deleted = 0;
 
     $result = db_query('SELECT tid FROM term_data WHERE vid = %d', $this->config['vocabulary']);

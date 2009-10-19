@@ -167,6 +167,9 @@ function feeds_ui_create_form_submit($form, &$form_state) {
   $importer->addConfig($form_state['values']);
   $importer->save();
 
+  // Add expiry to schedule.
+  feeds_scheduler()->add($importer->id, 'expire');
+
   // Set a message and redirect to settings form.
   if (empty($form['#from_importer'])) {
     drupal_set_message(t('Your configuration has been created with default settings. If they do not fit your use case you can adjust them here.'));
@@ -195,6 +198,14 @@ function feeds_ui_delete_form(&$form_state, $importer) {
  * Submit handler for feeds_ui_delete_form().
  */
 function feeds_ui_delete_form_submit($form, &$form_state) {
+
+  // Remove expiry from schedule.
+  feeds_scheduler()->remove($importer->id, 'expire');
+  // Remove import for feed_nid = 0 from schedule, leave others around. This
+  // will allow for a behavior where a configuration could be deleted, recreated
+  // with the same name, attached to the same content type and feeds would
+  // keep working.
+  feeds_scheduler()->remove($importer->id, 'import', 0);
   // Delete feed.
   $form['#importer']->delete();
 

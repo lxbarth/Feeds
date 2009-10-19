@@ -21,10 +21,12 @@ interface IFeedsScheduler {
    *
    * @param $importer_id
    *   Id of a FeedsImporter object.
+   * @param $callback
+   *   The callback to invoke on importer. Either 'import' or 'expire'.
    * @param $feed_nid
    *   Feed nid that identifies the source for this configuration.
    */
-  public function add($importer_id, $feed_nid = 0);
+  public function add($importer_id, $callback, $feed_nid = 0);
 
   /**
    * Remove a feed from the schedule.
@@ -32,7 +34,7 @@ interface IFeedsScheduler {
    * @param $feed_nid
    *   Feed nid that identifies the source for this configuration.
    */
-  public function remove($feed_nid = 0);
+  public function remove($importer_id, $callback, $feed_nid = 0);
 
   /**
    * Work off a given feed identified by $feed_info.
@@ -116,30 +118,33 @@ class FeedsScheduler implements IFeedsScheduler {
       // Iterate over feed configurations, pick $num feeds for each
       // configuration, push to queue or refresh feeds.
       foreach ($importers as $importer) {
-        // @todo: if we wanted to expire without having refreshes scheduled,
-        // we would start doing this here.
-        if ($importer->config['refresh_period'] != FEEDS_SCHEDULE_NEVER) {
+        foreach (array('expire', 'import') as $callback) {
 
-          // Refresh feeds that have a refresh time older than now minus
-          // refresh period.
-          $time = $this->time() - $importer->config['refresh_period'];
+          // Check whether jobs are scheduled.
+          $period = $importer->getSchedulePeriod($callback);
+          if ($period != FEEDS_SCHEDULE_NEVER) {
 
-          $result = db_query_range('SELECT feed_nid, id AS importer_id, last_scheduled_time FROM {feeds_schedule} WHERE id = "%s" AND scheduled = 0 AND (last_scheduled_time < %d OR last_scheduled_time = 0) ORDER BY last_scheduled_time DESC', $importer->id, $time, 0, $num);
-          while ($feed_info = db_fetch_array($result)) {
+            // Refresh feeds that have a refresh time older than now minus
+            // refresh period.
+            $time = $this->time() - $period;
 
-            // If drupal_queue is present, add to queue, otherwise work off
-            // immediately.
-            if ($use_queue) {
-              if ($queue->createItem($feed_info)) {
-                $this->mark($feed_info['feed_nid']);
+            $result = db_query_range('SELECT feed_nid, id AS importer_id, callback, last_scheduled_time FROM {feeds_schedule} WHERE id = "%s" AND callback = "%s" AND scheduled = 0 AND (last_scheduled_time < %d OR last_scheduled_time = 0) ORDER BY last_scheduled_time DESC', $importer->id, $callback, $time, 0, $num);
+            while ($feed_info = db_fetch_array($result)) {
+
+              // If drupal_queue is present, add to queue, otherwise work off
+              // immediately.
+              if ($use_queue) {
+                if ($queue->createItem($feed_info)) {
+                  $this->flag($feed_info['id'], $feed_info['callback'], $feed_info['feed_nid']);
+                }
+                else {
+                  watchdog('FeedsScheduler', 'Error adding item to queue.', WATCHDOG_ALERT);
+                }
               }
               else {
-                watchdog('FeedsScheduler', 'Error adding item to queue.', WATCHDOG_ALERT);
+                $this->flag($feed_info['id'], $feed_info['callback'], $feed_info['feed_nid']);
+                $this->work($feed_info);
               }
-            }
-            else {
-              $this->mark($feed_info['feed_nid']);
-              $this->work($feed_info);
             }
           }
         }
@@ -160,9 +165,10 @@ class FeedsScheduler implements IFeedsScheduler {
    *        Set this value if a feed is refreshed on creation.
    * @todo: Create an abstract interface for items that can be added?
    */
-  public function add($importer_id, $feed_nid = 0) {
+  public function add($importer_id, $callback, $feed_nid = 0) {
     $save = array(
       'id' => $importer_id,
+      'callback' => $callback,
       'feed_nid' => $feed_nid,
       'last_scheduled_time' => 0,
       'scheduled' => 0, // Means NOT scheduled at the moment.
@@ -176,8 +182,8 @@ class FeedsScheduler implements IFeedsScheduler {
   /**
    * Implementation of IFeedsScheduler::remove().
    */
-  public function remove($feed_nid = 0) {
-    db_query('DELETE FROM {feeds_schedule} WHERE feed_nid = %d', $feed_nid);
+  public function remove($importer_id, $callback, $feed_nid = 0) {
+    db_query('DELETE FROM {feeds_schedule} WHERE id = "%s" AND callback = "%s" AND feed_nid = %d', $importer_id, $callback, $feed_nid);
   }
 
   /**
@@ -195,20 +201,20 @@ class FeedsScheduler implements IFeedsScheduler {
     if ($importer->export_type != FEEDS_EXPORT_NONE) {
 
       // Remove scheduled flag, if we fail after this we'd like to try again
-      // next time.
-      $this->unmark($feed_info['feed_nid']);
+      // next time around.
+      $this->unflag($feed_info['id'], $feed_info['callback'], $feed_info['feed_nid']);
 
-      // Import feed if source is available.
-      $source = feeds_source($importer, $feed_info['feed_nid']);
-      if ($source->export_status & FEEDS_EXPORT_NONE) {
-        watchdog('feeds_refresh', 'Expected source information in database for '. $importer->id .'/'. $feed_info['feed_nid'] .'. Could not find any.', array(), WATCHDOG_ERROR);
-        return;
+      if ($feed_info['callback'] == 'expire') {
+        $importer->expire();
       }
-
-      $importer->import($source);
-      // Invoke expire if expiry time is not 0.
-      if ($importer->processor->getExpiryTime()) {
-        $importer->expire($source, $importer->processor->getExpiryTime());
+      elseif ($feed_info['callback'] == 'import') {
+        // Import feed if source is available.
+        $source = feeds_source($importer, $feed_info['feed_nid']);
+        if ($source->export_status & FEEDS_EXPORT_NONE) {
+          watchdog('feeds_refresh', 'Expected source information in database for '. $importer->id .'/'. $feed_info['feed_nid'] .'. Could not find any.', array(), WATCHDOG_ERROR);
+          return;
+        }
+        $importer->import($source);
       }
     }
   }
@@ -240,16 +246,22 @@ class FeedsScheduler implements IFeedsScheduler {
   }
 
   /**
-   * Helper function to mark a feed scheduled.
+   * Helper function to flag a feed scheduled.
    *
    * This function sets the feed's scheduled bit to 1 and updates
    * last_scheduled_time to $this->time().
    *
+   * @param $id
+   *   Id of the importer configuration.
+   * @param $callback
+   *   Callback of the job.
    * @param $feed_nid
-   *   Identifier of the feed.
+   *   Identifier of the feed node.
    */
-  protected function mark($feed_nid) {
+  protected function flag($id, $callback, $feed_nid) {
     $save = array(
+      'id' => $id,
+      'callback' => $callback,
       'feed_nid' => $feed_nid,
       'last_scheduled_time' => $this->time(),
       'scheduled' => 1,
@@ -258,16 +270,22 @@ class FeedsScheduler implements IFeedsScheduler {
   }
 
   /**
-   * Helper function to mark a feed unscheduled.
+   * Helper function to flag a feed unscheduled.
    *
    * This function sets the feed's scheduled bit to 0 and thus makes
    * it eligible for being added to the queue again.
    *
+   * @param $id
+   *   Id of the importer configuration.
+   * @param $callback
+   *   Callback of the job.
    * @param $feed_nid
-   *   Identifier of the feed.
+   *   Identifier of the feed node.
    */
-  protected function unmark($feed_nid) {
+  protected function unflag($id, $callback, $feed_nid) {
     $save = array(
+      'id' => $id,
+      'callback' => $callback,
       'feed_nid' => $feed_nid,
       'scheduled' => 0,
     );

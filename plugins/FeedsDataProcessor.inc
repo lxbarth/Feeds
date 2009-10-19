@@ -53,28 +53,40 @@ class FeedsDataProcessor extends FeedsProcessor {
   }
 
   /**
-   * Implementation of FeedsProcessor::expire().
+   * Implementation of FeedsProcessor::clear().
    *
    * Delete all data records for feed_nid in this table.
    */
-  public function expire(FeedsSource $source, $time = 0) {
+  public function clear(FeedsSource $source) {
     $clause = array(
       'feed_nid' => $source->feed_nid,
     );
-    if ($time) {
-      $clause['timestamp'] = array(
-        '<',
-        FEEDS_REQUEST_TIME - $time,
-      );
-    }
     $num = $this->handler()->delete($clause);
     drupal_set_message(t('Deleted !number records from !table.', array('!number' => $num, '!table' => $this->tableName())));
   }
 
   /**
-   * Get the expiry time for this configuration.
+   * Implement expire().
    */
-  public function getExpiryTime() {
+  public function expire($time = NULL) {
+    if ($time === NULL) {
+      $time = $this->expiryTime();
+    }
+    $clause = array(
+      'id' => $this->id,
+      'timestamp' => array(
+        '<',
+        FEEDS_REQUEST_TIME - $time,
+      ),
+    );
+    $num = $this->handler()->delete($clause);
+    drupal_set_message(t('Deleted !number records from !table.', array('!number' => $num, '!table' => $this->tableName())));
+  }
+
+  /**
+   * Return expiry time.
+   */
+  public function expiryTime() {
     return $this->config['expire'];
   }
 
@@ -210,7 +222,7 @@ class FeedsDataProcessor extends FeedsProcessor {
   public function configDefaults() {
     return array(
       'update_existing' => 0,
-      'expire' => 0, // Never expire items by default.
+      'expire' => FEEDS_EXPIRE_NEVER, // Don't expire items by default.
       'mappings' => array(),
     );
   }
@@ -225,23 +237,13 @@ class FeedsDataProcessor extends FeedsProcessor {
       '#description' => t('Check if existing items should be updated from the feed.'),
       '#default_value' => $this->config['update_existing'],
     );
-    if (feeds_importer($this->id)->config['refresh_period'] == FEEDS_SCHEDULE_NEVER) {
-      $period = array('Select a mimum refresh period on basic settings');
-      $expire = 0;
-      $disabled = TRUE;
-    }
-    else {
-      $period = drupal_map_assoc(array(0, 3600, 10800, 21600, 43200, 86400, 259200, 604800, 2419200, 14515200, 31536000), 'feeds_format_expire');
-      $expire = $this->config['expire'];
-      $disabled = FALSE;
-    }
+    $period = drupal_map_assoc(array(FEEDS_EXPIRE_NEVER, 3600, 10800, 21600, 43200, 86400, 259200, 604800, 2419200, 14515200, 31536000), 'feeds_format_expire');
     $form['expire'] = array(
       '#type' => 'select',
       '#title' => t('Expire items'),
       '#options' => $period,
-      '#description' => t('Select after how much time data records should be deleted. Items can only be expired on configurations that have a minimum refresh period other than "Never", see Basic settings. The timestamp target value will be used for determining the item\'s age, see Mapping settings.'),
-      '#default_value' => $expire,
-      '#disabled' => $disabled,
+      '#description' => t('Select after how much time data records should be deleted. The timestamp target value will be used for determining the item\'s age, see Mapping settings.'),
+      '#default_value' => $this->config['expire'],
     );
     return $form;
   }

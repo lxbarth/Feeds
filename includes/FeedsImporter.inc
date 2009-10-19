@@ -89,7 +89,7 @@ abstract class FeedsResult {
  * many sources per feeds configuration.
  *
  * @see import()
- * @see expire()
+ * @see clear()
  */
 class FeedsImporter extends FeedsConfigurable {
 
@@ -144,16 +144,45 @@ class FeedsImporter extends FeedsConfigurable {
   }
 
   /**
-   * Remove all items or items older than now - $time from a feed.
+   * Remove all items from a feed.
    */
-  public function expire(FeedsSource $source, $time = 0) {
+  public function clear(FeedsSource $source) {
     try {
-      $this->fetcher->expire($source, $time);
-      $this->parser->expire($source, $time);
-      $this->processor->expire($source, $time);
+      $this->fetcher->clear($source);
+      $this->parser->clear($source);
+      $this->processor->clear($source);
     }
     catch (Exception $e) {
       drupal_set_message($e->getMessage(), 'error');
+    }
+  }
+
+  /**
+   * Remove items older than $time. If $time is not given, processor settings
+   * will be used.
+   */
+  public function expire($time = NULL) {
+    try {
+      $this->processor->expire($time);
+    }
+    catch (Exception $e) {
+      drupal_set_message($e->getMessage(), 'error');
+    }
+  }
+
+  /**
+   * Get the refresh period for import() or expire().
+   */
+  public function getSchedulePeriod($callback) {
+    if ($callback == 'import') {
+      return $this->config['import_period'];
+    }
+    if ($callback == 'expire') {
+      // If a processor has expiry time set, run expiry every hour.
+      if (FEEDS_EXPIRE_NEVER != $this->processor->expiryTime()) {
+        return 3600;
+      }
+      return FEEDS_SCHEDULE_NEVER;
     }
   }
 
@@ -263,7 +292,8 @@ class FeedsImporter extends FeedsConfigurable {
       ),
       'content_type' => 'page', // @todo: provide default content type feed.
       'update' => 0,
-      'refresh_period' => 1800, // Refresh every 30 minutes by default.
+      'import_period' => 1800, // Refresh every 30 minutes by default.
+      'expire_period' => 3600, // Expire every hour by default, this is a hidden setting.
       'import_on_create' => TRUE, // Import on create.
     );
   }
@@ -296,12 +326,12 @@ class FeedsImporter extends FeedsConfigurable {
     $period = drupal_map_assoc(array(0, 900, 1800, 3600, 10800, 21600, 43200, 86400, 259200, 604800, 2419200), 'format_interval');
     $period[FEEDS_SCHEDULE_NEVER] = t('Never');
     $period[0] = t('As often as possible');
-    $form['refresh_period'] = array(
+    $form['import_period'] = array(
       '#type' => 'select',
       '#title' => t('Minimum refresh period'),
       '#options' => $period,
       '#description' => t('This is the minimum time that must elapse before a feed may be refreshed automatically.'),
-      '#default_value' => $this->config['refresh_period'],
+      '#default_value' => $this->config['import_period'],
     );
     $form['import_on_create'] = array(
       '#type' => 'checkbox',
@@ -317,7 +347,7 @@ class FeedsImporter extends FeedsConfigurable {
  * Helper, see FeedsDataProcessor class.
  */
 function feeds_format_expire($timestamp) {
-  if ($timestamp == 0) {
+  if ($timestamp == FEEDS_EXPIRE_NEVER) {
     return t('Never');
   }
   return t('after !time', array('!time' => format_interval($timestamp)));

@@ -92,6 +92,13 @@ function feeds_schema() {
         'default' => '',
         'description' => 'Id of the feed configuration.',
       ),
+      'callback' => array(
+        'type' => 'varchar',
+        'length' => '255',
+        'not null' => TRUE,
+        'default' => '',
+        'description' => 'Callback to be invoked.',
+      ),
       'last_scheduled_time' => array(
         'type' => 'int',
         'unsigned' => FALSE,
@@ -111,6 +118,7 @@ function feeds_schema() {
     'primary key' => array('feed_nid'),
     'indexes' => array(
       'id' => array('id'),
+      'id_callback' => array('id', 'callback'),
       'last_scheduled_time' => array('last_scheduled_time'),
       'scheduled' => array('scheduled'),
     ),
@@ -246,5 +254,25 @@ function feeds_update_6004() {
   );
   db_change_field($ret, 'feeds_source', 'feed_nid', 'feed_nid', $spec);
 
+  return $ret;
+}
+
+/**
+ * Add callback column to feeds_schedule.
+ */
+function feeds_update_6005() {
+  $ret = array();
+
+  // Add a callback column and an index.
+  $spec = array(
+    'type' => 'varchar',
+    'length' => '255',
+    'not null' => TRUE,
+    'default' => '',
+    'description' => 'Callback to be invoked.',
+  );
+  db_add_field($ret, 'feeds_schedule', 'callback', $spec);
+
+  db_add_index($ret, 'feeds_schedule', 'id_callback', array('id', 'callback'));
   return $ret;
 }

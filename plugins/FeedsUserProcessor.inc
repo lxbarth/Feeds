@@ -66,16 +66,13 @@ class FeedsUserProcessor extends FeedsProcessor {
   }
 
   /**
-   * Implement expire.
+   * Implement clear.
    *
    * @param $source
    *   FeedsSource of this term. FeedsTermProcessor does not heed this
    *   parameter, it deletes all terms from a vocabulary.
-   * @param $time
-   *   FeedsSource does not heed this parameter and always deletes all terms
-   *   from a vocabulary.
    */
-  public function expire(FeedsSource $source, $time = 0) {
+  public function clear(FeedsSource $source) {
     // Do not support deleting users as we have no way of knowing which ones we
     // imported.
     throw new Exception(t('User processor does not support deleting users.'));

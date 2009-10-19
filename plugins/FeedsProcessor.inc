@@ -32,18 +32,20 @@ abstract class FeedsProcessor extends FeedsPlugin {
    *   processor's responsibility to store the feed_nid of an imported item in
    *   the processing stage.
    *   @todo: pass in feed_nid instead of source?
-   * @param $time
-   *   A UNIX time. If 0, all items of $source should be removed. If not 0, only
-   *   items older than FEEDS_REQUEST_TIME - $time should be removed.
    */
-  public abstract function expire(FeedsSource $source, $time = 0);
+  public abstract function clear(FeedsSource $source);
 
   /**
-   * Get the expiry time of this configuration.
+   * Delete feed items younger than now - $time.
+   *
+   * @see FeedsDataProcessor::expire().
+   *
+   * @param $time
+   *   If implemented, all items produced by this configuration that are older
+   *   than FEEDS_REQUEST_TIME - $time
+   *   If $time === NULL processor should use internal configuration.
    */
-  public function getExpiryTime() {
-    return 0;
-  }
+  public function expire($time = NULL) {}
 
   /**
    * Execute mapping on an item.
@@ -65,6 +67,14 @@ abstract class FeedsProcessor extends FeedsPlugin {
       $this->setTargetElement($target_item, $mapping['target'], $value);
     }
     return $target_item;
+  }
+
+  /**
+   * Per default, don't support expiry. If processor supports expiry of imported
+   * items, return the time after which items should be removed.
+   */
+  public function expiryTime() {
+    return FEEDS_EXPIRE_NEVER;
   }
 
   /**

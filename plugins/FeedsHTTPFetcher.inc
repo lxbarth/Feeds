@@ -37,7 +37,7 @@ class FeedsHTTPFetcher extends FeedsFetcher {
   /**
    * Clear caches.
    */
-  public function expire(FeedsSource $source, $time) {
+  public function clear(FeedsSource $source) {
     $source_config = $source->getConfigFor($this);
     $url = $source_config['source'];
     feeds_include_library('http_request.inc', 'http_request');

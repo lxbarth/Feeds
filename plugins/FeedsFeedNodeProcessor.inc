@@ -59,9 +59,9 @@ class FeedsFeedNodeProcessor extends FeedsProcessor {
   }
 
   /**
-   * Implementation of FeedsProcessor::expire().
+   * Implementation of FeedsProcessor::clear().
    */
-  public function expire(FeedsSource $source, $time = 0) {
+  public function clear(FeedsSource $source) {
     // Do not support deleting imported items as we would have to delete all
     // items of the content type we imported which may contain nodes that a
     // user created by hand.
@@ -131,7 +131,7 @@ class FeedsFeedNodeProcessor extends FeedsProcessor {
     $form['content_type'] = array(
       '#type' => 'select',
       '#title' => t('Content type'),
-      '#description' => t('Choose node type to create from this feed. Only node types with attached importer configurations are listed here. <strong>Note:</strong> Users with "import !feed_id feeds" permissions will be able to <strong>import</strong> nodes of the content type selected here regardless of the node level permissions. However, users with "expire !feed_id permissions" need to have sufficient node level permissions to delete the imported nodes.', array('!feed_id' => $this->id)),
+      '#description' => t('Choose node type to create from this feed. Only node types with attached importer configurations are listed here. <strong>Note:</strong> Users with "import !feed_id feeds" permissions will be able to <strong>import</strong> nodes of the content type selected here regardless of the node level permissions. However, users with "clear !feed_id permissions" need to have sufficient node level permissions to delete the imported nodes.', array('!feed_id' => $this->id)),
       '#options' => $types,
       '#default_value' => $this->config['content_type'],
     );
