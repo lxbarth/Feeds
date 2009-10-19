@@ -116,10 +116,9 @@ class FeedsWebTestCase extends DrupalWebTestCase {
     $this->assertEqual($config['FeedsHTTPFetcher']['source'], $feed_url, t('URL in DB correct.'));
 
     // Check whether feed got properly added to scheduler.
-    $this->assertEqual(1, db_result(db_query('select COUNT(*) from {feeds_schedule} WHERE id = "%s" AND feed_nid = %d', $id, $nid)));
-    $schedule = db_fetch_object(db_query('select * from {feeds_schedule} WHERE id = "%s" AND feed_nid = %d', $id, $nid));
-    $this->assertEqual($schedule->scheduled, 0, 'Feed is not set scheduled.');
-    $this->assertEqual($schedule->last_scheduled_time, 0, 'Last scheduled time is 0.');
+    $this->assertEqual(1, db_result(db_query('SELECT COUNT(*) FROM {feeds_schedule} WHERE id = "%s" AND feed_nid = %d AND callback = "import" AND last_scheduled_time = 0 AND scheduled = 0', $id, $nid)));
+    // There must be only one entry for 'expire' - no matter how many actuall feed nodes exist.
+    $this->assertEqual(1, db_result(db_query('SELECT COUNT(*) FROM {feeds_schedule} WHERE id = "%s" AND callback = "expire" AND last_scheduled_time = 0 AND scheduled = 0', $id)));
 
     return $nid;
   }
@@ -158,10 +157,9 @@ class FeedsWebTestCase extends DrupalWebTestCase {
     $this->assertEqual($config['FeedsHTTPFetcher']['source'], $feed_url, t('URL in DB correct.'));
 
     // Check whether feed got properly added to scheduler.
-    $this->assertEqual(1, db_result(db_query('SELECT COUNT(*) FROM {feeds_schedule} WHERE id = "%s" AND feed_nid = 0', $id)));
-    $schedule = db_fetch_object(db_query('SELECT * FROM {feeds_schedule} WHERE id = "%s" AND feed_nid = 0', $id));
-    $this->assertEqual($schedule->scheduled, 0, 'Feed is not set scheduled.');
-    $this->assertEqual($schedule->last_scheduled_time, 0, 'Last scheduled time is 0.');
+    $this->assertEqual(1, db_result(db_query('SELECT COUNT(*) FROM {feeds_schedule} WHERE id = "%s" AND feed_nid = 0 AND callback = "import" AND last_scheduled_time = 0 AND scheduled = 0', $id)));
+    // There must be only one entry for callback 'expire' - no matter what the feed_nid is.
+    $this->assertEqual(1, db_result(db_query('SELECT COUNT(*) FROM {feeds_schedule} WHERE id = "%s" AND callback = "expire" AND last_scheduled_time = 0 AND scheduled = 0', $id)));
   }
 
   /**
