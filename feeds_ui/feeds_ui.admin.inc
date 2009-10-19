@@ -169,7 +169,7 @@ function feeds_ui_create_form_submit($form, &$form_state) {
 
   // Set a message and redirect to settings form.
   if (empty($form['#from_importer'])) {
-    drupal_set_message(t('Your importer configuration has been created with default settings. If they do not fit your use case you can adjust them here.'));
+    drupal_set_message(t('Your configuration has been created with default settings. If they do not fit your use case you can adjust them here.'));
   }
   else {
     drupal_set_message(t('A clone of the !name configuration has been created.', array('!name' => $form['#from_importer']->config['name'])));

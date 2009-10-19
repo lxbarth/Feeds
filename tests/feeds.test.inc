@@ -44,7 +44,7 @@ class FeedsWebTestCase extends DrupalWebTestCase {
     $this->drupalPost('admin/build/feeds/create', $edit, 'Create');
 
     // Assert message and presence of default plugins.
-    $this->assertText('Your feed has been created with default settings.');
+    $this->assertText('Your configuration has been created with default settings.');
     $this->assertPlugins($id, 'FeedsHTTPFetcher', 'FeedsSyndicationParser', 'FeedsNodeProcessor');
   }
 
