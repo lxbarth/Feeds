@@ -167,9 +167,6 @@ function feeds_ui_create_form_submit($form, &$form_state) {
   $importer->addConfig($form_state['values']);
   $importer->save();
 
-  // Add expiry to schedule.
-  feeds_scheduler()->add($importer->id, 'expire');
-
   // Set a message and redirect to settings form.
   if (empty($form['#from_importer'])) {
     drupal_set_message(t('Your configuration has been created with default settings. If they do not fit your use case you can adjust them here.'));

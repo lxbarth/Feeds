@@ -298,8 +298,11 @@ function feeds_nodeapi(&$node, $op, $form) {
         if ($op == 'insert' && $importer->config['import_on_create'] && !isset($node->feeds['suppress_import'])) {
           $importer->import($source);
         }
-        // Add feed to scheduler.
+        // Add import to scheduler.
         feeds_scheduler()->add($importer->id, 'import', $node->nid);
+        // Add expiry to schedule, in case this is the first feed of this
+        // configuration.
+        feeds_scheduler()->add($importer->id, 'expire');
         break;
       case 'delete':
         // Remove feed from scheduler and delete source.
@@ -594,7 +597,7 @@ function feeds_plugin_instance($plugin, $id) {
     return FeedsConfigurable::instance($class, $id);
   }
   // @todo: better error handling.
-  drupal_set_message(t('Missing plugin. Check whether all required libraries and modules are installed properly.'), 'error');
+  drupal_set_message(t('Missing Feeds plugin. Check whether all required libraries and modules are installed properly.'), 'error');
   return FeedsConfigurable::instance('FeedsMissingPlugin', $id);
 }
 
