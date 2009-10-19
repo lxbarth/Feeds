@@ -23,21 +23,24 @@ function opml_parser_parse($raw) {
   // @todo: Make xpath case insensitive.
   $outlines = $xml->xpath('//outline[@xmlUrl]');
   foreach ($outlines as $outline) {
-    $title = $url = NULL;
+    $item = array();
     foreach ($outline->attributes() as $k => $v) {
-      if (strtolower($k) == 'title') {
-        $title = (string) $v;
+      if (in_array(strtolower($k), array('title', 'text', 'xmlurl'))) {
+        $item[strtolower($k)] = (string) $v;
       }
-      else if (strtolower($k) == 'xmlurl') {
-        $url = (string) $v;
+    }
+
+    // If no title, forge it from text.
+    if (!isset($item['title']) && isset($item['text'])) {
+      if (strlen($item['text']) < 40) {
+        $item['title'] = $item['text'];
       }
-      if ($title && $url) {
-        $items[] = array(
-          'title' => $title,
-          'url' => $url,
-        );
-        break;
+      else {
+        $item['title'] = trim(substr($item['text'], 0, 30)) .' ...';
       }
+    }
+    if (isset($item['title']) && isset($item['xmlurl'])) {
+      $items[] = $item;
     }
   }
   $feeds['items'] = $items;
