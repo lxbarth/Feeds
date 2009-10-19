@@ -80,9 +80,9 @@ function feeds_ui_overview_page() {
       $attached,
       $status,
       l($edit, 'admin/build/feeds/edit/'. $importer->id) .' | '.
-      l(t('Export'), 'admin/build/feeds/export/'. $importer->id) .
-      (empty($delete) ? '' :  ' | '. l($delete, 'admin/build/feeds/delete/'. $importer->id)) .' | '.
-      l(t('Clone'), 'admin/build/feeds/clone/'. $importer->id),
+      l(t('Export'), 'admin/build/feeds/export/'. $importer->id) .' | '.
+      l(t('Clone'), 'admin/build/feeds/clone/'. $importer->id) .
+      (empty($delete) ? '' :  ' | '. l($delete, 'admin/build/feeds/delete/'. $importer->id)),
     );
   }
   $rows[] = array(
