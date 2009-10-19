@@ -50,6 +50,7 @@ function feeds_ui_menu() {
     'page arguments' => array('feeds_ui_create_form', 4),
     'access arguments' => array('administer feeds'),
     'file' => 'feeds_ui.admin.inc',
+    'type' => MENU_CALLBACK,
   );
   $items['admin/build/feeds/export/%feeds_importer'] = array(
     'title callback' => 'feed_ui_title',
