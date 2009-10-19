@@ -118,7 +118,7 @@ class FeedsScheduler implements IFeedsScheduler {
       // Iterate over feed configurations, pick $num feeds for each
       // configuration, push to queue or refresh feeds.
       foreach ($importers as $importer) {
-        foreach (array('expire', 'import') as $callback) {
+        foreach (array('import', 'expire') as $callback) {
 
           // Check whether jobs are scheduled.
           $period = $importer->getSchedulePeriod($callback);
