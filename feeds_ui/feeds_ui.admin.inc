@@ -279,16 +279,16 @@ function feeds_ui_edit_page($importer, $active = 'help', $plugin_key = '') {
   // Basic information.
   $items = array();
   $items[] = t('Attached to: !type', array('!type' => $importer->config['content_type'] ? node_get_types('name', $importer->config['content_type']) : t('[none]')));
-  if ($importer->config['refresh_period'] == FEEDS_SCHEDULE_NEVER) {
-    $refresh_period = t('never');
+  if ($importer->config['import_period'] == FEEDS_SCHEDULE_NEVER) {
+    $import_period = t('never');
   }
-  elseif ($importer->config['refresh_period'] == 0) {
-    $refresh_period = t('as often as possible');
+  elseif ($importer->config['import_period'] == 0) {
+    $import_period = t('as often as possible');
   }
   else {
-    $refresh_period = t('every !interval', array('!interval' => format_interval($importer->config['refresh_period'])));
+    $import_period = t('every !interval', array('!interval' => format_interval($importer->config['import_period'])));
   }
-  $items[] = t('Refresh: !refresh_period', array('!refresh_period' => $refresh_period));
+  $items[] = t('Refresh: !import_period', array('!import_period' => $import_period));
   $items[] = $importer->config['import_on_create'] ? t('Import on create') : t('Do not import on create');
 
   $info['title'] = t('Basic settings');

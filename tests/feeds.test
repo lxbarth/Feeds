@@ -487,7 +487,7 @@ class FeedsCSVtoUsersTest extends FeedsWebTestCase {
     // Change some of the basic configuration.
     $edit = array(
       'content_type' => '',
-      'refresh_period' => FEEDS_SCHEDULE_NEVER,
+      'import_period' => FEEDS_SCHEDULE_NEVER,
     );
     $this->drupalPost('admin/build/feeds/edit/user_import/settings', $edit, 'Save');
 
@@ -599,7 +599,7 @@ class FeedsSchedulerTestCase extends FeedsWebTestCase {
     $this->drupalGet($GLOBALS['base_url'] .'/cron.php');
     $this->drupalGet($GLOBALS['base_url'] .'/cron.php');
 
-    // The refresh_period setting of the feed configuration is 1800, there
+    // The import_period setting of the feed configuration is 1800, there
     // shouldn't be any change to the database now.
     $equal = TRUE;
     $result = db_query('select feed_nid, last_scheduled_time, scheduled from {feeds_schedule} WHERE last_scheduled_time != 0');
@@ -617,7 +617,7 @@ class FeedsSchedulerTestCase extends FeedsWebTestCase {
       )
     );
     $edit = array(
-      'refresh_period' => 0,
+      'import_period' => 0,
     );
     $this->drupalPost('admin/build/feeds/edit/syndication/settings', $edit, 'Save');
     $this->assertText('Refresh: as often as possible');

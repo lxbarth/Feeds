@@ -54,7 +54,7 @@ interface IFeedsScheduler {
  * when a particular feed was scheduled to be refreshed last rather than
  * storing when a feed should be _refreshed_ next, we gain two advantages:
  *
- * 1) If a feed's refresh_period setting changes, it has immediate effects -
+ * 1) If a feed's import_period setting changes, it has immediate effects -
  *    without batch updating an existing schedule.
  * 2) The time between refreshes will always be scheduled based on when it
  *    has been scheduled last. Less drift occurs.

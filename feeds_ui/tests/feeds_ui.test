@@ -107,7 +107,7 @@ class FeedsUIUserInterfaceTestCase extends FeedsWebTestCase {
     $edit = array(
       'name' => 'Syndication feed',
       'content_type' => 'page',
-      'refresh_period' => 3600,
+      'import_period' => 3600,
     );
     $this->drupalPost('admin/build/feeds/edit/test_feed/settings', $edit, 'Save');
 
