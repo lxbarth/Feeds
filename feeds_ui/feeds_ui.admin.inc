@@ -199,12 +199,12 @@ function feeds_ui_delete_form(&$form_state, $importer) {
 function feeds_ui_delete_form_submit($form, &$form_state) {
 
   // Remove expiry from schedule.
-  feeds_scheduler()->remove($importer->id, 'expire');
+  feeds_scheduler()->remove($form['#importer']->id, 'expire');
   // Remove import for feed_nid = 0 from schedule, leave others around. This
   // will allow for a behavior where a configuration could be deleted, recreated
   // with the same name, attached to the same content type and feeds would
   // keep working.
-  feeds_scheduler()->remove($importer->id, 'import', 0);
+  feeds_scheduler()->remove($form['#importer']->id, 'import', 0);
   // Delete feed.
   $form['#importer']->delete();
 
