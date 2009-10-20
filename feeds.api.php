@@ -28,7 +28,7 @@ function hook_feeds_after_import(FeedsImporter $importer, FeedsSource $source) {
  * @param $vid
  *   The vocabulary id
  */
-function geotaxonomy_feeds_term_processor_targets_alter(&$targets, $vid) {
+function hook_feeds_term_processor_targets_alter(&$targets, $vid) {
   if (variable_get('mymodule_vocabulary_'. $vid, 0)) {
     $targets['lat'] = t('Latitude');
     $targets['lon'] = t('Longitude');
