@@ -130,7 +130,7 @@ class FeedsWebTestCase extends DrupalWebTestCase {
   public function createFeedNodes($id = 'syndication', $num = 20) {
     $nids = array();
     for ($i = 0; $i < $num; $i++) {
-      $nids[] = $this->createFeedNode($id, $this->randomName());
+      $nids[] = $this->createFeedNode($id, NULL, $this->randomName());
     }
     return $nids;
   }

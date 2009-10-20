@@ -672,7 +672,7 @@ class FeedsSyndicationParserTestCase extends FeedsWebTestCase {
     foreach (array('FeedsSyndicationParser', 'FeedsSimplePieParser') as $parser) {
       $this->setPlugin('syndication', $parser);
       foreach ($this->feedUrls() as $url => $assertions) {
-        $this->createFeedNode('syndication', '', $url);
+        $this->createFeedNode('syndication', $url);
         $this->assertText('Created '. $assertions['item_count'] .' story nodes.');
       }
     }
