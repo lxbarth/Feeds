@@ -188,7 +188,13 @@ function _parser_common_syndication_atom10_parse($feed_XML) {
     if (valid_url($item['url']) && !valid_url($item['url'], TRUE) && !empty($base)) {
       $item['url'] = $base . $item['url'];
     }
-    $item['guid'] = $guid;
+    // Fall back on URL if GUID is empty.
+    if (!empty($guid)) {
+      $item['guid'] = $guid;
+    }
+    else {
+      $item['guid'] = $item['url'];
+    }
     $item['tags'] = isset($additional_taxonomies['ATOM Categories']) ? $additional_taxonomies['ATOM Categories'] : array();
     $item['domains'] = isset($additional_taxonomies['ATOM Domains']) ? $additional_taxonomies['ATOM Domains'] : array();
     $parsed_source['items'][] = $item;
