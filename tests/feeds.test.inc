@@ -82,10 +82,7 @@ class FeedsWebTestCase extends DrupalWebTestCase {
    * @return
    *   The node id of the node created.
    */
-  public function createFeedNode($id = 'syndication', $title = NULL, $feed_url = NULL) {
-    if (empty($title)) {
-      $title = 'Development Seed';
-    }
+  public function createFeedNode($id = 'syndication', $feed_url = NULL, $title = '') {
     if (empty($feed_url)) {
       $feed_url = $GLOBALS['base_url'] .'/'. drupal_get_path('module', 'feeds') .'/tests/feeds/developmentseed.rss2';
     }
@@ -100,7 +97,7 @@ class FeedsWebTestCase extends DrupalWebTestCase {
       'feeds[FeedsHTTPFetcher][source]' => $feed_url,
     );
     $this->drupalPost('node/add/'. $content_type, $edit, 'Save');
-    $this->assertText('Page '. $title .' has been created.');
+    $this->assertText('has been created.');
 
     // Get the node id from URL.
     $url = $this->getUrl();
