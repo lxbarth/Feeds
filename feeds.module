@@ -678,7 +678,7 @@ function feeds_plugin_type($plugin_key) {
 function feeds_include($file, $directory = 'includes') {
   static $included = array();
   if (!isset($included[$file])) {
-    require './' . drupal_get_path('module', 'feeds') . "/$directory/$file.inc";
+    require './'. drupal_get_path('module', 'feeds') ."/$directory/$file.inc";
   }
   $included[$file] = TRUE;
 }
@@ -702,7 +702,7 @@ function feeds_include_library($file, $library) {
       require libraries_get_path($library) ."/$file";
     }
     else {
-      require './'. drupal_get_path('module', 'feeds') . "/libraries/$file";
+      require './'. drupal_get_path('module', 'feeds') ."/libraries/$file";
     }
   }
   $included[$file] = TRUE;
@@ -722,7 +722,7 @@ function feeds_library_exists($file, $library) {
   if (module_exists('libraries') && file_exists(libraries_get_path($library) ."/$file")) {
     return TRUE;
   }
-  elseif (file_exists(drupal_get_path('module', 'feeds') . "/libraries/$file")) {
+  elseif (file_exists(drupal_get_path('module', 'feeds') ."/libraries/$file")) {
     return TRUE;
   }
   return FALSE;
