@@ -204,17 +204,28 @@ class FeedsScheduler implements IFeedsScheduler {
       // next time around.
       $this->unflag($feed_info['importer_id'], $feed_info['callback'], $feed_info['feed_nid']);
 
+      // There are 2 possible callbacks: expire or 'import'.
       if ($feed_info['callback'] == 'expire') {
-        $importer->expire();
+        try {
+          $importer->expire();
+        }
+        catch (Exception $e) {
+          watchdog('FeedsScheduler', $e->getMessage(), array(), WATCHDOG_ERROR);
+        }
       }
       elseif ($feed_info['callback'] == 'import') {
         // Import feed if source is available.
         $source = feeds_source($importer, $feed_info['feed_nid']);
         if ($source->export_type & FEEDS_EXPORT_NONE) {
-          watchdog('feeds_refresh', 'Expected source information in database for '. $importer->id .'/'. $feed_info['feed_nid'] .'. Could not find any.', array(), WATCHDOG_ERROR);
+          watchdog('FeedsScheduler', 'Expected source information in database for '. $importer->id .'/'. $feed_info['feed_nid'] .'. Could not find any.', array(), WATCHDOG_ERROR);
           return;
         }
-        $importer->import($source);
+        try {
+          $importer->import($source);
+        }
+        catch (Exception $e) {
+          watchdog('FeedsScheduler', $e->getMessage(), array(), WATCHDOG_ERROR);
+        }
       }
     }
   }
