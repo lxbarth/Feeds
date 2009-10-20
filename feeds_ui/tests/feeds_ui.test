@@ -59,7 +59,7 @@ class FeedsUIUserInterfaceTestCase extends FeedsWebTestCase {
     $this->assertText('Common syndication parser');
     $this->assertText('Processor');
     $this->assertText('Node processor');
-    $this->assertText('Configure importer');
+    $this->assertText('Getting started');
     $this->assertRaw('admin/build/feeds/edit/test_feed/settings');
     $this->assertRaw('admin/build/feeds/edit/test_feed/settings/FeedsNodeProcessor');
     $this->assertRaw('admin/build/feeds/edit/test_feed/fetcher');
@@ -72,21 +72,21 @@ class FeedsUIUserInterfaceTestCase extends FeedsWebTestCase {
     $this->drupalGet('admin/build/feeds/edit/test_feed');
 
     $this->clickLink('Change', 0);
-    $this->assertText('select a fetcher');
+    $this->assertText('Select a fetcher');
     $edit = array(
       'plugin_key' => 'FeedsFileFetcher',
     );
     $this->drupalPost('admin/build/feeds/edit/test_feed/fetcher', $edit, 'Save');
 
     $this->clickLink('Change', 1);
-    $this->assertText('select a parser');
+    $this->assertText('Select a parser');
     $edit = array(
       'plugin_key' => 'FeedsCSVParser',
     );
     $this->drupalPost('admin/build/feeds/edit/test_feed/parser', $edit, 'Save');
 
     $this->clickLink('Change', 2);
-    $this->assertText('select a processor');
+    $this->assertText('Select a processor');
     $edit = array(
       'plugin_key' => 'FeedsFeedNodeProcessor',
     );
