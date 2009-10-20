@@ -81,7 +81,7 @@ class FeedsTermProcessor extends FeedsProcessor {
   public function clear(FeedsSource $source) {
     $deleted = 0;
 
-    $result = db_query('SELECT tid FROM term_data WHERE vid = %d', $this->config['vocabulary']);
+    $result = db_query('SELECT tid FROM {term_data} WHERE vid = %d', $this->config['vocabulary']);
     while ($term = db_fetch_object($result)) {
       if (taxonomy_del_term($term->tid) == SAVED_DELETED) {
         $deleted++;
