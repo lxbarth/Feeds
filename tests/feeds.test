@@ -664,6 +664,21 @@ class FeedsSyndicationParserTestCase extends FeedsWebTestCase {
   }
 
   /**
+   * Set up test.
+   */
+  public function setUp() {
+    parent::setUp('feeds', 'feeds_ui', 'ctools');
+
+    $this->drupalLogin(
+      $this->drupalCreateUser(
+        array(
+          'administer feeds', 'administer nodes',
+        )
+      )
+    );
+  }
+
+  /**
    * Run tests.
    */
   public function test() {
