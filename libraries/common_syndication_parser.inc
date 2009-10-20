@@ -283,6 +283,11 @@ function _parser_common_syndication_RDF10_parse($feed_XML) {
       $item['author'] = $parsed_source['title'];
     }
 
+    // If no GUID found, use the URL of the feed.
+    if (empty($item['guid'])) {
+      $item['guid'] = $item['url'];
+    }
+
     // Add every found RDF property to the feed item.
     $item['rdf'] = (object)array();
     foreach ($rdf_data as $rdf_property => $rdf_value) {
@@ -343,13 +348,6 @@ function _parser_common_syndication_RSS20_parse($feed_XML) {
     $news = (array) $news;
     $news['category'] = $category;
 
-    if (isset($news['guid'])) {
-      $guid = "{$news['guid']}";
-    }
-    else {
-      $guid = NULL;
-    }
-
     if (isset($news['title'])) {
       $title = "{$news['title']}";
     }
@@ -385,6 +383,14 @@ function _parser_common_syndication_RSS20_parse($feed_XML) {
     }
     else {
       $original_url = NULL;
+    }
+
+    if (isset($news['guid'])) {
+      $guid = "{$news['guid']}";
+    }
+    else {
+      // Attempt to fall back on original URL if GUID is not present.
+      $guid = $original_url;
     }
 
     $additional_taxonomies = array();
