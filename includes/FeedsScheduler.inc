@@ -112,7 +112,7 @@ class FeedsScheduler implements IFeedsScheduler {
     // parameters accordingly.
     if ($importers = feeds_importer_load_all()) {
       $use_queue = module_exists('drupal_queue');
-      $num = variable_get('feeds_schedule_num', $use_queue ? 200 / count($importers) : 10 / count($importers));
+      $num = variable_get('feeds_schedule_num', $use_queue ? 200 : 5);
       $num = $num ? $num : 1;
 
       // Iterate over feed configurations, pick $num feeds for each
@@ -128,7 +128,7 @@ class FeedsScheduler implements IFeedsScheduler {
             // refresh period.
             $time = $this->time() - $period;
 
-            $result = db_query_range('SELECT feed_nid, id AS importer_id, callback, last_scheduled_time FROM {feeds_schedule} WHERE id = "%s" AND callback = "%s" AND scheduled = 0 AND (last_scheduled_time < %d OR last_scheduled_time = 0) ORDER BY last_scheduled_time DESC', $importer->id, $callback, $time, 0, $num);
+            $result = db_query_range('SELECT feed_nid, id AS importer_id, callback, last_scheduled_time FROM {feeds_schedule} WHERE id = "%s" AND callback = "%s" AND scheduled = 0 AND (last_scheduled_time < %d OR last_scheduled_time = 0) ORDER BY last_scheduled_time ASC', $importer->id, $callback, $time, 0, $num);
             while ($feed_info = db_fetch_array($result)) {
 
               // If drupal_queue is present, add to queue, otherwise work off

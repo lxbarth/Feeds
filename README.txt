@@ -89,7 +89,7 @@ Description: Execution time for a queue worker, only effective if used with
              drupal_queue.
 
 Name:        feeds_schedule_num
-Default:     10
+Default:     5
              200 if drupal_queue is enabled
 Description: The number of feeds to refresh on cron time.
              If drupal_queue is enabled, the maximum number of feeds to move to
