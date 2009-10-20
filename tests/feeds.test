@@ -657,7 +657,7 @@ class FeedsSyndicationParserTestCase extends FeedsWebTestCase {
    */
   public function getInfo() {
     return array(
-      'name' => t('Syndication Parsers'),
+      'name' => t('Syndication parsers'),
       'description' => t('Regression tests for syndication parsers Common syndication and SimplePie. Tests parsers against a set of feeds in the context of Feeds module. Requires Simplepie parser to be configured correctly.'),
       'group' => t('Feeds'),
     );
