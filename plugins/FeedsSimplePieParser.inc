@@ -47,6 +47,10 @@ class FeedsSimplePieParser extends FeedsParser {
       // U = std. unix timestamp
       $item['timestamp'] = $simplepie_item->get_date("U");
       $item['guid'] = $simplepie_item->get_id();
+      // Use URL as GUID if there is no GUID.
+      if (empty($item['guid'])) {
+        $item['guid'] = $item['url'];
+      }
       $item['author'] = $simplepie_item->get_author();
       // Enclosures
       $enclosures = $simplepie_item->get_enclosures();
