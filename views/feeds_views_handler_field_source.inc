@@ -13,8 +13,8 @@ class feeds_views_handler_field_source extends views_handler_field {
    */
   function render($values) {
     $value = unserialize($values->{$this->field_alias});
-    if (isset($value['FeedsHTTPFetcher']['url'])) {
-      return check_url($value['FeedsHTTPFetcher']['url']);
+    if (isset($value['FeedsHTTPFetcher']['source'])) {
+      return check_url($value['FeedsHTTPFetcher']['source']);
     }
     elseif (isset($value['FeedsFileFetcher']['feeds_source'])) {
       // @todo: this is untested.
