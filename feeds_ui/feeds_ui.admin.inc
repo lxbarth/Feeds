@@ -236,37 +236,38 @@ function feeds_ui_edit_page($importer, $active = 'help', $plugin_key = '') {
   $plugins = feeds_get_plugins();
   $config = $importer->config;
   // Base path for changing the active container.
-  $path = 'admin/build/feeds/edit/'. $importer->id .'/';
+  $path = 'admin/build/feeds/edit/'. $importer->id;
 
-  $configure = t('!configure - ', array('!configure' => l(t('Configure importer'), $path)));
   $active_container = array(
     'class' => 'active-container',
+    'actions' => array(l(t('Help'), $path)),
   );
   switch ($active) {
     case 'help':
-      $active_container['title'] = t('Configure importer');
+      $active_container['title'] = t('Getting started');
       $active_container['body'] = '<div class="help feeds-admin-ui">'. feeds_ui_edit_help() .'</div>';
+      unset($active_container['actions']);
       break;
     case 'fetcher':
     case 'parser':
     case 'processor':
-      $active_container['title'] = $configure . t('select a !plugin_type', array('!plugin_type' => $active));
+      $active_container['title'] = t('Select a !plugin_type', array('!plugin_type' => $active));
       $active_container['body'] = drupal_get_form('feeds_ui_plugin_form', $importer, $active);
       break;
     case 'settings':
       if (empty($plugin_key)) {
-        $active_container['title'] = $configure . t('basic settings');
+        $active_container['title'] = t('Basic settings');
         $active_container['body'] = feeds_get_config_form($importer);
       }
       // feeds_plugin_instance() returns a correct result because feed has been
       // instantiated previously.
       elseif (in_array($plugin_key, array_keys($plugins)) && $plugin = feeds_plugin_instance($plugin_key, $importer->id)) {
-        $active_container['title'] = $configure . t('settings for !plugin', array('!plugin' => $plugins[$plugin_key]['name']));
+        $active_container['title'] = t('Settings for !plugin', array('!plugin' => $plugins[$plugin_key]['name']));
         $active_container['body'] = feeds_get_config_form($plugin);
       }
       break;
     case 'mapping':
-      $active_container['title'] = $configure . t('mapping for !processor', array('!processor' => $plugins[$config['processor']['plugin_key']]['name']));
+      $active_container['title'] = t('Mapping for !processor', array('!processor' => $plugins[$config['processor']['plugin_key']]['name']));
       $active_container['body'] = drupal_get_form('feeds_ui_mapping_form', $importer);
       break;
   }
@@ -294,7 +295,7 @@ function feeds_ui_edit_page($importer, $active = 'help', $plugin_key = '') {
   $info['body'] = array(
     array(
       'body' => theme('item_list', $items),
-      'actions' => array(l(t('Settings'), $path .'settings')),
+      'actions' => array(l(t('Settings'), $path .'/settings')),
     ),
   );
   $config_info[] = $info;
@@ -303,7 +304,7 @@ function feeds_ui_edit_page($importer, $active = 'help', $plugin_key = '') {
   $fetcher = $plugins[$config['fetcher']['plugin_key']];
   $actions = array();
   if (feeds_get_config_form($importer->fetcher)) {
-    $actions = array(l(t('Settings'), $path .'settings/'. $config['fetcher']['plugin_key']));
+    $actions = array(l(t('Settings'), $path .'/settings/'. $config['fetcher']['plugin_key']));
   }
   $info['title'] = t('Fetcher');
   $info['body'] = array(
@@ -313,14 +314,14 @@ function feeds_ui_edit_page($importer, $active = 'help', $plugin_key = '') {
       'actions' => $actions,
     ),
   );
-  $info['actions'] = array(l(t('Change'), $path .'fetcher'));
+  $info['actions'] = array(l(t('Change'), $path .'/fetcher'));
   $config_info[] = $info;
 
   // Parser.
   $parser = $plugins[$config['parser']['plugin_key']];
   $actions = array();
   if (feeds_get_config_form($importer->parser)) {
-    $actions = array(l(t('Settings'), $path .'settings/'. $config['parser']['plugin_key']));
+    $actions = array(l(t('Settings'), $path .'/settings/'. $config['parser']['plugin_key']));
   }
   $info['title'] = t('Parser');
   $info['body'] = array(
@@ -330,18 +331,18 @@ function feeds_ui_edit_page($importer, $active = 'help', $plugin_key = '') {
       'actions' => $actions,
     )
   );
-  $info['actions'] = array(l(t('Change'), $path .'parser'));
+  $info['actions'] = array(l(t('Change'), $path .'/parser'));
   $config_info[] = $info;
 
   // Processor.
   $processor = $plugins[$config['processor']['plugin_key']];
   $actions = array();
   if (feeds_get_config_form($importer->processor)) {
-    $actions[] = l(t('Settings'), $path .'settings/'. $config['processor']['plugin_key']);
+    $actions[] = l(t('Settings'), $path .'/settings/'. $config['processor']['plugin_key']);
   }
   // @todo: We assume that every processor supports mapping - that's not
   // necessarily the case.
-  $actions[] = l(t('Mapping'), $path .'mapping');
+  $actions[] = l(t('Mapping'), $path .'/mapping');
   $info['title'] = t('Processor');
   $info['body'] = array(
     array(
@@ -350,7 +351,7 @@ function feeds_ui_edit_page($importer, $active = 'help', $plugin_key = '') {
       'actions' => $actions,
     )
   );
-  $info['actions'] = array(l(t('Change'), $path .'processor'));
+  $info['actions'] = array(l(t('Change'), $path .'/processor'));
   $config_info[] = $info;
 
   return theme('feeds_ui_edit_page', $config_info, $active_container);
