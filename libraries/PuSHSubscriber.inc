@@ -149,26 +149,29 @@ class PuSHSubscriber {
    * $subscriber->verifySubscriptionRequest($_GET['hub_challenge']).
    */
   public function verifySubscriptionRequest($verify_fields) {
-feeds_log($verify_fields);
     if ($subscription = $this->subscriptions->load($this->domain, $this->subscriber_id)) {
       if ($verify_fields['hub_verify_token'] == $subscription['post_fields']['hub.verify_token']) {
         header('HTTP/1.1 200 "Found"', null, 200);
         print $verify_fields['hub_challenge'];
-feeds_log('VERIFIED');
         exit();
       }
     }
-feeds_log('VERIFICATION FAILED');
     header('HTTP/1.1 404 "Not Found"', null, 404);
     exit();
   }
 
   /**
    * Receive a notification.
+   *
+   * @return
+   *   An XML string if the received notification is XML, FALSE otherwise.
    */
   public function receive() {
     if ($_SERVER['REQUEST_METHOD'] == 'POST') {
-      return file_get_contents('php://input');
+      $raw = file_get_contents('php://input');
+      if (@simplexml_load_string($raw)) {
+        return $raw;
+      }
     }
     return FALSE;
   }
