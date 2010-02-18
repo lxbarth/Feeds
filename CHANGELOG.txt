@@ -1,0 +1,95 @@
+// $Id: CHANGELOG.txt,v 1.48 2010/02/18 16:52:22 alexb Exp $
+
+Feeds 6.x 1.0 xxxxx xx, xxxx-xx-xx
+----------------------------------
+
+- alex_b: Add sourceSave() and sourceDelete() methods notifying plugin
+  implementers of a source being saved or deleted.
+- #717168 nicholasThompson: Fix feeds UI JS doesn't select labels correctly.
+- #708228 Scott Reynolds, alex_b: Break FeedsImportBatch into separate classes.
+  NOTE: FeedsFetcher implementations cannot use FeedsImportBatch directly
+  anymore but most provide their own implementation of FeedsImportBatch. See
+  FeedsHTTPFetcher.inc for an example.
+- alex_b: Support mapping to OpenID, using OpenID as a unique mapping target.
+- alex_b: Handle exceptions outside of Importer/Source facade methods.
+- #600584 alex_b: Use Batch API.
+  NOTE: third party plugins/extensions implementing FeedsProcessor::process(),
+  FeedsProcessor::clear() or FeedsImporter::expire() need to adjust their
+  implementations. Modules that directly use Feeds' API for importing or
+  clearing sources need may want to use feeds_batch_set() instead of
+  feeds_source()->import() or feeds_source()->clear().
+
+Feeds 6.x 1.0 Alpha 11, 2010-02-10
+----------------------------------
+
+- #701432 pounard, Will White: Fix array_shift() expects parameter 1 is Array
+  error. Note: Parsers are responsible to ensure that the parameter passed to
+  FeedsImportBatch::setItems() is an Array.
+- #698356 alex_b: Refactor and clean up FeedsScheduler::work() to allow more
+  scheduled tasks than 'import' and 'expire'.
+
+Feeds 6.x 1.0 Alpha 10, 2010-01-25
+----------------------------------
+
+- #647128 bigkevmcd, Michelle: Fix broken author info in FeedsSyndicationParser.
+- alex_b: Add mapping API for FeedsDataProcessor.
+- alex_b: Decode HTML entities for title and author name in
+  FeedsSimplePieParser.
+- #623448 David Goode, alex_b, et al.: Date mapper.
+- #624088 mongolito404, David Goode, alex_b: Imagefield/filefield mapper,
+  formalize feed elements.
+- #584034 aaroncouch, mongolito404: Views integration.
+- Redirect to node or import form after manual import or delete.
+- #663830 Aron Novak, alex_b: When download of URL failed, node w/ empty title
+  is created.
+- #654728 Aron Novak: Fix parsing + data handling error with RDF 1.0 feeds.
+- #641522 mongolito404, alex_b: Consolidate import stage results.
+- #662104 Aron Novak: Specify PHP requirement in .info file.
+- #657374 dtomasch: Common Parser does not get RSS Authors correctly.
+
+Feeds 6.x 1.0 Alpha 9, 2009-12-14
+---------------------------------
+
+- API change: feeds_source() takes an FeedsImporter id instead of an importer,
+  the methods import() and clear() moved from FeedsImporter to FeedsSource.
+  Import from a source with feeds_source($id, $nid)->import();
+- #629096 quickcel: Fix underscores in feed creation link.
+- #652848 BWPanda: Add 'clear-block' to admin-ui to fix float issues.
+- #623424 Kars-T, Eugen Mayer, alex_b: Mapper for Taxonomy.
+- #649552 rsoden: Provide variable for data table name.
+- #631962 velosol, alex_b: FeedsNodeProcessor: Update when changed.
+- #623452 mongolito404: Port basic test infrastructure for mappers, test for
+  basic CCK mapper.
+
+Feeds 6.x 1.0 Alpha 8, 2009-11-18
+---------------------------------
+
+- #634886 Kars-T, EugenMayer: Add vid to node process functions.
+- #613494 miasma: Remove length limit from URL.
+- #631050 z.stolar: Add feed_nid on node_load of a feed item.
+- #631248 velosol: Set log message when creating a node in FeedsNodeProcessor.
+
+Feeds 6.x 1.0 Alpha 7, 2009-11-04
+---------------------------------
+
+- #622654 Don't show body as option for mapper when body is disabled
+- Allow cURL only to download via http or https
+- Throw an exception in FeedsHTTPFetcher if result is not 200
+
+Feeds 6.x 1.0 Alpha 6, 2009-11-03
+---------------------------------
+
+- Split number of items to queue on cron from feeds_schedule_num variable
+  (see README.txt)
+- #619110 Fix node_delete() in FeedsNodeProcessor
+- Add descriptions to all mapping sources and targets
+
+Feeds 6.x 1.0 Alpha 5, 2009-10-23
+---------------------------------
+
+- #584500 Add Feeds default module
+
+Feeds 6.x 1.0 Alpha 4, 2009-10-21
+---------------------------------
+
+- Initial release
