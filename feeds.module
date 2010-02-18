@@ -538,6 +538,20 @@ function feeds_export($importer_id, $indent = '') {
 }
 
 /**
+ * Log to file.
+ *
+ * @todo Segregate by site.
+ */
+function feeds_log($msg) {
+  if (!is_string($msg)) {
+    $msg = var_export($msg, true);
+  }
+  $handle = fopen('/tmp/feeds.log', 'a');
+  fwrite($handle, date('c') ."\t$msg\n");
+  fclose($handle);
+}
+
+/**
  * @} End of "defgroup utility".
  */
 
