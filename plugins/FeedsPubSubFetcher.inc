@@ -1,6 +1,6 @@
 <?php
 
-feeds_include_library('PushSubscriber.inc', 'PushSubscriber');
+feeds_include_library('PuSHSubscriber.inc', 'PuSHSubscriber');
 
 /**
  * FeedsImportBatch for PubSub Fetcher.
