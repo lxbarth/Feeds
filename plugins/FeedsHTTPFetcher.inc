@@ -6,6 +6,10 @@
  * Home of the FeedsHTTPFetcher and related classes.
  */
 
+define('FEEDS_HTTP_NO_BASIC_AUTH', 0);
+define('FEEDS_HTTP_BASIC_AUTH_PER_SOURCE', 1);
+define('FEEDS_HTTP_BASIC_AUTH_PER_IMPORTER', 2);
+
 /**
  * Definition of the import batch object created on the fetching stage by
  * FeedsHTTPFetcher.
@@ -59,7 +63,9 @@ class FeedsHTTPFetcher extends FeedsFetcher {
    */
   public function fetch(FeedsSource $source) {
     $source_config = $source->getConfigFor($this);
-    return new FeedsHTTPBatch($source_config['source']);
+    $url = $source_config['source'];
+    $url = $this->basicAuth($url, isset($source_config['basic_auth']) ? $source_config['basic_auth'] : array());
+    return new FeedsHTTPBatch($url);
   }
 
   /**
@@ -85,6 +91,16 @@ class FeedsHTTPFetcher extends FeedsFetcher {
       '#maxlength' => NULL,
       '#required' => TRUE,
     );
+    if (isset($this->config['basic_auth']) && $this->config['basic_auth'] == FEEDS_HTTP_BASIC_AUTH_PER_SOURCE) {
+      $form['basic_auth'] = array(
+        '#type' => 'fieldset',
+        '#collapsible' => TRUE,
+        '#collapsed' => empty($source_config['basic_auth']['basic_auth_user']),
+        '#title' => t('Authentication'),
+        '#description' => t('Enter user name and password for authentication. Leave empty if no authentication is required.'),
+      );
+      $form['basic_auth'] += $this->basicAuthForm(isset($source_config['basic_auth']) ? $source_config['basic_auth'] : array());
+    }
     return $form;
   }
 
@@ -93,7 +109,7 @@ class FeedsHTTPFetcher extends FeedsFetcher {
    */
   public function configDefaults() {
     return array(
-      'basic_auth' => 0,
+      'basic_auth' => FEEDS_HTTP_NO_BASIC_AUTH,
       'basic_auth_user' => '',
       'basic_auth_password' => '',
     );
@@ -111,23 +127,54 @@ class FeedsHTTPFetcher extends FeedsFetcher {
     $form['basic_auth']['basic_auth'] = array(
       '#type' => 'radios',
       '#options' => array(
-        0 => t('No authentication'),
-        1 => t('Specify credentials when creating a feed.'),
-        2 => t('One set of credentials for all feeds.'),
+        FEEDS_HTTP_NO_BASIC_AUTH => t('No authentication'),
+        FEEDS_HTTP_BASIC_AUTH_PER_SOURCE => t('Specify credentials when creating a feed.'),
+        FEEDS_HTTP_BASIC_AUTH_PER_IMPORTER => t('One set of credentials for all feeds.'),
       ),
       '#default_value' => $this->config['basic_auth'],
     );
-    $form['basic_auth']['basic_auth_user'] = array(
+    $form['basic_auth'] += $this->basicAuthForm($this->config);
+    return $form;
+  }
+
+  /**
+   * Basic auth form.
+   */
+  protected function basicAuthForm($config) {
+    $form = array();
+    $form['basic_auth_user'] = array(
       '#type' => 'textfield',
       '#title' => t('Username'),
-      '#default_value' => $this->config['basic_auth_user'],
+      '#default_value' => empty($config['basic_auth_user']) ? '' : $config['basic_auth_user'],
     );
-    $form['basic_auth']['basic_auth_password'] = array(
-      '#type' => 'textfield',
+    $form['basic_auth_password'] = array(
+      '#type' => 'password',
       '#title' => t('Password'),
-      '#default_value' => $this->config['basic_auth_password'],
     );
     return $form;
+  }
+
+  /**
+   * Encode basic authentication credentials in URL depending on configuration.
+   */
+  protected function basicAuth($url, $source_config = array()) {
+    if ($this->config['basic_auth'] == FEEDS_HTTP_BASIC_AUTH_PER_SOURCE) {
+      if (!empty($source_config['basic_auth_user']) && !empty($source_config['basic_auth_password'])) {
+        return $this->basicAuthEncodeCredentials($url, $source_config['basic_auth_user'], $source_config['basic_auth_password']);
+      }
+    }
+    elseif ($this->config['basic_auth'] == FEEDS_HTTP_BASIC_AUTH_PER_IMPORTER) {
+      return $this->basicAuthEncodeCredentials($url, $this->config['basic_auth_user'], $this->config['basic_auth_password']);
+    }
+    return $url;
+  }
+
+  /**
+   * Encode basic authentication credentials into URL.
+   */
+  protected function basicAuthEncodeCredentials($url, $user, $password) {
+    $parsed = parse_url($url);
+    return str_replace("{$parsed['scheme']}://", "{$parsed['scheme']}://$user:$password@", $url);
   }
 }
 
