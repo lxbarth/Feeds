@@ -72,7 +72,7 @@ class FeedsPubSubFetcher extends FeedsHTTPFetcher {
       keyauth_include();
       $url = keyauth_sign_url($this->config['keyauth_public'], $url);
     }
-    feeds_push_subscriber($this->id, $source->feed_nid)->subscribe($url, url('feeds/pubsubhubbub/notify/'. $this->id .'/'. $source->feed_nid, array('absolute' => TRUE)));
+    feeds_push_subscriber($this->id, $source->feed_nid)->subscribe($url, url('feeds/pubsubhubbub/notify/'. $this->id .'/'. $source->feed_nid, array('absolute' => TRUE)), valid_url($this->config['designated_hub']) ? $this->config['designated_hub'] : '');
   }
 
   /**
@@ -103,6 +103,7 @@ class FeedsPubSubFetcher extends FeedsHTTPFetcher {
     $defaults = parent::configDefaults();
     return $defaults + array(
       'subscription_period' => 3600*24, // Renew subscription in 24 hours.
+      'designated_hub' => '',
     );
   }
 
@@ -120,6 +121,12 @@ class FeedsPubSubFetcher extends FeedsHTTPFetcher {
       '#options' => $period,
       '#description' => t('This is the minimum time that must elapse before a subscription is renewed.'),
       '#default_value' => $this->config['subscription_period'],
+    );
+    $form['designated_hub'] = array(
+      '#type' => 'textfield',
+      '#title' => t('Designated hub'),
+      '#description' => t('Enter the callback URL of a designated hub. If given, this hub will be used instead of the hub specified in the feed source.'),
+      '#default_value' => $this->config['designated_hub'],
     );
     return $form;
   }

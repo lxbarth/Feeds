@@ -44,15 +44,19 @@ class PuSHSubscriber {
   }
 
   /**
-   * Subscribe to a given URL. Retrieve 'hub' and 'self' links from feed at $url
-   * and issue a subscription request to the hub.
+   * Subscribe to a given URL. Attempt to retrieve 'hub' and 'self' links from
+   * document at $url and issue a subscription request to the hub.
    *
    * @param $url
    *   The URL of the feed to subscribe to.
    * @param $callback_url
-   *   The full URL that hub should invoke when feed changes.
+   *   The full URL that hub should invoke for subscription verification or for
+   *   notifications.
+   * @param $hub
+   *   The URL of a hub. If given overrides the hub URL found in the document
+   *   at $url.
    */
-  public function subscribe($url, $callback_url) {
+  public function subscribe($url, $callback_url, $hub = '') {
     // Fetch document, find rel=hub and rel=self.
     // If present, issue subscription request.
     $request = curl_init($url);
@@ -68,11 +72,15 @@ class PuSHSubscriber {
       if ($self = @current($xml->xpath("/atom:feed/atom:link[attribute::rel='self']"))) {
         $self = (string) $self->attributes()->href;
       }
-      if ($hub && $self) {
-        $this->request($hub, $self, 'subscribe', $callback_url);
-      }
     }
     curl_close($request);
+    // Fall back to $url if $self is not given.
+    if ($self) {
+      $self = $url;
+    }
+    if (!empty($hub) && !empty($self)) {
+      $this->request($hub, $self, 'subscribe', $callback_url);
+    }
   }
 
   /**
@@ -120,6 +128,7 @@ class PuSHSubscriber {
     $request = curl_init($hub);
     curl_setopt($request, CURLOPT_POST, TRUE);
     curl_setopt($request, CURLOPT_POSTFIELDS, $post_fields);
+    curl_setopt($request, CURLOPT_RETURNTRANSFER, TRUE);
     curl_exec($request);
     if (in_array(curl_getinfo($request, CURLINFO_HTTP_CODE), array(202, 204))) {
       $this->subscriptions->save($this->domain, $this->subscriber_id, $hub, $topic, '');
@@ -131,19 +140,24 @@ class PuSHSubscriber {
   }
 
   /**
-   * Verify subscription request.
+   * Verify subscription request. After a hub has received a subscription
+   * request (see PuSHSubscriber::request()) it sends back a challenge verifying
+   * that a subscription indeed was requested ($_GET['hub_challenge']). This
+   * method handles the challenge. Example:
    *
-   * @todo: break out subscription handling in its own abstract class with a
-   * Drupal implementer.
+   * $subscriber->verifySubscriptionRequest($_GET['hub_challenge']).
    */
   public function verifySubscriptionRequest($verify_fields) {
+error_log(print_r($verify_fields, true));
     if ($subscription = $this->subscriptions->load($this->domain, $this->subscriber_id)) {
       if ($verify_fields['hub_verify_token'] == $subscription['post_fields']['hub.verify_token']) {
         header('HTTP/1.1 200 "Found"', null, 200);
         print $verify_fields['hub_challenge'];
+error_log('VERIFIED');
         exit();
       }
     }
+error_log('VERIFICATION FAILED');
     header('HTTP/1.1 404 "Not Found"', null, 404);
     exit();
   }
