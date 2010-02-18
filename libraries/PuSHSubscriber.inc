@@ -66,7 +66,7 @@ class PuSHSubscriber {
     if (curl_getinfo($request, CURLINFO_HTTP_CODE) == 200) {
       $xml = new SimpleXMLElement($data);
       $xml->registerXPathNamespace('atom', 'http://www.w3.org/2005/Atom');
-      if ($hub = @current($xml->xpath("/atom:feed/atom:link[attribute::rel='hub']"))) {
+      if (empty($hub) && $hub = @current($xml->xpath("/atom:feed/atom:link[attribute::rel='hub']"))) {
         $hub = (string) $hub->attributes()->href;
       }
       if ($self = @current($xml->xpath("/atom:feed/atom:link[attribute::rel='self']"))) {
@@ -130,11 +130,12 @@ class PuSHSubscriber {
     curl_setopt($request, CURLOPT_POSTFIELDS, $post_fields);
     curl_setopt($request, CURLOPT_RETURNTRANSFER, TRUE);
     curl_exec($request);
-    if (in_array(curl_getinfo($request, CURLINFO_HTTP_CODE), array(202, 204))) {
+    $code = curl_getinfo($request, CURLINFO_HTTP_CODE);
+    if (in_array($code, array(202, 204))) {
       $this->subscriptions->save($this->domain, $this->subscriber_id, $hub, $topic, '');
     }
     else {
-      drupal_set_message(t('Error subscribing to PubsubHubbub hub.'), 'error');
+      drupal_set_message(t('Error subscribing to hub (!code).', array('!code' => $code)), 'error');
     }
     curl_close($request);
   }
