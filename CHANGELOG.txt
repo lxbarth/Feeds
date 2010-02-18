@@ -3,6 +3,7 @@
 Feeds 6.x 1.0 xxxxx xx, xxxx-xx-xx
 ----------------------------------
 
+- alex_b: HTTP Basic Authentication support for HTTP Fetcher.
 - alex_b: Add sourceSave() and sourceDelete() methods notifying plugin
   implementers of a source being saved or deleted.
 - #717168 nicholasThompson: Fix feeds UI JS doesn't select labels correctly.

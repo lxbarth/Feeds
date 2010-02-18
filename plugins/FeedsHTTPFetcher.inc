@@ -1,5 +1,5 @@
 <?php
-// $Id: FeedsHTTPFetcher.inc,v 1.9 2010/02/18 16:01:19 alexb Exp $
+// $Id: FeedsHTTPFetcher.inc,v 1.11 2010/02/18 19:40:36 alexb Exp $
 
 /**
  * @file
@@ -138,6 +138,20 @@ class FeedsHTTPFetcher extends FeedsFetcher {
   }
 
   /**
+   * Validate config form.
+   */
+  public function configFormValidate(&$values) {
+    // Don't accidentally wipe out password.
+    if (empty($values['basic_auth_password'])) {
+      $values['basic_auth_password'] = $this->config['basic_auth_password'];
+    }
+    if ($values['basic_auth'] != FEEDS_HTTP_BASIC_AUTH_PER_IMPORTER) {
+      $values['basic_auth_user'] = '';
+      $values['basic_auth_password'] = '';
+    }
+  }
+
+  /**
    * Basic auth form.
    */
   protected function basicAuthForm($config) {
@@ -158,7 +172,10 @@ class FeedsHTTPFetcher extends FeedsFetcher {
    * Encode basic authentication credentials in URL depending on configuration.
    */
   protected function basicAuth($url, $source_config = array()) {
-    if ($this->config['basic_auth'] == FEEDS_HTTP_BASIC_AUTH_PER_SOURCE) {
+    if (!isset($this->config['basic_auth'])) {
+      return $url;
+    }
+    elseif ($this->config['basic_auth'] == FEEDS_HTTP_BASIC_AUTH_PER_SOURCE) {
       if (!empty($source_config['basic_auth_user']) && !empty($source_config['basic_auth_password'])) {
         return $this->basicAuthEncodeCredentials($url, $source_config['basic_auth_user'], $source_config['basic_auth_password']);
       }
