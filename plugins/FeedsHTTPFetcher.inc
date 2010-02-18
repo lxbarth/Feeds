@@ -92,7 +92,42 @@ class FeedsHTTPFetcher extends FeedsFetcher {
    * Override parent::configDefaults().
    */
   public function configDefaults() {
-    return array('auto_detect_feeds' => FALSE);
+    return array(
+      'basic_auth' => 0,
+      'basic_auth_user' => '',
+      'basic_auth_password' => '',
+    );
+  }
+
+  /**
+   * Override parent::configForm();
+   */
+  public function configForm() {
+    $form = array();
+    $form['basic_auth'] = array(
+      '#type' => 'fieldset',
+      '#title' => t('HTTP Basic Authentication'),
+    );
+    $form['basic_auth']['basic_auth'] = array(
+      '#type' => 'radios',
+      '#options' => array(
+        0 => t('No authentication'),
+        1 => t('Specify credentials when creating a feed.'),
+        2 => t('One set of credentials for all feeds.'),
+      ),
+      '#default_value' => $this->config['basic_auth'],
+    );
+    $form['basic_auth']['basic_auth_user'] = array(
+      '#type' => 'textfield',
+      '#title' => t('Username'),
+      '#default_value' => $this->config['basic_auth_user'],
+    );
+    $form['basic_auth']['basic_auth_password'] = array(
+      '#type' => 'textfield',
+      '#title' => t('Password'),
+      '#default_value' => $this->config['basic_auth_password'],
+    );
+    return $form;
   }
 }
 
