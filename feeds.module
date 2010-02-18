@@ -782,7 +782,7 @@ function feeds_include_library($file, $library) {
       require libraries_get_path($library) ."/$file";
     }
     else {
-      require realpath(drupal_get_path('module', 'feeds') ."/libraries/$file");
+      require './'. drupal_get_path('module', 'feeds') ."/libraries/$file";
     }
   }
   $included[$file] = TRUE;
