@@ -144,8 +144,8 @@ class PuSHSubscriber {
     if (!in_array($code, array(202, 204))) {
       $sub->status = $mode .' failed';
       $sub->save();
-      $this->env->msg("Error subscribing to hub ($code)", 'error');
-      $this->env->log("Error subscribing to hub ({$this->domain} / {$this->subscriber_id}, code $code)", 'error');
+      $this->msg("Error subscribing to hub ($code)", 'error');
+      $this->log("Error subscribing to hub ($code)", 'error');
     }
     curl_close($request);
   }
@@ -174,20 +174,20 @@ class PuSHSubscriber {
             $sub->status = 'subscribed';
             $sub->post_fields = array();
             $sub->save();
-            $this->env->log("Verified subscribe request for {$this->domain} / {$this->subscriber_id}");
+            $this->log('Verified subscribe request.');
             $verify = TRUE;
           }
           elseif ($_GET['hub_mode'] == 'unsubscribe' && $sub->status == 'unsubscribe') {
             $sub->status = 'unsubscribed';
             $sub->post_fields = array();
             $sub->save();
-            $this->env->log("Verified unsubscribe request for {$this->domain} / {$this->subscriber_id}");
+            $this->log('Verified unsubscribe request.');
             $verify = TRUE;
           }
         }
       }
       elseif ($_GET['hub_mode'] == 'unsubscribe') {
-        $this->env->log("Verified unsubscribe request for {$this->domain} / {$this->subscriber_id}");
+        $this->log('Verified unsubscribe request.');
         $verify = TRUE;
       }
       if ($verify) {
@@ -197,7 +197,7 @@ class PuSHSubscriber {
       }
     }
     header('HTTP/1.1 404 "Not Found"', null, 404);
-    $this->env->log("Could not verify subscription for {$this->domain} / {$this->subscriber_id}", 'error');
+    $this->log('Could not verify subscription.', 'error');
     exit();
   }
 
@@ -235,11 +235,11 @@ class PuSHSubscriber {
             return $raw;
           }
           else {
-            $this->env->log('Could not verify signature.', 'error');
+            $this->log('Could not verify signature.', 'error');
           }
         }
         else {
-          $this->env->log('No signature present.', 'error');
+          $this->log('No signature present.', 'error');
         }
       }
     }
@@ -251,6 +251,20 @@ class PuSHSubscriber {
    */
   protected function loadSubscription() {
     return call_user_func("{$this->subscription_class}::load", $this->domain, $this->subscriber_id);
+  }
+
+  /**
+   * Helper for messaging.
+   */
+  protected function msg($msg, $level) {
+    $this->env->msg($msg, $level);
+  }
+
+  /**
+   * Helper for logging.
+   */
+  protected function log($msg, $level) {
+    $this->env->log("{$this->domain}:{$this->subscriber_id}\t$msg", $level);
   }
 }
 
