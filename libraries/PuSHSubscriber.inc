@@ -100,6 +100,7 @@ class PuSHSubscriber {
    */
   public function unsubscribe($topic_url, $callback_url) {
     if ($sub = $this->loadSubscription($topic_url, $callback_url)) {
+      $this->request($sub->hub, $sub->topic, 'unsubscribe', $callback_url);
       $sub->delete();
     }
   }
