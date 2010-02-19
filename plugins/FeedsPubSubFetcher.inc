@@ -146,7 +146,7 @@ class FeedsPubSubFetcher extends FeedsHTTPFetcher {
  *   A PushSubscriber object.
  */
 function feeds_push_subscriber($id, $subscriber_id) {
-  return PushSubscriber::instance($id, $subscriber_id, PuSHSubscriptions::instance());
+  return PushSubscriber::instance($id, $subscriber_id, PuSHSubscriptions::instance(), PuSHEnvironment::instance());
 }
 
 /**
@@ -156,7 +156,7 @@ class PuSHSubscriptions implements PuSHSubscriptionsInterface {
   /**
    * Singleton.
    */
-  public function instance() {
+  public static function instance() {
     static $subscriptions;
     if (empty($subscriptions)) {
       $subscriptions = new PuSHSubscriptions();
@@ -210,6 +210,17 @@ class PuSHSubscriptions implements PuSHSubscriptionsInterface {
  */
 class PuSHEnvironment implements PuSHSubscriberEnvironmentInterface {
   /**
+   * Singleton.
+   */
+  public static function instance() {
+    static $env;
+    if (empty($env)) {
+      $env = new PuSHEnvironment();
+    }
+    return $env;
+  }
+
+  /**
    * Implementation of PuSHSubscriberEnvironmentInterface::msg().
    */
   public function msg($msg, $level = 'status') {
@@ -231,6 +242,7 @@ class PuSHEnvironment implements PuSHSubscriberEnvironmentInterface {
         $severity = WATCHDOG_NOTICE;
         break;
     }
+    feeds_log($msg);
     watchdog('FeedsPubSubFetcher', $msg, array(), $severity);
   }
 }

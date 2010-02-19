@@ -26,11 +26,13 @@ class PuSHSubscriber {
    *   A numeric subscriber id.
    * @param PuSHSubscriptionsInterface $subscriptions
    *   An object to use for storing and loading subscriptions.
+   * @param PuSHSubscriberEnvironmentInterface $env
+   *   Environmental object for messaging and logging.
    */
-  public static function instance($domain, $subscriber_id, PuSHSubscriptionsInterface $subscriptions) {
+  public static function instance($domain, $subscriber_id, PuSHSubscriptionsInterface $subscriptions, PuSHSubscriberEnvironmentInterface $env) {
     static $subscribers;
     if (!isset($subscriber[$domain][$subscriber_id])) {
-      $subscriber = new PuSHSubscriber($domain, $subscriber_id, $subscriptions);
+      $subscriber = new PuSHSubscriber($domain, $subscriber_id, $subscriptions, $env);
     }
     return $subscriber;
   }
@@ -137,7 +139,8 @@ class PuSHSubscriber {
       $this->subscriptions->save($this->domain, $this->subscriber_id, $hub, $topic, '');
     }
     else {
-      $this->env->msg('Error subscribing to hub ('. $code .')', 'error');
+      $this->env->msg("Error subscribing to hub ($code)", 'error');
+      $this->env->log("Error subscribing to hub ({$this->domain} / {$this->subscriber_id}, code $code)", 'error');
     }
     curl_close($request);
   }
@@ -155,12 +158,12 @@ class PuSHSubscriber {
       if ($verify_fields['hub_verify_token'] == $subscription['post_fields']['hub.verify_token']) {
         header('HTTP/1.1 200 "Found"', null, 200);
         print $verify_fields['hub_challenge'];
- feeds_log("VERIFIED");
+        $this->env->log("Verified subscription for {$this->domain} / {$this->subscriber_id}");
         exit();
       }
     }
     header('HTTP/1.1 404 "Not Found"', null, 404);
- feeds_log("verification failed.");
+    $this->env->log("Could not verify subscription for {$this->domain} / {$this->subscriber_id}", 'error');
     exit();
   }
 
