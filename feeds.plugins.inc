@@ -77,8 +77,9 @@ function _feeds_feeds_plugins() {
     ),
   );
   $info['FeedsPubSubFetcher'] = array(
-    'name' => 'Pubsubhubbub Fetcher',
-    'description' => 'Receive updates from a PubSubHubbub notification hub.',
+    'name' => 'PubSubHubbub Fetcher',
+    'description' => 'Download content from a URL, receive change notifications.',
+    'help' => 'Download content from a URL. If feed at URL supports PubSubHubbub, subscribe to hub for notifications of changes.',
     'handler' => array(
       'parent' => 'FeedsHTTPFetcher',
       'class' => 'FeedsPubSubFetcher',

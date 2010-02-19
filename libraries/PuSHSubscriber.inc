@@ -114,8 +114,6 @@ class PuSHSubscriber {
    *   The subscriber's notifications callback URL.
    *
    * Compare to http://pubsubhubbub.googlecode.com/svn/trunk/pubsubhubbub-core-0.2.html#anchor5
-   *
-   * @todo don't use url()
    */
   protected function request($hub, $topic, $mode, $callback_url) {
     $post_fields = array(
@@ -124,7 +122,7 @@ class PuSHSubscriber {
       'hub.topic' => $topic,
       'hub.verify' => 'sync',
       'hub.lease_seconds' => '', // Permanent subscription.
-      'hub.secret' => '', // @todo
+      'hub.secret' => hash('sha1', uniqid(rand(), true)),
       'hub.verify_token' => md5(session_id() . rand()),
     );
     $this->subscriptions->save($this->domain, $this->subscriber_id, $hub, $topic, $mode, $post_fields);
@@ -135,10 +133,7 @@ class PuSHSubscriber {
     curl_setopt($request, CURLOPT_RETURNTRANSFER, TRUE);
     curl_exec($request);
     $code = curl_getinfo($request, CURLINFO_HTTP_CODE);
-    if (in_array($code, array(202, 204))) {
-      $this->subscriptions->save($this->domain, $this->subscriber_id, $hub, $topic, '');
-    }
-    else {
+    if (!in_array($code, array(202, 204))) {
       $this->env->msg("Error subscribing to hub ($code)", 'error');
       $this->env->log("Error subscribing to hub ({$this->domain} / {$this->subscriber_id}, code $code)", 'error');
     }
@@ -154,11 +149,13 @@ class PuSHSubscriber {
    * $subscriber->verifySubscriptionRequest($_GET['hub_challenge']).
    */
   public function verifySubscriptionRequest($verify_fields) {
-    if ($subscription = $this->subscriptions->load($this->domain, $this->subscriber_id)) {
-      if ($verify_fields['hub_verify_token'] == $subscription['post_fields']['hub.verify_token']) {
+    if ($sub = $this->subscriptions->load($this->domain, $this->subscriber_id)) {
+      if ($verify_fields['hub_verify_token'] == $sub['post_fields']['hub.verify_token']) {
+        // Save and log subscription as verified, respond with success code.
+        $this->subscriptions->save($this->domain, $this->subscriber_id, $sub['hub'], $sub['topic'], '');
+        $this->env->log("Verified subscription for {$this->domain} / {$this->subscriber_id}");
         header('HTTP/1.1 200 "Found"', null, 200);
         print $verify_fields['hub_challenge'];
-        $this->env->log("Verified subscription for {$this->domain} / {$this->subscriber_id}");
         exit();
       }
     }
@@ -201,6 +198,9 @@ interface PuSHSubscriptionsInterface {
    *   The topic to subscribe to.
    * @param $mode
    *   The temporary mode of the subscription.
+   *   'subscribe' - subscribing to a feed.
+   *   'unsubscribe' - unsubscribing from a feed.
+   *   '' - subscribed.
    * @param $post_fields
    *   An array of the fields posted to the hub.
    */
