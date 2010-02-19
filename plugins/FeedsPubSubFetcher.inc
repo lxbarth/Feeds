@@ -97,6 +97,13 @@ class FeedsPubSubFetcher extends FeedsHTTPFetcher {
   }
 
   /**
+   * Verify a PubSubHubbub subscription request.
+   */
+  public function pushVerifyRequest($feed_nid) {
+    feeds_push_subscriber($this->id, $feed_nid)->verifyRequest();
+  }
+
+  /**
    * Return defaults for configuration.
    */
   public function configDefaults() {
@@ -129,13 +136,6 @@ class FeedsPubSubFetcher extends FeedsHTTPFetcher {
       '#default_value' => $this->config['designated_hub'],
     );
     return $form;
-  }
-
-  /**
-   * Verify a PubSubHubbub subscription request.
-   */
-  public function pushVerifyRequest($feed_nid) {
-    feeds_push_subscriber($this->id, $feed_nid)->verifyRequest();
   }
 }
 
