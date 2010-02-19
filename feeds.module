@@ -532,17 +532,20 @@ function feeds_export($importer_id, $indent = '') {
 }
 
 /**
- * Log to file.
+ * Log to a file like /mytmp/feeds_my_domain_org.log in temporary directory.
  *
- * @todo Segregate by site.
+ * @todo Document feeds_debug variable
  */
-function feeds_log($msg) {
-  if (!is_string($msg)) {
-    $msg = var_export($msg, true);
+function feeds_dbg($msg) {
+  if (variable_get('feeds_debug', false)) {
+    if (!is_string($msg)) {
+      $msg = var_export($msg, true);
+    }
+    $filename = trim(str_replace('/', '_', $_SERVER['HTTP_HOST'] . base_path()), '_');
+    $handle = fopen(file_directory_temp() ."/feeds_$filename.log", 'a');
+    fwrite($handle, date('c') ."\t$msg\n");
+    fclose($handle);
   }
-  $handle = fopen('/tmp/feeds.log', 'a');
-  fwrite($handle, date('c') ."\t$msg\n");
-  fclose($handle);
 }
 
 /**

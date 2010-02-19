@@ -49,8 +49,8 @@ class FeedsPubSubFetcher extends FeedsHTTPFetcher {
    * Implementation of FeedsFetcher::request().
    */
   public function request($feed_nid = 0) {
-    feeds_log($_GET);
-    @feeds_log(file_get_contents('php://input'));
+    feeds_dbg($_GET);
+    @feeds_dbg(file_get_contents('php://input'));
     // A subscription verification has been sent, verify.
     if (isset($_GET['hub_challenge'])) {
       $this->pushVerifyRequest($feed_nid);
@@ -263,7 +263,7 @@ class PuSHEnvironment implements PuSHSubscriberEnvironmentInterface {
         $severity = WATCHDOG_NOTICE;
         break;
     }
-    feeds_log($msg);
+    feeds_dbg($msg);
     watchdog('FeedsPubSubFetcher', $msg, array(), $severity);
   }
 }
