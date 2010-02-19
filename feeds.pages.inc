@@ -146,7 +146,7 @@ function feeds_delete_tab_form_submit($form, &$form_state) {
  */
 function feeds_fetcher_callback($importer, $feed_nid = 0) {
   if ($importer instanceof FeedsImporter) {
-    return $importer->fetcher->request($feed_nid = 0);
+    return $importer->fetcher->request($feed_nid);
   }
   drupal_access_denied();
 }
