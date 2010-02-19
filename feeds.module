@@ -126,9 +126,7 @@ function feeds_menu() {
         'weight' => 11,
       );
     }
-    if ($item = $importer->fetcher->menuItem()) {
-      $items += $item;
-    }
+    $items += $importer->fetcher->menuItem();
   }
   if (count($items)) {
     $items['import'] = array(
