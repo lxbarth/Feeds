@@ -1,4 +1,4 @@
-// $Id: feeds_ui.js,v 1.3 2010/02/18 19:33:37 alexb Exp $
+// $Id: feeds_ui.js,v 1.4 2010/02/19 15:42:15 alexb Exp $
 
 Drupal.behaviors.feeds = function() {
 
@@ -86,26 +86,5 @@ Drupal.behaviors.feeds = function() {
     // handler.
     $('#' + $(this).attr('id')).attr('checked', 1);
     $('input.form-submit.feeds-ui-hidden-submit').click();
-  });
-
-  // Show basic auth u/pw conditionally.
-  // @todo Generalize dependencies between form elements.
-  if ($('#edit-basic-auth-2').attr('checked')) {
-    $('#edit-basic-auth-user-wrapper').show();
-    $('#edit-basic-auth-password-wrapper').show();
-  }
-  else {
-    $('#edit-basic-auth-user-wrapper').hide();
-    $('#edit-basic-auth-password-wrapper').hide();
-  }
-  $('#edit-basic-auth-2').click(function() {
-    if ($(this).attr('checked')) {
-      $('#edit-basic-auth-user-wrapper').show(100);
-      $('#edit-basic-auth-password-wrapper').show(100);
-    }
-  });
-  $('#edit-basic-auth-0,#edit-basic-auth-1').click(function() {
-    $('#edit-basic-auth-user-wrapper').hide(100);
-    $('#edit-basic-auth-password-wrapper').hide(100);
   });
 };
