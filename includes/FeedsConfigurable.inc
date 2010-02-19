@@ -69,6 +69,17 @@ abstract class FeedsConfigurable {
   }
 
   /**
+   * Determine whether this object is persistent. I. e. it is defined either
+   * in code or in the database.
+   */
+  public function existing() {
+    if ($this->export_type == FEEDS_EXPORT_NONE) {
+      throw new Exception(t('Object is not persistent.'));
+    }
+    return $this;
+  }
+
+  /**
    * Save a configuration. Concrete extending classes must implement a save
    * operation.
    */

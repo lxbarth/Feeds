@@ -155,7 +155,7 @@ function feeds_push_receive($importer, $feed_nid = 0) {
     // No subscription notification has ben sent, we are being notified.
     else {
       try {
-        feeds_source($importer->id, $feed_nid)->import();
+        feeds_source($importer->id, $feed_nid)->existing()->import();
       }
       catch (Exception $e) {
         // In case of an error, respond with a 503 Service (temporary) unavailable.
