@@ -146,7 +146,7 @@ function feeds_delete_tab_form_submit($form, &$form_state) {
  */
 function feeds_push_receive($importer, $feed_nid = 0) {
   feeds_log($_GET);
-  feeds_log($_POST);
+  @ feeds_log(file_get_contents('php://input'));
   if ($importer->fetcher instanceof FeedsPubSubFetcher) {
     // A subscription verification has been sent, verify.
     if ($_GET['hub_challenge']) {
