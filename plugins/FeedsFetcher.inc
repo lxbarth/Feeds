@@ -41,11 +41,12 @@ abstract class FeedsFetcher extends FeedsPlugin {
   }
 
   /**
-   * Return callback path for this fetcher/source combination.
+   * Construct a path for a concrete fetcher/source combination. The result of
+   * this method matches up with the general path definition in
+   * FeedsFetcher::menuItem(). For example usage look at FeedsPubSubFetcher.
    *
    * @return
-   *   Path for this fetcher/source combination. Requests to this path will be
-   *   routed to FeedsFetcher::request(). The
+   *   Path for this fetcher/source combination.
    */
   public function path($feed_nid = 0) {
     if ($feed_nid) {
@@ -58,6 +59,12 @@ abstract class FeedsFetcher extends FeedsPlugin {
    * Menu item definition for fetchers of this class. Note how the path
    * component in the item definition matches the return value of
    * FeedsFetcher::path();
+   *
+   * Requests to this menu item will be routed to FeedsFetcher::request().
+   *
+   * @return
+   *   An array where the key is the Drupal menu item path and the value is
+   *   a valid Drupal menu item definition.
    */
   public function menuItem() {
     return array(
