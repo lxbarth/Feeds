@@ -204,3 +204,33 @@ class PuSHSubscriptions implements PuSHSubscriptionsInterface {
     db_query("DELETE FROM {feeds_push_subscriptions} WHERE domain = '%s' AND subscriber_id = %d", $domain, $subscriber_id);
   }
 }
+
+/**
+ * Provide environmental functions to the PuSHSubscriber library.
+ */
+class PuSHEnvironment implements PuSHSubscriberEnvironmentInterface {
+  /**
+   * Implementation of PuSHSubscriberEnvironmentInterface::msg().
+   */
+  public function msg($msg, $level = 'status') {
+    drupal_set_message($msg, $level);
+  }
+
+  /**
+   * Implementation of PuSHSubscriberEnvironmentInterface::log().
+   */
+  public function log($msg, $level = 'status') {
+    switch ($level) {
+      case 'error':
+        $severity = WATCHDOG_ERROR;
+        break;
+      case 'warning':
+        $severity = WATCHDOG_WARNING;
+        break;
+      default:
+        $severity = WATCHDOG_NOTICE;
+        break;
+    }
+    watchdog('FeedsPubSubFetcher', $msg, array(), $severity);
+  }
+}
