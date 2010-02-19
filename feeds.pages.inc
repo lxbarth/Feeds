@@ -150,7 +150,7 @@ function feeds_push_receive($importer, $feed_nid = 0) {
   if ($importer->fetcher instanceof FeedsPubSubFetcher) {
     // A subscription verification has been sent, verify.
     if ($_GET['hub_challenge']) {
-      $importer->fetcher->pushVerifySubscriptionRequest($_GET, $feed_nid);
+      $importer->fetcher->pushVerifyRequest($feed_nid);
     }
     // No subscription notification has ben sent, we are being notified.
     else {

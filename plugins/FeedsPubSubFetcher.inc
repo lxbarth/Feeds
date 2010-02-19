@@ -134,8 +134,8 @@ class FeedsPubSubFetcher extends FeedsHTTPFetcher {
   /**
    * Verify a PubSubHubbub subscription request.
    */
-  public function pushVerifySubscriptionRequest($verify_fields, $feed_nid) {
-    feeds_push_subscriber($this->id, $feed_nid)->verifySubscriptionRequest($verify_fields);
+  public function pushVerifyRequest($feed_nid) {
+    feeds_push_subscriber($this->id, $feed_nid)->verifyRequest();
   }
 }
 

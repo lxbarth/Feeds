@@ -150,22 +150,47 @@ class PuSHSubscriber {
   }
 
   /**
-   * Verify subscription request. After a hub has received a subscription
+   * Verify a request. After a hub has received a subscribe or unsubscribe
    * request (see PuSHSubscriber::request()) it sends back a challenge verifying
-   * that a subscription indeed was requested ($_GET['hub_challenge']). This
-   * method handles the challenge. Example:
-   *
-   * $subscriber->verifySubscriptionRequest($_GET['hub_challenge']).
+   * that an action indeed was requested ($_GET['hub_challenge']). This
+   * method handles the challenge.
    */
-  public function verifySubscriptionRequest($verify_fields) {
-    if ($sub = $this->loadSubscription($this->domain, $this->subscriber_id)) {
-      if ($verify_fields['hub_verify_token'] == $sub['post_fields']['hub.verify_token']) {
-        // Save and log subscription as verified, respond with success code.
-        $sub->status = 'subscribed';
-        $sub->save();
-        $this->env->log("Verified subscription for {$this->domain} / {$this->subscriber_id}");
+  public function verifyRequest() {
+    if (isset($_GET['hub_challenge'])) {
+      /**
+       * If a subscription is present, compare the verify token. If the token
+       * matches, set the status on the subscription record and confirm
+       * positive.
+       *
+       * If we cannot find a matching subscription and the hub checks on
+       * 'unsubscribe' confirm positive.
+       *
+       * In all other cases confirm negative.
+       */
+      if ($sub = $this->loadSubscription($this->domain, $this->subscriber_id)) {
+        if ($_GET['hub_verify_token'] == $sub->post_fields['hub.verify_token']) {
+          if ($_GET['hub_mode'] == $sub->status == 'subscribe') {
+            $sub->status = 'subscribed';
+            $sub->post_fields = array();
+            $sub->save();
+            $this->env->log("Verified subscribe request for {$this->domain} / {$this->subscriber_id}");
+          }
+          elseif ($_GET['hub_mode'] == $sub->status == 'unsubscribe') {
+            $sub->status = 'unsubscribed';
+            $sub->post_fields = array();
+            $sub->save();
+            $this->env->log("Verified unsubscribe request for {$this->domain} / {$this->subscriber_id}");
+          }
+          $verify = TRUE;
+        }
+      }
+      elseif ($_GET['hub_mode'] == 'unsubscribe') {
+        $this->env->log("Verified unsubscribe request for {$this->domain} / {$this->subscriber_id}");
+        $verify = TRUE;
+      }
+      if ($verify) {
         header('HTTP/1.1 200 "Found"', null, 200);
-        print $verify_fields['hub_challenge'];
+        print $_GET['hub_challenge'];
         exit();
       }
     }
@@ -221,6 +246,7 @@ interface PuSHSubscriptionInterface {
    *   'subscribe' - subscribing to a feed.
    *   'unsubscribe' - unsubscribing from a feed.
    *   'subscribed' - subscribed.
+   *   'unsubscribed' - unsubscribed.
    *   'subscribe failed' - subscribe request failed.
    *   'unsubscribe failed' - unsubscribe request failed.
    * @param $post_fields
