@@ -169,14 +169,14 @@ class PuSHSubscriber {
        */
       if ($sub = $this->loadSubscription($this->domain, $this->subscriber_id)) {
         if ($_GET['hub_verify_token'] == $sub->post_fields['hub.verify_token']) {
-          if ($_GET['hub_mode'] == $sub->status == 'subscribe') {
+          if ($_GET['hub_mode'] == 'subscribe' && $sub->status == 'subscribe') {
             $sub->status = 'subscribed';
             $sub->post_fields = array();
             $sub->save();
             $this->env->log("Verified subscribe request for {$this->domain} / {$this->subscriber_id}");
             $verify = TRUE;
           }
-          elseif ($_GET['hub_mode'] == $sub->status == 'unsubscribe') {
+          elseif ($_GET['hub_mode'] == 'unsubscribe' && $sub->status == 'unsubscribe') {
             $sub->status = 'unsubscribed';
             $sub->post_fields = array();
             $sub->save();
