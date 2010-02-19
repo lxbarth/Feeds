@@ -146,62 +146,59 @@ class FeedsPubSubFetcher extends FeedsHTTPFetcher {
  *   A PushSubscriber object.
  */
 function feeds_push_subscriber($id, $subscriber_id) {
-  return PushSubscriber::instance($id, $subscriber_id, PuSHSubscriptions::instance(), PuSHEnvironment::instance());
+  return PushSubscriber::instance($id, $subscriber_id, 'PuSHSubscription', PuSHEnvironment::instance());
 }
 
 /**
- * Implement a PuSHSubscriptionsInterface.
+ * Implement a PuSHSubscriptionInterface.
  */
-class PuSHSubscriptions implements PuSHSubscriptionsInterface {
+class PuSHSubscription implements PuSHSubscriptionInterface {
+  public $domain;
+  public $subscriber_id;
+  public $hub;
+  public $topic;
+  public $status;
+  public $secret;
+  public $post_fields;
+  public $timestamp;
+
   /**
-   * Singleton.
+   * Load a subscription.
    */
-  public static function instance() {
-    static $subscriptions;
-    if (empty($subscriptions)) {
-      $subscriptions = new PuSHSubscriptions();
+  public static function load($domain, $subscriber_id) {
+    if ($v = db_fetch_array(db_query("SELECT * FROM {feeds_push_subscriptions} WHERE domain = '%s' AND subscriber_id = %d", $domain, $subscriber_id))) {
+      $v['post_fields'] = unserialize($v['post_fields']);
+      return new PuSHSubscription($v['domain'], $v['subscriber_id'], $v['hub'], $v['topic'], $v['secret'], $v['status'], $v['post_fields'], $v['timestamp']);
     }
-    return $subscriptions;
   }
 
   /**
-   * Protect constructor.
+   * Create a subscription.
    */
-  protected function __construct() {
+  public function __construct($domain, $subscriber_id, $hub, $topic, $secret, $status = '', $post_fields = '') {
+    $this->domain = $domain;
+    $this->subscriber_id = $subscriber_id;
+    $this->hub = $hub;
+    $this->topic = $topic;
+    $this->status = $status;
+    $this->secret = $secret;
+    $this->post_fields = $post_fields;
   }
 
   /**
    * Save a subscription.
    */
-  public function save($domain, $subscriber_id, $hub, $topic, $mode, $post_fields = array()) {
-    $save = array(
-      'domain' => $domain,
-      'subscriber_id' => $subscriber_id,
-      'hub' => $hub,
-      'topic' => $topic,
-      'mode' => $mode,
-      'post_fields' => $post_fields,
-      'timestamp' => time(),
-    );
-    $this->delete($domain, $subscriber_id);
-    drupal_write_record('feeds_push_subscriptions', $save);
-  }
-
-  /**
-   * Load a subscription.
-   */
-  public function load($domain, $subscriber_id) {
-    if ($request = db_fetch_array(db_query("SELECT * FROM {feeds_push_subscriptions} WHERE domain = '%s' AND subscriber_id = %d", $domain, $subscriber_id))) {
-      $request['post_fields'] = unserialize($request['post_fields']);
-    }
-    return $request;
+  public function save() {
+    $this->timestamp = time();
+    $this->delete($this->domain, $this->subscriber_id);
+    drupal_write_record('feeds_push_subscriptions', $this);
   }
 
   /**
    * Delete a subscription.
    */
-  public function delete($domain, $subscriber_id) {
-    db_query("DELETE FROM {feeds_push_subscriptions} WHERE domain = '%s' AND subscriber_id = %d", $domain, $subscriber_id);
+  public function delete() {
+    db_query("DELETE FROM {feeds_push_subscriptions} WHERE domain = '%s' AND subscriber_id = %d", $this->domain, $this->subscriber_id);
   }
 }
 

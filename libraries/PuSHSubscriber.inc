@@ -11,7 +11,7 @@
 class PuSHSubscriber {
   protected $domain;
   protected $subscriber_id;
-  protected $subscriptions;
+  protected $subscription_class;
   protected $env;
 
   /**
@@ -24,15 +24,16 @@ class PuSHSubscriber {
    *   A string that identifies the domain in which $subscriber_id is unique.
    * @param $subscriber_id
    *   A numeric subscriber id.
-   * @param PuSHSubscriptionsInterface $subscriptions
-   *   An object to use for storing and loading subscriptions.
+   * @param $subscription_class
+   *   The class to use for handling subscriptions. Class MUST implement
+   *   PuSHSubscriberSubscriptionInterface
    * @param PuSHSubscriberEnvironmentInterface $env
    *   Environmental object for messaging and logging.
    */
-  public static function instance($domain, $subscriber_id, PuSHSubscriptionsInterface $subscriptions, PuSHSubscriberEnvironmentInterface $env) {
+  public static function instance($domain, $subscriber_id, $subscription_class, PuSHSubscriberEnvironmentInterface $env) {
     static $subscribers;
     if (!isset($subscriber[$domain][$subscriber_id])) {
-      $subscriber = new PuSHSubscriber($domain, $subscriber_id, $subscriptions, $env);
+      $subscriber = new PuSHSubscriber($domain, $subscriber_id, $subscription_class, $env);
     }
     return $subscriber;
   }
@@ -40,10 +41,10 @@ class PuSHSubscriber {
   /**
    * Protect constructor.
    */
-  protected function __construct($domain, $subscriber_id, PuSHSubscriptionsInterface $subscriptions, PuSHSubscriberEnvironmentInterface $env) {
+  protected function __construct($domain, $subscriber_id, $subscription_class, PuSHSubscriberEnvironmentInterface $env) {
     $this->domain = $domain;
     $this->subscriber_id = $subscriber_id;
-    $this->subscriptions = $subscriptions;
+    $this->subscription_class = $subscription_class;
     $this->env = $env;
   }
 
@@ -98,7 +99,9 @@ class PuSHSubscriber {
    *   The callback to unsubscribe.
    */
   public function unsubscribe($topic_url, $callback_url) {
-    $this->subscriptions->delete($this->domain, $this->subscriber_id);
+    if ($sub = $this->loadSubscription($topic_url, $callback_url)) {
+      $sub->delete();
+    }
   }
 
   /**
@@ -114,18 +117,22 @@ class PuSHSubscriber {
    *   The subscriber's notifications callback URL.
    *
    * Compare to http://pubsubhubbub.googlecode.com/svn/trunk/pubsubhubbub-core-0.2.html#anchor5
+   *
+   * @todo Make concurrency safe.
    */
   protected function request($hub, $topic, $mode, $callback_url) {
+    $secret = hash('sha1', uniqid(rand(), true));
     $post_fields = array(
       'hub.callback' => $callback_url,
       'hub.mode' => $mode,
       'hub.topic' => $topic,
       'hub.verify' => 'sync',
       'hub.lease_seconds' => '', // Permanent subscription.
-      'hub.secret' => hash('sha1', uniqid(rand(), true)),
+      'hub.secret' => $secret,
       'hub.verify_token' => md5(session_id() . rand()),
     );
-    $this->subscriptions->save($this->domain, $this->subscriber_id, $hub, $topic, $mode, $post_fields);
+    $sub = new $this->subscription_class($this->domain, $this->subscriber_id, $hub, $topic, $secret, $mode, $post_fields);
+    $sub->save();
     // Issue subscription request.
     $request = curl_init($hub);
     curl_setopt($request, CURLOPT_POST, TRUE);
@@ -134,6 +141,8 @@ class PuSHSubscriber {
     curl_exec($request);
     $code = curl_getinfo($request, CURLINFO_HTTP_CODE);
     if (!in_array($code, array(202, 204))) {
+      $sub->status = $mode .' failed';
+      $sub->save();
       $this->env->msg("Error subscribing to hub ($code)", 'error');
       $this->env->log("Error subscribing to hub ({$this->domain} / {$this->subscriber_id}, code $code)", 'error');
     }
@@ -149,10 +158,11 @@ class PuSHSubscriber {
    * $subscriber->verifySubscriptionRequest($_GET['hub_challenge']).
    */
   public function verifySubscriptionRequest($verify_fields) {
-    if ($sub = $this->subscriptions->load($this->domain, $this->subscriber_id)) {
+    if ($sub = $this->loadSubscription($this->domain, $this->subscriber_id)) {
       if ($verify_fields['hub_verify_token'] == $sub['post_fields']['hub.verify_token']) {
         // Save and log subscription as verified, respond with success code.
-        $this->subscriptions->save($this->domain, $this->subscriber_id, $sub['hub'], $sub['topic'], '');
+        $sub->status = 'subscribed';
+        $sub->save();
         $this->env->log("Verified subscription for {$this->domain} / {$this->subscriber_id}");
         header('HTTP/1.1 200 "Found"', null, 200);
         print $verify_fields['hub_challenge'];
@@ -179,15 +189,20 @@ class PuSHSubscriber {
     }
     return FALSE;
   }
+
+  /**
+   * Helper for loading a subscription.
+   */
+  protected function loadSubscription($domain, $subscriber_id) {
+    return call_user_func("{$this->subscription_class}::load", $domain, $subscriber_id);
+  }
 }
 
 /**
  * Implement to provide a storage backend for subscriptions.
  */
-interface PuSHSubscriptionsInterface {
+interface PuSHSubscriptionInterface {
   /**
-   * Save a subscription.
-   *
    * @param $domain
    *   A string that defines the domain in which the subscriber_id is unique.
    * @param $subscriber_id
@@ -196,25 +211,38 @@ interface PuSHSubscriptionsInterface {
    *   The URL of the hub endpoint.
    * @param $topic
    *   The topic to subscribe to.
-   * @param $mode
-   *   The temporary mode of the subscription.
+   * @param $secret
+   *   A secret key used for message authentication.
+   * @param $status
+   *   The status of the subscription.
    *   'subscribe' - subscribing to a feed.
    *   'unsubscribe' - unsubscribing from a feed.
-   *   '' - subscribed.
+   *   'subscribed' - subscribed.
+   *   'subscribe failed' - subscribe request failed.
+   *   'unsubscribe failed' - unsubscribe request failed.
    * @param $post_fields
    *   An array of the fields posted to the hub.
    */
-  public function save($domain, $subscriber_id, $hub, $topic, $mode, $post_fields = array());
+  public function __construct($domain, $subscriber_id, $hub, $topic, $secret, $status = '', $post_fields = '');
+
+  /**
+   * Save a subscription.
+   */
+  public function save();
 
   /**
    * Load a subscription.
+   *
+   * @return
+   *   A PuSHSubscriptionInterface object if a subscription exist, NULL
+   *   otherwise.
    */
-  public function load($domain, $subscriber_id);
+  public static function load($domain, $subscriber_id);
 
   /**
    * Delete a subscription.
    */
-  public function delete($domain, $subscriber_id);
+  public function delete();
 }
 
 /**
