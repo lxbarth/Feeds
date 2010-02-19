@@ -79,7 +79,7 @@ class PuSHSubscriber {
     }
     curl_close($request);
     // Fall back to $url if $self is not given.
-    if ($self) {
+    if (!isset($self)) {
       $self = $url;
     }
     if (!empty($hub) && !empty($self)) {
