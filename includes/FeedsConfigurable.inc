@@ -7,6 +7,12 @@
  */
 
 /**
+ * Used when an object does not exist in the DB or code but should.
+ */
+class FeedsNotExistingException {
+}
+
+/**
  * A configurable class.
  */
 abstract class FeedsConfigurable {
@@ -74,7 +80,7 @@ abstract class FeedsConfigurable {
    */
   public function existing() {
     if ($this->export_type == FEEDS_EXPORT_NONE) {
-      throw new Exception(t('Object is not persistent.'));
+      throw new FeedsNotExistingException(t('Object is not persistent.'));
     }
     return $this;
   }
