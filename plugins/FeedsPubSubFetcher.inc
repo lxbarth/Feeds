@@ -84,9 +84,6 @@ class FeedsPubSubFetcher extends FeedsHTTPFetcher {
 
   /**
    * Implement FeedsFetcher::subscribe() - subscribe to hub.
-   *
-   * @todo Abstract out KeyAuth integration, this is not at all pub/sub
-   * specific.
    */
   public function subscribe(FeedsSource $source) {
     $source_config = $source->getConfigFor($this);
