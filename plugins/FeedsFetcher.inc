@@ -30,9 +30,14 @@ abstract class FeedsFetcher extends FeedsPlugin {
   /**
    * Request handler invoked if callback URL is requested. Locked down by
    * default. For an example use see FeedsPubSubFetcher.
+   *
+   * Method may exit the script.
+   *
+   * @return
+   *   A string to be returned to the client.
    */
   public function request($feed_nid = 0) {
-    return drupal_access_denied();
+    drupal_access_denied();
   }
 
   /**
@@ -58,7 +63,7 @@ abstract class FeedsFetcher extends FeedsPlugin {
     return array(
       'feeds/fetcher/%feeds_importer' => array(
         'page callback' => 'feeds_fetcher_callback',
-        'page arguments' => array(3, 4),
+        'page arguments' => array(2, 3),
         'access callback' => TRUE,
         'file' => 'feeds.pages.inc',
         'type' => MENU_CALLBACK,

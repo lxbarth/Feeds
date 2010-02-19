@@ -52,7 +52,7 @@ class FeedsPubSubFetcher extends FeedsHTTPFetcher {
     feeds_log($_GET);
     @feeds_log(file_get_contents('php://input'));
     // A subscription verification has been sent, verify.
-    if ($_GET['hub_challenge']) {
+    if (isset($_GET['hub_challenge'])) {
       $this->pushVerifyRequest($feed_nid);
     }
     // No subscription notification has ben sent, we are being notified.
@@ -66,6 +66,8 @@ class FeedsPubSubFetcher extends FeedsHTTPFetcher {
         exit();
       }
     }
+    // Will generate the default 200 response.
+    return '';
   }
 
   /**
