@@ -200,6 +200,9 @@ class PuSHSubscriber {
 
 /**
  * Implement to provide a storage backend for subscriptions.
+ *
+ * Variables passed in to the constructor must be accessible as public class
+ * variables.
  */
 interface PuSHSubscriptionInterface {
   /**
