@@ -174,14 +174,15 @@ class PuSHSubscriber {
             $sub->post_fields = array();
             $sub->save();
             $this->env->log("Verified subscribe request for {$this->domain} / {$this->subscriber_id}");
+            $verify = TRUE;
           }
           elseif ($_GET['hub_mode'] == $sub->status == 'unsubscribe') {
             $sub->status = 'unsubscribed';
             $sub->post_fields = array();
             $sub->save();
             $this->env->log("Verified unsubscribe request for {$this->domain} / {$this->subscriber_id}");
+            $verify = TRUE;
           }
-          $verify = TRUE;
         }
       }
       elseif ($_GET['hub_mode'] == 'unsubscribe') {
