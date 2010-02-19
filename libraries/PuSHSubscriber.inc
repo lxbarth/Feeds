@@ -153,10 +153,12 @@ class PuSHSubscriber {
       if ($verify_fields['hub_verify_token'] == $subscription['post_fields']['hub.verify_token']) {
         header('HTTP/1.1 200 "Found"', null, 200);
         print $verify_fields['hub_challenge'];
+ feed_log("VERIFIED");
         exit();
       }
     }
     header('HTTP/1.1 404 "Not Found"', null, 404);
+ feed_log("verification failed.");
     exit();
   }
 
