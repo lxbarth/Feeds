@@ -9,7 +9,7 @@
 /**
  * Used when an object does not exist in the DB or code but should.
  */
-class FeedsNotExistingException {
+class FeedsNotExistingException extends Exception {
 }
 
 /**
