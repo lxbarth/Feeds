@@ -99,7 +99,7 @@ class PuSHSubscriber {
    *   The callback to unsubscribe.
    */
   public function unsubscribe($topic_url, $callback_url) {
-    if ($sub = $this->loadSubscription($topic_url, $callback_url)) {
+    if ($sub = $this->loadSubscription()) {
       $this->request($sub->hub, $sub->topic, 'unsubscribe', $callback_url);
       $sub->delete();
     }
@@ -168,7 +168,7 @@ class PuSHSubscriber {
        *
        * In all other cases confirm negative.
        */
-      if ($sub = $this->loadSubscription($this->domain, $this->subscriber_id)) {
+      if ($sub = $this->loadSubscription()) {
         if ($_GET['hub_verify_token'] == $sub->post_fields['hub.verify_token']) {
           if ($_GET['hub_mode'] == 'subscribe' && $sub->status == 'subscribe') {
             $sub->status = 'subscribed';
@@ -204,14 +204,43 @@ class PuSHSubscriber {
   /**
    * Receive a notification.
    *
+   * @param $ignore_signature
+   *   If FALSE, only accept payload if there is a signature present and the
+   *   signature matches the payload. Warning: setting to TRUE results in
+   *   unsafe behavior.
+   *
    * @return
-   *   An XML string if the received notification is XML, FALSE otherwise.
+   *   An XML string that is the payload of the notification if valid, FALSE
+   *   otherwise.
    */
-  public function receive() {
+  public function receive($ignore_signature = FALSE) {
+    /**
+     * Verification steps:
+     *
+     * 1) Verify that this is indeed a POST reuest.
+     * 2) Verify that posted string is XML.
+     * 3) Per default verify sender of message by checking the message's
+     *    signature against the shared secret.
+     */
     if ($_SERVER['REQUEST_METHOD'] == 'POST') {
       $raw = file_get_contents('php://input');
       if (@simplexml_load_string($raw)) {
-        return $raw;
+        if ($ignore_signature) {
+          return $raw;
+        }
+        if (isset($_SERVER['HTTP_X_HUB_SIGNATURE']) && ($sub = $this->loadSubscription())) {
+          $result = array();
+          parse_str($_SERVER['HTTP_X_HUB_SIGNATURE'], $result);
+          if (isset($result['sha1']) && $result['sha1'] == hash_hmac('sha1', $raw, $sub->secret)) {
+            return $raw;
+          }
+          else {
+            $this->env->log('Could not verify signature.', 'error');
+          }
+        }
+        else {
+          $this->env->log('No signature present.', 'error');
+        }
       }
     }
     return FALSE;
@@ -220,8 +249,8 @@ class PuSHSubscriber {
   /**
    * Helper for loading a subscription.
    */
-  protected function loadSubscription($domain, $subscriber_id) {
-    return call_user_func("{$this->subscription_class}::load", $domain, $subscriber_id);
+  protected function loadSubscription() {
+    return call_user_func("{$this->subscription_class}::load", $this->domain, $this->subscriber_id);
   }
 }
 

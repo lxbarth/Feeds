@@ -39,7 +39,7 @@ class FeedsPubSubFetcher extends FeedsHTTPFetcher {
   public function fetch(FeedsSource $source) {
     $source_config = $source->getConfigFor($this);
     // Handle fat ping if present, otherwise pass up to HTTP fetcher.
-    if ($raw = feeds_push_subscriber($this->id, $source->feed_nid)->receive()) {
+    if ($raw = feeds_push_subscriber($this->id, $source->feed_nid)->receive($this->config['ignore_signature'])) {
       return new FeedsPubSubBatch($raw);
     }
     return parent::fetch($source);
@@ -128,6 +128,7 @@ class FeedsPubSubFetcher extends FeedsHTTPFetcher {
     return $defaults + array(
       'subscription_period' => 3600*24, // Renew subscription in 24 hours.
       'designated_hub' => '',
+      'ignore_signature' => FALSE,
     );
   }
 
@@ -151,6 +152,12 @@ class FeedsPubSubFetcher extends FeedsHTTPFetcher {
       '#title' => t('Designated hub'),
       '#description' => t('Enter the callback URL of a designated hub. If given, this hub will be used instead of the hub specified in the feed source.'),
       '#default_value' => $this->config['designated_hub'],
+    );
+    $form['ignore_signature'] = array(
+      '#type' => 'checkbox',
+      '#title' => t('Ignore signatures'),
+      '#description' => t('Check to ignore signatures on notifications. <strong>Warning:</strong> Ignoring signatures results in unsafe behavior. Potential attackers can post any content without authentication.'),
+      '#default_value' => $this->config['ignore_signature'],
     );
     return $form;
   }
