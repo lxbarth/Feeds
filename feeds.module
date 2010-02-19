@@ -126,6 +126,9 @@ function feeds_menu() {
         'weight' => 11,
       );
     }
+    if ($item = $importer->fetcher->menuItem()) {
+      $items += $item;
+    }
   }
   if (count($items)) {
     $items['import'] = array(
@@ -135,13 +138,6 @@ function feeds_menu() {
       'file' => 'feeds.pages.inc',
     );
   }
-  $items['feeds/pubsubhubbub/notify/%feeds_importer'] = array(
-   'page callback' => 'feeds_push_receive',
-   'page arguments' => array(3, 4),
-   'access callback' => TRUE,
-   'file' => 'feeds.pages.inc',
-   'type' => MENU_CALLBACK,
-  );
   return $items;
 }
 

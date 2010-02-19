@@ -46,6 +46,29 @@ class FeedsPubSubFetcher extends FeedsHTTPFetcher {
   }
 
   /**
+   * Implementation of FeedsFetcher::request().
+   */
+  public function request($feed_nid = 0) {
+    feeds_log($_GET);
+    @feeds_log(file_get_contents('php://input'));
+    // A subscription verification has been sent, verify.
+    if ($_GET['hub_challenge']) {
+      $this->pushVerifyRequest($feed_nid);
+    }
+    // No subscription notification has ben sent, we are being notified.
+    else {
+      try {
+        feeds_source($this->id, $feed_nid)->existing()->import();
+      }
+      catch (Exception $e) {
+        // In case of an error, respond with a 503 Service (temporary) unavailable.
+        header('HTTP/1.1 503 "Not Found"', null, 503);
+        exit();
+      }
+    }
+  }
+
+  /**
    * Override sourceSave() - subscribe to hub.
    */
   public function sourceSave(FeedsSource $source) {
@@ -67,12 +90,7 @@ class FeedsPubSubFetcher extends FeedsHTTPFetcher {
    */
   public function subscribe(FeedsSource $source) {
     $source_config = $source->getConfigFor($this);
-    $url = $source_config['source'];
-    if (module_exists('keyauth') && $this->config['use_keyauth']) {
-      keyauth_include();
-      $url = keyauth_sign_url($this->config['keyauth_public'], $url);
-    }
-    feeds_push_subscriber($this->id, $source->feed_nid)->subscribe($url, url('feeds/pubsubhubbub/notify/'. $this->id .'/'. $source->feed_nid, array('absolute' => TRUE)), valid_url($this->config['designated_hub']) ? $this->config['designated_hub'] : '');
+    feeds_push_subscriber($this->id, $source->feed_nid)->subscribe($source_config['source'], url($this->path($source->feed_nid), array('absolute' => TRUE)), valid_url($this->config['designated_hub']) ? $this->config['designated_hub'] : '');
   }
 
   /**
@@ -80,7 +98,7 @@ class FeedsPubSubFetcher extends FeedsHTTPFetcher {
    */
   public function unsubscribe(FeedsSource $source) {
     $source_config = $source->getConfigFor($this);
-    feeds_push_subscriber($this->id, $source->feed_nid)->unsubscribe($source_config['source'], url('feeds/pubsubhubbub/notify/'. $this->id .'/'. $source->feed_nid, array('absolute' => TRUE)));
+    feeds_push_subscriber($this->id, $source->feed_nid)->unsubscribe($source_config['source'], url($this->path($source->feed_nid), array('absolute' => TRUE)));
   }
 
   /**

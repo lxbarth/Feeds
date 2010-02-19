@@ -49,4 +49,43 @@ abstract class FeedsFetcher extends FeedsPlugin {
   public function subscriptionPeriod() {
     return FEEDS_SCHEDULE_NEVER;
   }
+
+  /**
+   * Request handler invoked if callback URL is requested. Locked down by
+   * default. For an example use see FeedsPubSubFetcher.
+   */
+  public function request($feed_nid = 0) {
+    return drupal_access_denied();
+  }
+
+  /**
+   * Return callback path for this fetcher/source combination.
+   *
+   * @return
+   *   Path for this fetcher/source combination. Requests to this path will be
+   *   routed to FeedsFetcher::request(). The
+   */
+  public function path($feed_nid = 0) {
+    if ($feed_nid) {
+      return urlencode('feeds/fetcher/'. $this->id .'/'. $feed_nid);
+    }
+    return urlencode('feeds/fetcher/'. $this->id);
+  }
+
+  /**
+   * Menu item definition for fetchers of this class. Note how the path
+   * component in the item definition matches the return value of
+   * FeedsFetcher::path();
+   */
+  public function menuItem() {
+    return array(
+      'feeds/fetcher/%feeds_importer' => array(
+        'page callback' => 'feeds_fetcher_callback',
+        'page arguments' => array(3, 4),
+        'access callback' => TRUE,
+        'file' => 'feeds.pages.inc',
+        'type' => MENU_CALLBACK,
+        ),
+      );
+  }
 }

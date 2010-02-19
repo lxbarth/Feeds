@@ -142,26 +142,8 @@ function feeds_delete_tab_form_submit($form, &$form_state) {
 }
 
 /**
- * Handle a PubsubHubbub notification.
+ * Handle a fetcher callback.
  */
-function feeds_push_receive($importer, $feed_nid = 0) {
-  feeds_log($_GET);
-  @ feeds_log(file_get_contents('php://input'));
-  if ($importer->fetcher instanceof FeedsPubSubFetcher) {
-    // A subscription verification has been sent, verify.
-    if ($_GET['hub_challenge']) {
-      $importer->fetcher->pushVerifyRequest($feed_nid);
-    }
-    // No subscription notification has ben sent, we are being notified.
-    else {
-      try {
-        feeds_source($importer->id, $feed_nid)->existing()->import();
-      }
-      catch (Exception $e) {
-        // In case of an error, respond with a 503 Service (temporary) unavailable.
-        header('HTTP/1.1 503 "Not Found"', null, 503);
-        exit();
-      }
-    }
-  }
+function feeds_fetcher_callback($importer, $feed_nid = 0) {
+  $importer->fetcher->request($feed_nid = 0);
 }
