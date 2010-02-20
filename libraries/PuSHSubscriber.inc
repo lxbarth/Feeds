@@ -141,11 +141,14 @@ class PuSHSubscriber {
     curl_setopt($request, CURLOPT_RETURNTRANSFER, TRUE);
     curl_exec($request);
     $code = curl_getinfo($request, CURLINFO_HTTP_CODE);
-    if (!in_array($code, array(202, 204))) {
+    if (in_array($code, array(202, 204))) {
+      $this->log("Successfully issued $mode request");
+    }
+    else {
       $sub->status = $mode .' failed';
       $sub->save();
-      $this->msg("Error subscribing to hub ($code)", 'error');
-      $this->log("Error subscribing to hub ($code)", 'error');
+      $this->msg("Error issuing $mode request ($code)", 'error');
+      $this->log("Error issuing $mode request ($code)", 'error');
     }
     curl_close($request);
   }
