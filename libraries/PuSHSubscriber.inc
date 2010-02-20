@@ -62,6 +62,7 @@ class PuSHSubscriber {
    *   at $url.
    */
   public function subscribe($url, $callback_url, $hub = '') {
+    feeds_dbg(func_get_args());
     // Fetch document, find rel=hub and rel=self.
     // If present, issue subscription request.
     $request = curl_init($url);
@@ -80,7 +81,7 @@ class PuSHSubscriber {
     }
     curl_close($request);
     // Fall back to $url if $self is not given.
-    if (!isset($self)) {
+    if (!$self) {
       $self = $url;
     }
     if (!empty($hub) && !empty($self)) {
@@ -142,13 +143,13 @@ class PuSHSubscriber {
     curl_exec($request);
     $code = curl_getinfo($request, CURLINFO_HTTP_CODE);
     if (in_array($code, array(202, 204))) {
-      $this->log("Successfully issued $mode request");
+      $this->log("Positive response to '$mode' request ($code).");
     }
     else {
       $sub->status = $mode .' failed';
       $sub->save();
-      $this->msg("Error issuing $mode request ($code)", 'error');
-      $this->log("Error issuing $mode request ($code)", 'error');
+      $this->msg("Error issuing '$mode' request ($code).", 'error');
+      $this->log("Error issuing '$mode' request ($code).", 'error');
     }
     curl_close($request);
   }
@@ -259,14 +260,14 @@ class PuSHSubscriber {
   /**
    * Helper for messaging.
    */
-  protected function msg($msg, $level) {
+  protected function msg($msg, $level = 'status') {
     $this->env->msg($msg, $level);
   }
 
   /**
    * Helper for logging.
    */
-  protected function log($msg, $level) {
+  protected function log($msg, $level = 'status') {
     $this->env->log("{$this->domain}:{$this->subscriber_id}\t$msg", $level);
   }
 }
