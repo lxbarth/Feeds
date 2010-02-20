@@ -143,13 +143,13 @@ class PuSHSubscriber {
     curl_exec($request);
     $code = curl_getinfo($request, CURLINFO_HTTP_CODE);
     if (in_array($code, array(202, 204))) {
-      $this->log("Positive response to '$mode' request ($code).");
+      $this->log("Positive response to \"$mode\" request ($code).");
     }
     else {
       $sub->status = $mode .' failed';
       $sub->save();
-      $this->msg("Error issuing '$mode' request ($code).", 'error');
-      $this->log("Error issuing '$mode' request ($code).", 'error');
+      $this->msg("Error issuing \"$mode\" request ($code).", 'error');
+      $this->log("Error issuing \"$mode\" request ($code).", 'error');
     }
     curl_close($request);
   }
@@ -178,20 +178,20 @@ class PuSHSubscriber {
             $sub->status = 'subscribed';
             $sub->post_fields = array();
             $sub->save();
-            $this->log('Verified subscribe request.');
+            $this->log('Verified "subscribe" request.');
             $verify = TRUE;
           }
           elseif ($_GET['hub_mode'] == 'unsubscribe' && $sub->status == 'unsubscribe') {
             $sub->status = 'unsubscribed';
             $sub->post_fields = array();
             $sub->save();
-            $this->log('Verified unsubscribe request.');
+            $this->log('Verified "unsubscribe" request.');
             $verify = TRUE;
           }
         }
       }
       elseif ($_GET['hub_mode'] == 'unsubscribe') {
-        $this->log('Verified unsubscribe request.');
+        $this->log('Verified "unsubscribe" request.');
         $verify = TRUE;
       }
       if ($verify) {
