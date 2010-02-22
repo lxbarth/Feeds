@@ -159,7 +159,7 @@ class FeedsScheduler implements FeedsSchedulerInterface {
   public function work($job) {
     $importer = feeds_importer($job['id']);
     try {
-      if (FEEDS_BATCH_COMPLETE == $importer->work($job)) {
+      if (FEEDS_BATCH_COMPLETE == $importer->existing()->work($job)) {
         $this->finished($job);
       }
     }
