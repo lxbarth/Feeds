@@ -120,8 +120,6 @@ class FeedsImporter extends FeedsConfigurable {
           return 3600;
         }
         return FEEDS_SCHEDULE_NEVER;
-      case 'subscribe':
-        return $this->fetcher->subscriptionPeriod();
     }
   }
 

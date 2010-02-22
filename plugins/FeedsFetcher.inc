@@ -93,11 +93,4 @@ abstract class FeedsFetcher extends FeedsPlugin {
    *   Source information for unsubscribing.
    */
   public function unsubscribe(FeedsSource $source) {}
-
-  /**
-   * Indicate the time within which a subscription needs to be renewed.
-   */
-  public function subscriptionPeriod() {
-    return FEEDS_SCHEDULE_NEVER;
-  }
 }

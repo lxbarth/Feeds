@@ -94,7 +94,6 @@ class FeedsHTTPFetcher extends FeedsFetcher {
   public function configDefaults() {
     return array(
       'use_pubsubhubbub' => TRUE,
-      'subscription_period' => 3600*24, // Renew subscription in 24 hours.
       'designated_hub' => '',
     );
   }
@@ -111,13 +110,6 @@ class FeedsHTTPFetcher extends FeedsFetcher {
       '#title' => t('Use PubSubHubbub'),
       '#description' => t('Attempt to use a PubSubHubbub subscription if available.'),
       '#default_value' => $this->config['use_pubsubhubbub'],
-    );
-    $form['subscription_period'] = array(
-      '#type' => 'select',
-      '#title' => t('Renew subscription after'),
-      '#options' => $period,
-      '#description' => t('This is the minimum time that must elapse before a PubSubHubbub subscription is renewed.'),
-      '#default_value' => $this->config['subscription_period'],
     );
     $form['designated_hub'] = array(
       '#type' => 'textfield',
@@ -172,19 +164,6 @@ class FeedsHTTPFetcher extends FeedsFetcher {
   public function unsubscribe(FeedsSource $source) {
     $source_config = $source->getConfigFor($this);
     $this->subscriber($source->feed_nid)->unsubscribe($source_config['source'], url($this->path($source->feed_nid), array('absolute' => TRUE)));
-  }
-
-  /**
-   * Implement FeedsFetcher::subscriptionPeriod().
-   * Indicate how often a subscription needs to be renewed.
-   *
-   * @todo subscription_period should actually be retrieved from the hub's
-   *   response to a subscription. This will mean a different subscription
-   *   period per source, hence a major change to FeedsScheduler which is
-   *   currently assuming a fixed period per task!
-   */
-  public function subscriptionPeriod() {
-    return $this->config['subscription_period'];
   }
 
   /**
