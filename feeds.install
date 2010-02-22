@@ -188,7 +188,7 @@ function feeds_schema() {
     ),
   );
   $schema['feeds_push_subscriptions'] = array(
-    'description' => 'PubsubHubbub subscriptions.',
+    'description' => 'PubSubHubbub subscriptions.',
     'fields' => array(
       'domain' => array(
         'type' => 'varchar',
@@ -430,7 +430,7 @@ function feeds_update_6008() {
 function feeds_update_6009() {
   $ret = array();
   $table = array(
-    'description' => 'PubsubHubbub subscriptions.',
+    'description' => 'PubSubHubbub subscriptions.',
     'fields' => array(
       'domain' => array(
         'type' => 'varchar',

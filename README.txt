@@ -51,11 +51,6 @@ Installation
 - To use SimplePie parser, download SimplePie and place simplepie.inc into
   feeds/libraries.
   http://simplepie.org/
-- To use Superfeer as a designated PubSubHubbub hub, choose PubSubHubbub Fetcher
-  as your fetcher, click on 'settings' and add the Superfeedr hub URL as
-  designated hub. Note that Superfeedr's hub requires HTTP basic authentication,
-  so the URL will look something like: http://user:pw@superfeedr.com/hubbub
-  http://superfeedr.com/
 
 Libraries support
 =================
@@ -93,6 +88,10 @@ Hidden settings
 Hidden settings are variables that you can define by adding them to the $conf
 array in your settings.php file.
 
+Name:        feeds_debug
+Default:     FALSE
+Description: Set to TRUE for enabling debug output to
+             /DRUPALTMPDIR/feeds_[sitename].log
 
 Name:        feeds_importer_class
 Default:     'FeedsImporter'

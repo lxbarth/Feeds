@@ -26,14 +26,14 @@ class FeedsBatch {
  *
  * A Fetcher must return a FeedsImportBatch object on fetch(). To that end it
  * can use one of the existing FeedsImportBatch classes (FeedsImportBatch,
- * FeedsFileBatch or FeedsHTTPBatch) or provide its own as an extension of
- * FeedsImportBatch.
+ * FeedsFileBatch or FeedsHTTPBatch) or provide its own as a direct or indirect
+ * extension of FeedsImportBatch.
  *
  * A Parser must populate a FeedsImportBatch object through the set methods upon
  * parse(). For instance:
  *
- * $batch->setTitle('My imported document');
  * $batch->setItems($parsed_rows);
+ * $batch->setTitle('My imported document');
  *
  * Finally, a processor can work off the information produced on the parsing
  * stage by consuming items with $batch->shiftItem().

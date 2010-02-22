@@ -286,7 +286,7 @@ function feeds_nodeapi(&$node, $op, $form) {
         if ($op == 'insert' && feeds_importer($importer_id)->config['import_on_create'] && !isset($node->feeds['suppress_import'])) {
           feeds_batch_set(t('Importing'), 'import', $importer_id, $node->nid);
         }
-        // Add import and subscribe to scheduler.
+        // Add import to scheduler.
         feeds_scheduler()->add($importer_id, 'import', $node->nid);
         // Add expiry to schedule, in case this is the first feed of this
         // configuration.
@@ -295,7 +295,6 @@ function feeds_nodeapi(&$node, $op, $form) {
       case 'delete':
         // Remove feed from scheduler and delete source.
         feeds_scheduler()->remove($importer_id, 'import', $node->nid);
-        feeds_scheduler()->remove($importer_id, 'subscribe', $node->nid);
         feeds_source($importer_id, $node->nid)->delete();
         break;
     }
@@ -532,8 +531,6 @@ function feeds_export($importer_id, $indent = '') {
 
 /**
  * Log to a file like /mytmp/feeds_my_domain_org.log in temporary directory.
- *
- * @todo Document feeds_debug variable
  */
 function feeds_dbg($msg) {
   if (variable_get('feeds_debug', false)) {

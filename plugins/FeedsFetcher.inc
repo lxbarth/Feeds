@@ -29,9 +29,9 @@ abstract class FeedsFetcher extends FeedsPlugin {
 
   /**
    * Request handler invoked if callback URL is requested. Locked down by
-   * default. For an example use see FeedsPubSubFetcher.
+   * default. For a example usage see FeedsHTTPFetcher.
    *
-   * Method may exit the script.
+   * Note: this method may exit the script.
    *
    * @return
    *   A string to be returned to the client.
@@ -43,7 +43,7 @@ abstract class FeedsFetcher extends FeedsPlugin {
   /**
    * Construct a path for a concrete fetcher/source combination. The result of
    * this method matches up with the general path definition in
-   * FeedsFetcher::menuItem(). For example usage look at FeedsPubSubFetcher.
+   * FeedsFetcher::menuItem(). For example usage look at FeedsHTTPFetcher.
    *
    * @return
    *   Path for this fetcher/source combination.

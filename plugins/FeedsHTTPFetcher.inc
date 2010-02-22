@@ -272,6 +272,6 @@ class PuSHEnvironment implements PuSHSubscriberEnvironmentInterface {
         break;
     }
     feeds_dbg($msg);
-    watchdog('FeedsPubSubFetcher', $msg, array(), $severity);
+    watchdog('FeedsHTTPFetcher', $msg, array(), $severity);
   }
 }
