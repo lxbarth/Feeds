@@ -50,9 +50,9 @@ abstract class FeedsFetcher extends FeedsPlugin {
    */
   public function path($feed_nid = 0) {
     if ($feed_nid) {
-      return urlencode('feeds/fetcher/'. $this->id .'/'. $feed_nid);
+      return urlencode('feeds/importer/'. $this->id .'/'. $feed_nid);
     }
-    return urlencode('feeds/fetcher/'. $this->id);
+    return urlencode('feeds/importer/'. $this->id);
   }
 
   /**
@@ -68,7 +68,7 @@ abstract class FeedsFetcher extends FeedsPlugin {
    */
   public function menuItem() {
     return array(
-      'feeds/fetcher/%feeds_importer' => array(
+      'feeds/importer/%feeds_importer' => array(
         'page callback' => 'feeds_fetcher_callback',
         'page arguments' => array(2, 3),
         'access callback' => TRUE,
