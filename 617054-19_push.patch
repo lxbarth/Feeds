@@ -8,32 +8,31 @@ RCS file: /cvs/drupal-contrib/contributions/modules/feeds/README.txt,v
 retrieving revision 1.20
 diff -u -p -r1.20 README.txt
 --- README.txt	20 Feb 2010 16:12:35 -0000	1.20
-+++ README.txt	22 Feb 2010 03:29:30 -0000
-@@ -51,6 +51,11 @@ Installation
- - To use SimplePie parser, download SimplePie and place simplepie.inc into
-   feeds/libraries.
-   http://simplepie.org/
-+- To use Superfeer as a designated PubSubHubbub hub, choose PubSubHubbub Fetcher
-+  as your fetcher, click on 'settings' and add the Superfeedr hub URL as
-+  designated hub. Note that Superfeedr's hub requires HTTP basic authentication,
-+  so the URL will look something like: http://user:pw@superfeedr.com/hubbub
-+  http://superfeedr.com/
++++ README.txt	22 Feb 2010 03:41:19 -0000
+@@ -88,6 +88,10 @@ Hidden settings
+ Hidden settings are variables that you can define by adding them to the $conf
+ array in your settings.php file.
  
- Libraries support
- =================
++Name:        feeds_debug
++Default:     FALSE
++Description: Set to TRUE for enabling debug output to
++             /DRUPALTMPDIR/feeds_[sitename].log
+ 
+ Name:        feeds_importer_class
+ Default:     'FeedsImporter'
 Index: feeds.install
 ===================================================================
 RCS file: /cvs/drupal-contrib/contributions/modules/feeds/feeds.install,v
 retrieving revision 1.6
 diff -u -p -r1.6 feeds.install
 --- feeds.install	10 Feb 2010 23:49:35 -0000	1.6
-+++ feeds.install	22 Feb 2010 03:29:31 -0000
++++ feeds.install	22 Feb 2010 03:41:19 -0000
 @@ -187,6 +187,66 @@ function feeds_schema() {
        'guid' => array(array('guid', 255)),
      ),
    );
 +  $schema['feeds_push_subscriptions'] = array(
-+    'description' => 'PubsubHubbub subscriptions.',
++    'description' => 'PubSubHubbub subscriptions.',
 +    'fields' => array(
 +      'domain' => array(
 +        'type' => 'varchar',
@@ -109,7 +108,7 @@ diff -u -p -r1.6 feeds.install
 +function feeds_update_6009() {
 +  $ret = array();
 +  $table = array(
-+    'description' => 'PubsubHubbub subscriptions.',
++    'description' => 'PubSubHubbub subscriptions.',
 +    'fields' => array(
 +      'domain' => array(
 +        'type' => 'varchar',
@@ -177,7 +176,7 @@ RCS file: /cvs/drupal-contrib/contributions/modules/feeds/feeds.module,v
 retrieving revision 1.29
 diff -u -p -r1.29 feeds.module
 --- feeds.module	10 Feb 2010 23:49:35 -0000	1.29
-+++ feeds.module	22 Feb 2010 03:29:31 -0000
++++ feeds.module	22 Feb 2010 03:41:19 -0000
 @@ -126,6 +126,7 @@ function feeds_menu() {
          'weight' => 11,
        );
@@ -186,13 +185,11 @@ diff -u -p -r1.29 feeds.module
    }
    if (count($items)) {
      $items['import'] = array(
-@@ -529,6 +530,23 @@ function feeds_export($importer_id, $ind
+@@ -529,6 +530,21 @@ function feeds_export($importer_id, $ind
  }
  
  /**
 + * Log to a file like /mytmp/feeds_my_domain_org.log in temporary directory.
-+ *
-+ * @todo Document feeds_debug variable
 + */
 +function feeds_dbg($msg) {
 +  if (variable_get('feeds_debug', false)) {
@@ -216,7 +213,7 @@ RCS file: /cvs/drupal-contrib/contributions/modules/feeds/feeds.pages.inc,v
 retrieving revision 1.9
 diff -u -p -r1.9 feeds.pages.inc
 --- feeds.pages.inc	10 Feb 2010 23:49:35 -0000	1.9
-+++ feeds.pages.inc	22 Feb 2010 03:29:31 -0000
++++ feeds.pages.inc	22 Feb 2010 03:41:19 -0000
 @@ -139,3 +139,13 @@ function feeds_delete_tab_form_submit($f
    $form_state['redirect'] = $form['#redirect'];
    feeds_batch_set(t('Deleting'), 'clear', $form['#importer_id'], empty($form['#feed_nid']) ? 0 : $form['#feed_nid']);
@@ -237,7 +234,7 @@ RCS file: /cvs/drupal-contrib/contributions/modules/feeds/feeds_ui/feeds_ui.js,v
 retrieving revision 1.4
 diff -u -p -r1.4 feeds_ui.js
 --- feeds_ui/feeds_ui.js	19 Feb 2010 15:42:15 -0000	1.4
-+++ feeds_ui/feeds_ui.js	22 Feb 2010 03:29:31 -0000
++++ feeds_ui/feeds_ui.js	22 Feb 2010 03:41:20 -0000
 @@ -87,4 +87,21 @@ Drupal.behaviors.feeds = function() {
      $('#' + $(this).attr('id')).attr('checked', 1);
      $('input.form-submit.feeds-ui-hidden-submit').click();
@@ -266,8 +263,8 @@ RCS file: /cvs/drupal-contrib/contributions/modules/feeds/includes/FeedsBatch.in
 retrieving revision 1.5
 diff -u -p -r1.5 FeedsBatch.inc
 --- includes/FeedsBatch.inc	18 Feb 2010 16:01:19 -0000	1.5
-+++ includes/FeedsBatch.inc	22 Feb 2010 03:29:31 -0000
-@@ -25,13 +25,9 @@ class FeedsBatch {
++++ includes/FeedsBatch.inc	22 Feb 2010 03:41:20 -0000
+@@ -25,19 +25,15 @@ class FeedsBatch {
   * and processing stage where it is normalized and consumed.
   *
   * A Fetcher must return a FeedsImportBatch object on fetch(). To that end it
@@ -279,11 +276,18 @@ diff -u -p -r1.5 FeedsBatch.inc
 - * - getFilePath() returning a path to a file containing the raw content from
 - *   the source.
 + * can use one of the existing FeedsImportBatch classes (FeedsImportBatch,
-+ * FeedsFileBatch or FeedsHTTPBatch) or provide its own as an extension of
-+ * FeedsImportBatch.
++ * FeedsFileBatch or FeedsHTTPBatch) or provide its own as a direct or indirect
++ * extension of FeedsImportBatch.
   *
   * A Parser must populate a FeedsImportBatch object through the set methods upon
   * parse(). For instance:
+  *
+- * $batch->setTitle('My imported document');
+  * $batch->setItems($parsed_rows);
++ * $batch->setTitle('My imported document');
+  *
+  * Finally, a processor can work off the information produced on the parsing
+  * stage by consuming items with $batch->shiftItem().
 @@ -54,13 +50,15 @@ class FeedsBatch {
   * @see FeedsFileBatch
   * @see FeedsHTTPBatch
@@ -339,7 +343,7 @@ Index: libraries/PuSHSubscriber.inc
 RCS file: libraries/PuSHSubscriber.inc
 diff -N libraries/PuSHSubscriber.inc
 --- /dev/null	1 Jan 1970 00:00:00 -0000
-+++ libraries/PuSHSubscriber.inc	22 Feb 2010 03:29:31 -0000
++++ libraries/PuSHSubscriber.inc	22 Feb 2010 03:41:20 -0000
 @@ -0,0 +1,350 @@
 +<?php
 +
@@ -697,7 +701,7 @@ RCS file: /cvs/drupal-contrib/contributions/modules/feeds/plugins/FeedsFetcher.i
 retrieving revision 1.4
 diff -u -p -r1.4 FeedsFetcher.inc
 --- plugins/FeedsFetcher.inc	20 Dec 2009 23:54:44 -0000	1.4
-+++ plugins/FeedsFetcher.inc	22 Feb 2010 03:29:31 -0000
++++ plugins/FeedsFetcher.inc	22 Feb 2010 03:41:20 -0000
 @@ -26,4 +26,71 @@ abstract class FeedsFetcher extends Feed
     *   caches pertaining to this source.
     */
@@ -705,9 +709,9 @@ diff -u -p -r1.4 FeedsFetcher.inc
 +
 +  /**
 +   * Request handler invoked if callback URL is requested. Locked down by
-+   * default. For an example use see FeedsPubSubFetcher.
++   * default. For a example usage see FeedsHTTPFetcher.
 +   *
-+   * Method may exit the script.
++   * Note: this method may exit the script.
 +   *
 +   * @return
 +   *   A string to be returned to the client.
@@ -719,7 +723,7 @@ diff -u -p -r1.4 FeedsFetcher.inc
 +  /**
 +   * Construct a path for a concrete fetcher/source combination. The result of
 +   * this method matches up with the general path definition in
-+   * FeedsFetcher::menuItem(). For example usage look at FeedsPubSubFetcher.
++   * FeedsFetcher::menuItem(). For example usage look at FeedsHTTPFetcher.
 +   *
 +   * @return
 +   *   Path for this fetcher/source combination.
@@ -776,7 +780,7 @@ RCS file: /cvs/drupal-contrib/contributions/modules/feeds/plugins/FeedsHTTPFetch
 retrieving revision 1.14
 diff -u -p -r1.14 FeedsHTTPFetcher.inc
 --- plugins/FeedsHTTPFetcher.inc	19 Feb 2010 15:40:47 -0000	1.14
-+++ plugins/FeedsHTTPFetcher.inc	22 Feb 2010 03:29:31 -0000
++++ plugins/FeedsHTTPFetcher.inc	22 Feb 2010 03:41:20 -0000
 @@ -6,6 +6,8 @@
   * Home of the FeedsHTTPFetcher and related classes.
   */
@@ -1023,7 +1027,7 @@ diff -u -p -r1.14 FeedsHTTPFetcher.inc
 +        break;
 +    }
 +    feeds_dbg($msg);
-+    watchdog('FeedsPubSubFetcher', $msg, array(), $severity);
++    watchdog('FeedsHTTPFetcher', $msg, array(), $severity);
 +  }
 +}
 Index: plugins/FeedsPlugin.inc
@@ -1032,7 +1036,7 @@ RCS file: /cvs/drupal-contrib/contributions/modules/feeds/plugins/FeedsPlugin.in
 retrieving revision 1.2
 diff -u -p -r1.2 FeedsPlugin.inc
 --- plugins/FeedsPlugin.inc	18 Feb 2010 16:52:22 -0000	1.2
-+++ plugins/FeedsPlugin.inc	22 Feb 2010 03:29:31 -0000
++++ plugins/FeedsPlugin.inc	22 Feb 2010 03:41:20 -0000
 @@ -84,4 +84,7 @@ abstract class FeedsPlugin extends Feeds
   * Used when a plugin is missing.
   */
