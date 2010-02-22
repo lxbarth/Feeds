@@ -6,6 +6,8 @@
  * Home of the FeedsHTTPFetcher and related classes.
  */
 
+feeds_include_library('PuSHSubscriber.inc', 'PuSHSubscriber');
+
 /**
  * Definition of the import batch object created on the fetching stage by
  * FeedsHTTPFetcher.
@@ -33,20 +35,6 @@ class FeedsHTTPBatch extends FeedsImportBatch {
     }
     return $result->data;
   }
-
-  /**
-   * Implementation of FeedsImportBatch::getFilePath().
-   */
-  public function getFilePath() {
-    if (!isset($this->file_path)) {
-      $dest = file_destination(file_directory_path() .'/feeds/'. get_class($this) .'_'. md5($this->url) .'_'. time(), FILE_EXISTS_RENAME);
-      $this->file_path = file_save_data($this->getRaw(), $dest);
-      if($this->file_path === 0) {
-        throw new Exception(t('Cannot write content to %dest', array('%dest' => $dest)));
-      }
-    }
-    return $this->file_path;
-  }
 }
 
 /**
@@ -59,6 +47,9 @@ class FeedsHTTPFetcher extends FeedsFetcher {
    */
   public function fetch(FeedsSource $source) {
     $source_config = $source->getConfigFor($this);
+    if ($this->config['use_pubsubhubbub'] && ($raw = self::subscriber($source->feed_nid)->receive())) {
+      return new FeedsImportBatch($raw);
+    }
     return new FeedsHTTPBatch($source_config['source']);
   }
 
@@ -70,6 +61,71 @@ class FeedsHTTPFetcher extends FeedsFetcher {
     $url = $source_config['source'];
     feeds_include_library('http_request.inc', 'http_request');
     http_request_clear_cache($url);
+  }
+
+  /**
+   * Implementation of FeedsFetcher::request().
+   */
+  public function request($feed_nid = 0) {
+    feeds_dbg($_GET);
+    @feeds_dbg(file_get_contents('php://input'));
+    // A subscription verification has been sent, verify.
+    if (isset($_GET['hub_challenge'])) {
+      $this->pushVerifyRequest($feed_nid);
+    }
+    // No subscription notification has ben sent, we are being notified.
+    else {
+      try {
+        feeds_source($this->id, $feed_nid)->existing()->import();
+      }
+      catch (Exception $e) {
+        // In case of an error, respond with a 503 Service (temporary) unavailable.
+        header('HTTP/1.1 503 "Not Found"', null, 503);
+        exit();
+      }
+    }
+    // Will generate the default 200 response.
+    return '';
+  }
+
+  /**
+   * Override parent::configDefaults().
+   */
+  public function configDefaults() {
+    return array(
+      'use_pubsubhubbub' => TRUE,
+      'subscription_period' => 3600*24, // Renew subscription in 24 hours.
+      'designated_hub' => '',
+    );
+  }
+
+  /**
+   * Override parent::configForm().
+   */
+  public function configForm(&$form_state) {
+    $period = drupal_map_assoc(array(0, 900, 1800, 3600, 10800, 21600, 43200, 86400, 259200, 604800, 2419200), 'format_interval');
+    $period[FEEDS_SCHEDULE_NEVER] = t('Never renew');
+    $period[0] = t('Renew as often as possible');
+    $form['use_pubsubhubbub'] = array(
+      '#type' => 'checkbox',
+      '#title' => t('Use PubSubHubbub'),
+      '#description' => t('Attempt to use a PubSubHubbub subscription if available.'),
+      '#default_value' => $this->config['use_pubsubhubbub'],
+    );
+    $form['subscription_period'] = array(
+      '#type' => 'select',
+      '#title' => t('Renew subscription after'),
+      '#options' => $period,
+      '#description' => t('This is the minimum time that must elapse before a PubSubHubbub subscription is renewed.'),
+      '#default_value' => $this->config['subscription_period'],
+    );
+    $form['designated_hub'] = array(
+      '#type' => 'textfield',
+      '#title' => t('Designated hub'),
+      '#description' => t('Enter the callback URL of a designated PubSubHubbub hub. If given, this hub will be used instead of the hub specified in the feed source.'),
+      '#default_value' => $this->config['designated_hub'],
+    );
+    return $form;
   }
 
   /**
@@ -89,10 +145,154 @@ class FeedsHTTPFetcher extends FeedsFetcher {
   }
 
   /**
-   * Override parent::configDefaults().
+   * Override sourceSave() - subscribe to hub.
    */
-  public function configDefaults() {
-    return array('auto_detect_feeds' => FALSE);
+  public function sourceSave(FeedsSource $source) {
+    $this->subscribe($source);
+  }
+
+  /**
+   * Override sourceDelete() - unsubscribe from hub.
+   */
+  public function sourceDelete(FeedsSource $source) {
+    $this->unsubscribe($source);
+  }
+
+  /**
+   * Implement FeedsFetcher::subscribe() - subscribe to hub.
+   */
+  public function subscribe(FeedsSource $source) {
+    $source_config = $source->getConfigFor($this);
+    self::subscriber($source->feed_nid)->subscribe($source_config['source'], url($this->path($source->feed_nid), array('absolute' => TRUE)), valid_url($this->config['designated_hub']) ? $this->config['designated_hub'] : '');
+  }
+
+  /**
+   * Implement FeedsFetcher::unsubscribe() - unsubscribe from hub.
+   */
+  public function unsubscribe(FeedsSource $source) {
+    $source_config = $source->getConfigFor($this);
+    self::subscriber($source->feed_nid)->unsubscribe($source_config['source'], url($this->path($source->feed_nid), array('absolute' => TRUE)));
+  }
+
+  /**
+   * Implement FeedsFetcher::subscriptionPeriod().
+   * Indicate how often a subscription needs to be renewed.
+   *
+   * @todo subscription_period should actually be retrieved from the hub's
+   *   response to a subscription. This will mean a different subscription
+   *   period per source, hence a major change to FeedsScheduler which is
+   *   currently assuming a fixed period per task!
+   */
+  public function subscriptionPeriod() {
+    return $this->config['subscription_period'];
+  }
+
+  /**
+   * Verify a PubSubHubbub subscription request.
+   */
+  public function pushVerifyRequest($feed_nid) {
+    self::subscriber($feed_nid)->verifyRequest();
+  }
+
+  /**
+   * Convenience method for instantiating a subscriber object.
+   */
+  protected static function subscriber($subscriber_id) {
+    return PushSubscriber::instance($this->id, $subscriber_id, 'PuSHSubscription', PuSHEnvironment::instance());
   }
 }
 
+/**
+ * Implement a PuSHSubscriptionInterface.
+ */
+class PuSHSubscription implements PuSHSubscriptionInterface {
+  public $domain;
+  public $subscriber_id;
+  public $hub;
+  public $topic;
+  public $status;
+  public $secret;
+  public $post_fields;
+  public $timestamp;
+
+  /**
+   * Load a subscription.
+   */
+  public static function load($domain, $subscriber_id) {
+    if ($v = db_fetch_array(db_query("SELECT * FROM {feeds_push_subscriptions} WHERE domain = '%s' AND subscriber_id = %d", $domain, $subscriber_id))) {
+      $v['post_fields'] = unserialize($v['post_fields']);
+      return new PuSHSubscription($v['domain'], $v['subscriber_id'], $v['hub'], $v['topic'], $v['secret'], $v['status'], $v['post_fields'], $v['timestamp']);
+    }
+  }
+
+  /**
+   * Create a subscription.
+   */
+  public function __construct($domain, $subscriber_id, $hub, $topic, $secret, $status = '', $post_fields = '') {
+    $this->domain = $domain;
+    $this->subscriber_id = $subscriber_id;
+    $this->hub = $hub;
+    $this->topic = $topic;
+    $this->status = $status;
+    $this->secret = $secret;
+    $this->post_fields = $post_fields;
+  }
+
+  /**
+   * Save a subscription.
+   */
+  public function save() {
+    $this->timestamp = time();
+    $this->delete($this->domain, $this->subscriber_id);
+    drupal_write_record('feeds_push_subscriptions', $this);
+  }
+
+  /**
+   * Delete a subscription.
+   */
+  public function delete() {
+    db_query("DELETE FROM {feeds_push_subscriptions} WHERE domain = '%s' AND subscriber_id = %d", $this->domain, $this->subscriber_id);
+  }
+}
+
+/**
+ * Provide environmental functions to the PuSHSubscriber library.
+ */
+class PuSHEnvironment implements PuSHSubscriberEnvironmentInterface {
+  /**
+   * Singleton.
+   */
+  public static function instance() {
+    static $env;
+    if (empty($env)) {
+      $env = new PuSHEnvironment();
+    }
+    return $env;
+  }
+
+  /**
+   * Implementation of PuSHSubscriberEnvironmentInterface::msg().
+   */
+  public function msg($msg, $level = 'status') {
+    drupal_set_message($msg, $level);
+  }
+
+  /**
+   * Implementation of PuSHSubscriberEnvironmentInterface::log().
+   */
+  public function log($msg, $level = 'status') {
+    switch ($level) {
+      case 'error':
+        $severity = WATCHDOG_ERROR;
+        break;
+      case 'warning':
+        $severity = WATCHDOG_WARNING;
+        break;
+      default:
+        $severity = WATCHDOG_NOTICE;
+        break;
+    }
+    feeds_dbg($msg);
+    watchdog('FeedsPubSubFetcher', $msg, array(), $severity);
+  }
+}

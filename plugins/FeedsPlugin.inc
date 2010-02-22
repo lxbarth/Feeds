@@ -84,4 +84,7 @@ abstract class FeedsPlugin extends FeedsConfigurable implements FeedsSourceInter
  * Used when a plugin is missing.
  */
 class FeedsMissingPlugin extends FeedsPlugin {
+  public function menuItem() {
+    return array();
+  }
 }

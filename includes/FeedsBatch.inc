@@ -25,13 +25,9 @@ class FeedsBatch {
  * and processing stage where it is normalized and consumed.
  *
  * A Fetcher must return a FeedsImportBatch object on fetch(). To that end it
- * must use either one of the existing implementations of FeedsImportBatch
- * (FeedsFileBatch or FeedsHTTPBatch) or it must extend FeedsImportBatch and
- * implement at least
- *
- * - getRaw() returning the raw content from the source as a string and
- * - getFilePath() returning a path to a file containing the raw content from
- *   the source.
+ * can use one of the existing FeedsImportBatch classes (FeedsImportBatch,
+ * FeedsFileBatch or FeedsHTTPBatch) or provide its own as an extension of
+ * FeedsImportBatch.
  *
  * A Parser must populate a FeedsImportBatch object through the set methods upon
  * parse(). For instance:
@@ -54,13 +50,15 @@ class FeedsBatch {
  * @see FeedsFileBatch
  * @see FeedsHTTPBatch
  */
-abstract class FeedsImportBatch extends FeedsBatch {
+class FeedsImportBatch extends FeedsBatch {
   protected $title;
   protected $description;
   protected $link;
   protected $items;
+  protected $raw;
 
-  public function __construct() {
+  public function __construct($raw) {
+    $this->raw =$raw;
     $this->title = '';
     $this->description = '';
     $this->link = '';
@@ -72,9 +70,11 @@ abstract class FeedsImportBatch extends FeedsBatch {
    *   The raw content from the source as a string.
    *
    * @throws Exception
-   *   If an unexpected problem occurred.
+   *   Extending classes MAY throw an exception if a problem occurred.
    */
-  public abstract function getRaw();
+  public function getRaw() {
+    return $this->raw;
+  }
 
   /**
    * @return
@@ -83,7 +83,16 @@ abstract class FeedsImportBatch extends FeedsBatch {
    * @throws Exception
    *   If an unexpected problem occurred.
    */
-  public abstract function getFilePath();
+  public function getFilePath() {
+    if (!isset($this->file_path)) {
+      $dest = file_destination(file_directory_path() .'/feeds/'. get_class($this) .'_'. md5($this->url) .'_'. time(), FILE_EXISTS_RENAME);
+      $this->file_path = file_save_data($this->getRaw(), $dest);
+      if($this->file_path === 0) {
+        throw new Exception(t('Cannot write content to %dest', array('%dest' => $dest)));
+      }
+    }
+    return $this->file_path;
+  }
 
   /**
    * @return

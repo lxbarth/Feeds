@@ -76,17 +76,6 @@ function _feeds_feeds_plugins() {
       'path' => $path,
     ),
   );
-  $info['FeedsPubSubFetcher'] = array(
-    'name' => 'PubSubHubbub Fetcher',
-    'description' => 'Download content from a URL, receive change notifications.',
-    'help' => 'Download content from a URL. If feed at URL supports PubSubHubbub, subscribe to hub for notifications of changes.',
-    'handler' => array(
-      'parent' => 'FeedsHTTPFetcher',
-      'class' => 'FeedsPubSubFetcher',
-      'file' => 'FeedsPubSubFetcher.inc',
-      'path' => $path,
-    ),
-  );
   $info['FeedsCSVParser'] = array(
     'name' => 'CSV parser',
     'description' => 'Parse data in Comma Separated Value format.',

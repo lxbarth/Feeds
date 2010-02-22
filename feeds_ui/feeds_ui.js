@@ -87,4 +87,25 @@ Drupal.behaviors.feeds = function() {
     $('#' + $(this).attr('id')).attr('checked', 1);
     $('input.form-submit.feeds-ui-hidden-submit').click();
   });
+
+  // Show pubsub settings conditionally.
+  // @todo Generalize dependencies between form elements.
+  if ($('#edit-use-pubsubhubbub').attr('checked')) {
+    $('#edit-subscription-period-wrapper').show();
+    $('#edit-designated-hub-wrapper').show();
+  }
+  else {
+    $('#edit-subscription-period-wrapper').hide();
+    $('#edit-designated-hub-wrapper').hide();
+  }
+  $('#edit-use-pubsubhubbub').click(function() {
+    if ($(this).attr('checked')) {
+      $('#edit-subscription-period-wrapper').show(100);
+      $('#edit-designated-hub-wrapper').show(100);
+    }
+    else {
+      $('#edit-subscription-period-wrapper').hide(100);
+      $('#edit-designated-hub-wrapper').hide(100);
+    }
+  });
 };
