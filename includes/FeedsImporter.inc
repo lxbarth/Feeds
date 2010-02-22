@@ -107,7 +107,7 @@ class FeedsImporter extends FeedsConfigurable {
       case 'expire':
         return $this->expire();
       case 'subscribe':
-        feeds_source($job['importer_id'], $job['feed_nid'])->fetcher->subscribe();
+        feeds_source($job['id'], $job['feed_nid'])->fetcher->subscribe();
         break;
     }
     return FEEDS_BATCH_COMPLETE;
