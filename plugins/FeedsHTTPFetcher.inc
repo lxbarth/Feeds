@@ -71,7 +71,7 @@ class FeedsHTTPFetcher extends FeedsFetcher {
     @feeds_dbg(file_get_contents('php://input'));
     // A subscription verification has been sent, verify.
     if (isset($_GET['hub_challenge'])) {
-      $this->pushVerifyRequest($feed_nid);
+      $this->subscriber($feed_nid)->verifyRequest();
     }
     // No subscription notification has ben sent, we are being notified.
     else {
@@ -164,13 +164,6 @@ class FeedsHTTPFetcher extends FeedsFetcher {
   public function unsubscribe(FeedsSource $source) {
     $source_config = $source->getConfigFor($this);
     $this->subscriber($source->feed_nid)->unsubscribe($source_config['source'], url($this->path($source->feed_nid), array('absolute' => TRUE)));
-  }
-
-  /**
-   * Verify a PubSubHubbub subscription request.
-   */
-  public function pushVerifyRequest($feed_nid) {
-    $this->subscriber($feed_nid)->verifyRequest();
   }
 
   /**
