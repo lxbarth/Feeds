@@ -114,7 +114,7 @@ class FeedsHTTPFetcher extends FeedsFetcher {
     $form['designated_hub'] = array(
       '#type' => 'textfield',
       '#title' => t('Designated hub'),
-      '#description' => t('Enter the callback URL of a designated PubSubHubbub hub (e. g. superfeedr.com). If given, this hub will be used instead of the hub specified in the actual feed.'),
+      '#description' => t('Enter the URL of a designated PubSubHubbub hub (e. g. superfeedr.com). If given, this hub will be used instead of the hub specified in the actual feed.'),
       '#default_value' => $this->config['designated_hub'],
     );
     return $form;
