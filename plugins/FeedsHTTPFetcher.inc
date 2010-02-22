@@ -47,7 +47,7 @@ class FeedsHTTPFetcher extends FeedsFetcher {
    */
   public function fetch(FeedsSource $source) {
     $source_config = $source->getConfigFor($this);
-    if ($this->config['use_pubsubhubbub'] && ($raw = self::subscriber($source->feed_nid)->receive())) {
+    if ($this->config['use_pubsubhubbub'] && ($raw = $this->subscriber($source->feed_nid)->receive())) {
       return new FeedsImportBatch($raw);
     }
     return new FeedsHTTPBatch($source_config['source']);
@@ -163,7 +163,7 @@ class FeedsHTTPFetcher extends FeedsFetcher {
    */
   public function subscribe(FeedsSource $source) {
     $source_config = $source->getConfigFor($this);
-    self::subscriber($source->feed_nid)->subscribe($source_config['source'], url($this->path($source->feed_nid), array('absolute' => TRUE)), valid_url($this->config['designated_hub']) ? $this->config['designated_hub'] : '');
+    $this->subscriber($source->feed_nid)->subscribe($source_config['source'], url($this->path($source->feed_nid), array('absolute' => TRUE)), valid_url($this->config['designated_hub']) ? $this->config['designated_hub'] : '');
   }
 
   /**
@@ -171,7 +171,7 @@ class FeedsHTTPFetcher extends FeedsFetcher {
    */
   public function unsubscribe(FeedsSource $source) {
     $source_config = $source->getConfigFor($this);
-    self::subscriber($source->feed_nid)->unsubscribe($source_config['source'], url($this->path($source->feed_nid), array('absolute' => TRUE)));
+    $this->subscriber($source->feed_nid)->unsubscribe($source_config['source'], url($this->path($source->feed_nid), array('absolute' => TRUE)));
   }
 
   /**
@@ -191,13 +191,13 @@ class FeedsHTTPFetcher extends FeedsFetcher {
    * Verify a PubSubHubbub subscription request.
    */
   public function pushVerifyRequest($feed_nid) {
-    self::subscriber($feed_nid)->verifyRequest();
+    $this->subscriber($feed_nid)->verifyRequest();
   }
 
   /**
    * Convenience method for instantiating a subscriber object.
    */
-  protected static function subscriber($subscriber_id) {
+  protected function subscriber($subscriber_id) {
     return PushSubscriber::instance($this->id, $subscriber_id, 'PuSHSubscription', PuSHEnvironment::instance());
   }
 }
