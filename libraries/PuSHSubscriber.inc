@@ -8,6 +8,7 @@
 /**
  * PubSubHubbub subscriber.
  *
+ *
  * Integration with host application:
  *
  * 1.
