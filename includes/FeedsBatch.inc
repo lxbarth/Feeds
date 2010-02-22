@@ -57,8 +57,8 @@ class FeedsImportBatch extends FeedsBatch {
   protected $items;
   protected $raw;
 
-  public function __construct($raw) {
-    $this->raw =$raw;
+  public function __construct($raw = '') {
+    $this->raw = $raw;
     $this->title = '';
     $this->description = '';
     $this->link = '';
