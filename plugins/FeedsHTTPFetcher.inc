@@ -108,13 +108,13 @@ class FeedsHTTPFetcher extends FeedsFetcher {
     $form['use_pubsubhubbub'] = array(
       '#type' => 'checkbox',
       '#title' => t('Use PubSubHubbub'),
-      '#description' => t('Attempt to use a PubSubHubbub subscription if available.'),
+      '#description' => t('Attempt to use a <a href="http://en.wikipedia.org/wiki/PubSubHubbub">PubSubHubbub</a> subscription if available.'),
       '#default_value' => $this->config['use_pubsubhubbub'],
     );
     $form['designated_hub'] = array(
       '#type' => 'textfield',
       '#title' => t('Designated hub'),
-      '#description' => t('Enter the callback URL of a designated PubSubHubbub hub. If given, this hub will be used instead of the hub specified in the feed source.'),
+      '#description' => t('Enter the callback URL of a designated PubSubHubbub hub (e. g. superfeedr.com). If given, this hub will be used instead of the hub specified in the actual feed.'),
       '#default_value' => $this->config['designated_hub'],
     );
     return $form;
