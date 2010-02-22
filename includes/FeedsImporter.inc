@@ -103,9 +103,6 @@ class FeedsImporter extends FeedsConfigurable {
         return feeds_source($job['id'], $job['feed_nid'])->import();
       case 'expire':
         return $this->expire();
-      case 'subscribe':
-        $this->fetcher->subscribe(feeds_source($job['id'], $job['feed_nid']));
-        break;
     }
     return FEEDS_BATCH_COMPLETE;
   }
@@ -132,7 +129,7 @@ class FeedsImporter extends FeedsConfigurable {
    * Expose available schedule callbacks.
    */
   public function getScheduleCallbacks() {
-    return array('import', 'expire', 'subscribe');
+    return array('import', 'expire');
   }
 
   /**
