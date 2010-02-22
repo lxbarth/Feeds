@@ -6,7 +6,54 @@
  */
 
 /**
- * Pubsub subscriber.
+ * PubSubHubbub subscriber.
+ *
+ * Integration with host application:
+ *
+ * 1.
+ * Implement PuSHSubscriberSubscriptionInterface and
+ * PuSHSubscriberEnvironmentInterface.
+ *
+ * 2.
+ * Create a new path in the host application that is unique for every
+ * subscription. For example:
+ *
+ * (http://mysite.com/)pubsub/[subscription_id]
+ *
+ * 3.
+ * In the callback for the new path invoke the subscriber's request handler:
+ *
+ * function my_pubsub_page($subscription_id) {
+ *   $sub = PuSHSubscriber::instance('my_subs', $subscription_id, 'MySubscriptions', new Environment());
+ *   $sub->handleRequest('my_pubsub_notification');
+ * }
+ *
+ * 4.
+ * Note the 'my_pubsub_notification' parameter in the previous point? This is
+ * the callback that will be invoked if a notification has been received:
+ *
+ * function my_pubsub_notification($raw) {
+ *   // Parse and store the changed items.
+ * }
+ *
+ *
+ * General usage:
+ *
+ * 1. Create a PuSHSubscriber:
+ *
+ * $sub = PuSHSubscriber::instance('my_subs', 12, 'MySubscriptions', new Environment());
+ *
+ * Note: The domain id 'my_subs' is merely for allowing multiple tiers in an
+ * application to use the PuSHSubscriber library.
+ *
+ * 2. Subscribe to a hub for notifications:
+ *
+ * $sub->subscribe('http://example.com/blog/feed', 'http://mysite.com/notifications/12');
+ *
+ * 3. Unsubscribe from a hub.
+ *
+ * $sub->unsubscribe('http://example.com/blog/feed', 'http://mysite.com/notifications/12');
+ *
  */
 class PuSHSubscriber {
   protected $domain;
@@ -107,51 +154,63 @@ class PuSHSubscriber {
   }
 
   /**
-   * Issue a subscribe or unsubcribe request to a PubsubHubbub hub.
-   *
-   * @param $hub
-   *   The URL of the hub's subscription endpoint.
-   * @param $topic
-   *   The topic URL of the feed to subscribe to.
-   * @param $mode
-   *   'subscribe' or 'unsubscribe'.
-   * @param $callback_url
-   *   The subscriber's notifications callback URL.
-   *
-   * Compare to http://pubsubhubbub.googlecode.com/svn/trunk/pubsubhubbub-core-0.2.html#anchor5
-   *
-   * @todo Make concurrency safe.
+   * Request handler for subscription callbacks.
    */
-  protected function request($hub, $topic, $mode, $callback_url) {
-    $secret = hash('sha1', uniqid(rand(), true));
-    $post_fields = array(
-      'hub.callback' => $callback_url,
-      'hub.mode' => $mode,
-      'hub.topic' => $topic,
-      'hub.verify' => 'sync',
-      'hub.lease_seconds' => '', // Permanent subscription.
-      'hub.secret' => $secret,
-      'hub.verify_token' => md5(session_id() . rand()),
-    );
-    $sub = new $this->subscription_class($this->domain, $this->subscriber_id, $hub, $topic, $secret, $mode, $post_fields);
-    $sub->save();
-    // Issue subscription request.
-    $request = curl_init($hub);
-    curl_setopt($request, CURLOPT_POST, TRUE);
-    curl_setopt($request, CURLOPT_POSTFIELDS, $post_fields);
-    curl_setopt($request, CURLOPT_RETURNTRANSFER, TRUE);
-    curl_exec($request);
-    $code = curl_getinfo($request, CURLINFO_HTTP_CODE);
-    if (in_array($code, array(202, 204))) {
-      $this->log("Positive response to \"$mode\" request ($code).");
+  public function handleRequest($callback) {
+    if (isset($_GET['hub_challenge'])) {
+      $this->verifyRequest();
     }
+    // No subscription notification has ben sent, we are being notified.
     else {
-      $sub->status = $mode .' failed';
-      $sub->save();
-      $this->msg("Error issuing \"$mode\" request ($code).", 'error');
-      $this->log("Error issuing \"$mode\" request ($code).", 'error');
+      if ($raw = $this->receive()) {
+        $callback($raw);
+      }
     }
-    curl_close($request);
+  }
+
+  /**
+   * Receive a notification.
+   *
+   * @param $ignore_signature
+   *   If FALSE, only accept payload if there is a signature present and the
+   *   signature matches the payload. Warning: setting to TRUE results in
+   *   unsafe behavior.
+   *
+   * @return
+   *   An XML string that is the payload of the notification if valid, FALSE
+   *   otherwise.
+   */
+  public function receive($ignore_signature = FALSE) {
+    /**
+     * Verification steps:
+     *
+     * 1) Verify that this is indeed a POST reuest.
+     * 2) Verify that posted string is XML.
+     * 3) Per default verify sender of message by checking the message's
+     *    signature against the shared secret.
+     */
+    if ($_SERVER['REQUEST_METHOD'] == 'POST') {
+      $raw = file_get_contents('php://input');
+      if (@simplexml_load_string($raw)) {
+        if ($ignore_signature) {
+          return $raw;
+        }
+        if (isset($_SERVER['HTTP_X_HUB_SIGNATURE']) && ($sub = $this->loadSubscription())) {
+          $result = array();
+          parse_str($_SERVER['HTTP_X_HUB_SIGNATURE'], $result);
+          if (isset($result['sha1']) && $result['sha1'] == hash_hmac('sha1', $raw, $sub->secret)) {
+            return $raw;
+          }
+          else {
+            $this->log('Could not verify signature.', 'error');
+          }
+        }
+        else {
+          $this->log('No signature present.', 'error');
+        }
+      }
+    }
+    return FALSE;
   }
 
   /**
@@ -206,48 +265,51 @@ class PuSHSubscriber {
   }
 
   /**
-   * Receive a notification.
+   * Issue a subscribe or unsubcribe request to a PubsubHubbub hub.
    *
-   * @param $ignore_signature
-   *   If FALSE, only accept payload if there is a signature present and the
-   *   signature matches the payload. Warning: setting to TRUE results in
-   *   unsafe behavior.
+   * @param $hub
+   *   The URL of the hub's subscription endpoint.
+   * @param $topic
+   *   The topic URL of the feed to subscribe to.
+   * @param $mode
+   *   'subscribe' or 'unsubscribe'.
+   * @param $callback_url
+   *   The subscriber's notifications callback URL.
    *
-   * @return
-   *   An XML string that is the payload of the notification if valid, FALSE
-   *   otherwise.
+   * Compare to http://pubsubhubbub.googlecode.com/svn/trunk/pubsubhubbub-core-0.2.html#anchor5
+   *
+   * @todo Make concurrency safe.
    */
-  public function receive($ignore_signature = FALSE) {
-    /**
-     * Verification steps:
-     *
-     * 1) Verify that this is indeed a POST reuest.
-     * 2) Verify that posted string is XML.
-     * 3) Per default verify sender of message by checking the message's
-     *    signature against the shared secret.
-     */
-    if ($_SERVER['REQUEST_METHOD'] == 'POST') {
-      $raw = file_get_contents('php://input');
-      if (@simplexml_load_string($raw)) {
-        if ($ignore_signature) {
-          return $raw;
-        }
-        if (isset($_SERVER['HTTP_X_HUB_SIGNATURE']) && ($sub = $this->loadSubscription())) {
-          $result = array();
-          parse_str($_SERVER['HTTP_X_HUB_SIGNATURE'], $result);
-          if (isset($result['sha1']) && $result['sha1'] == hash_hmac('sha1', $raw, $sub->secret)) {
-            return $raw;
-          }
-          else {
-            $this->log('Could not verify signature.', 'error');
-          }
-        }
-        else {
-          $this->log('No signature present.', 'error');
-        }
-      }
+  protected function request($hub, $topic, $mode, $callback_url) {
+    $secret = hash('sha1', uniqid(rand(), true));
+    $post_fields = array(
+      'hub.callback' => $callback_url,
+      'hub.mode' => $mode,
+      'hub.topic' => $topic,
+      'hub.verify' => 'sync',
+      'hub.lease_seconds' => '', // Permanent subscription.
+      'hub.secret' => $secret,
+      'hub.verify_token' => md5(session_id() . rand()),
+    );
+    $sub = new $this->subscription_class($this->domain, $this->subscriber_id, $hub, $topic, $secret, $mode, $post_fields);
+    $sub->save();
+    // Issue subscription request.
+    $request = curl_init($hub);
+    curl_setopt($request, CURLOPT_POST, TRUE);
+    curl_setopt($request, CURLOPT_POSTFIELDS, $post_fields);
+    curl_setopt($request, CURLOPT_RETURNTRANSFER, TRUE);
+    curl_exec($request);
+    $code = curl_getinfo($request, CURLINFO_HTTP_CODE);
+    if (in_array($code, array(202, 204))) {
+      $this->log("Positive response to \"$mode\" request ($code).");
     }
-    return FALSE;
+    else {
+      $sub->status = $mode .' failed';
+      $sub->save();
+      $this->msg("Error issuing \"$mode\" request ($code).", 'error');
+      $this->log("Error issuing \"$mode\" request ($code).", 'error');
+    }
+    curl_close($request);
   }
 
   /**
