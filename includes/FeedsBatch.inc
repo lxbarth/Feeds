@@ -1,5 +1,5 @@
 <?php
-// $Id: FeedsBatch.inc,v 1.5 2010/02/18 16:01:19 alexb Exp $
+// $Id: FeedsBatch.inc,v 1.6 2010/02/23 04:59:07 alexb Exp $
 
 /**
  * A FeedsBatch object holds the state of an import or clear batch. Used in

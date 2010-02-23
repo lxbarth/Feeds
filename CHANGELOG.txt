@@ -1,8 +1,9 @@
-// $Id: CHANGELOG.txt,v 1.48 2010/02/18 16:52:22 alexb Exp $
+// $Id: CHANGELOG.txt,v 1.49 2010/02/23 04:59:06 alexb Exp $
 
 Feeds 6.x 1.0 xxxxx xx, xxxx-xx-xx
 ----------------------------------
 
+- alex_b: Add PubSubHubbub support.
 - alex_b: Add sourceSave() and sourceDelete() methods notifying plugin
   implementers of a source being saved or deleted.
 - #717168 nicholasThompson: Fix feeds UI JS doesn't select labels correctly.

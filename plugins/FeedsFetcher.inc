@@ -1,5 +1,5 @@
 <?php
-// $Id: FeedsFetcher.inc,v 1.4 2009/12/20 23:54:44 alexb Exp $
+// $Id: FeedsFetcher.inc,v 1.5 2010/02/23 04:59:07 alexb Exp $
 
 /**
  * Abstract class, defines shared functionality between fetchers.

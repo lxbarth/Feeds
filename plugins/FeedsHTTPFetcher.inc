@@ -1,5 +1,5 @@
 <?php
-// $Id: FeedsHTTPFetcher.inc,v 1.14 2010/02/19 15:40:47 alexb Exp $
+// $Id: FeedsHTTPFetcher.inc,v 1.15 2010/02/23 04:59:07 alexb Exp $
 
 /**
  * @file
@@ -93,7 +93,7 @@ class FeedsHTTPFetcher extends FeedsFetcher {
    */
   public function configDefaults() {
     return array(
-      'use_pubsubhubbub' => TRUE,
+      'use_pubsubhubbub' => FALSE,
       'designated_hub' => '',
     );
   }
