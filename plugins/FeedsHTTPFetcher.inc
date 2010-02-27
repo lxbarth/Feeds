@@ -1,5 +1,5 @@
 <?php
-// $Id: FeedsHTTPFetcher.inc,v 1.18 2010/02/27 02:02:11 alexb Exp $
+// $Id: FeedsHTTPFetcher.inc,v 1.19 2010/02/27 02:09:57 alexb Exp $
 
 /**
  * @file
@@ -138,14 +138,18 @@ class FeedsHTTPFetcher extends FeedsFetcher {
    * Override sourceSave() - subscribe to hub.
    */
   public function sourceSave(FeedsSource $source) {
-    $this->subscribe($source);
+    if ($this->config['use_pubsubhubbub']) {
+      $this->subscribe($source);
+    }
   }
 
   /**
    * Override sourceDelete() - unsubscribe from hub.
    */
   public function sourceDelete(FeedsSource $source) {
-    $this->unsubscribe($source);
+    if ($this->config['use_pubsubhubbub']) {
+      $this->unsubscribe($source);
+    }
   }
 
   /**

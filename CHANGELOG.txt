@@ -1,9 +1,10 @@
-// $Id: CHANGELOG.txt,v 1.57 2010/02/27 02:02:11 alexb Exp $
+// $Id: CHANGELOG.txt,v 1.58 2010/02/27 02:09:57 alexb Exp $
 
 
 Feeds 6.x 1.0 xxxxx xx, 2010-xx-xx
 ----------------------------------
 
+- alex_b: Stop PubSubHubbub from subscribing if it is not enabled.
 - #711664 neclimdul: guarantee compatibility with CTools 1.4  by declaring that
   Feeds uses hooks to define plugins via hook_ctools_plugin_plugins().
 - #718460 jerdavis: In FeedsNodeProcessor, clear items only for the current
