@@ -1,5 +1,5 @@
 <?php
-// $Id: FeedsImporter.inc,v 1.13 2010/02/22 03:28:59 alexb Exp $
+// $Id: FeedsImporter.inc,v 1.14 2010/02/23 23:57:26 alexb Exp $
 
 /**
  * @file
@@ -16,15 +16,16 @@ define('FEEDS_BATCH_COMPLETE', 1);
 define('FEEDS_BATCH_ACTIVE', 0);
 
 /**
- * Class defining an importer object. This is the main hub for Feeds module's
- * functionality.
+ * A FeedsImporter object describes how an external source should be fetched,
+ * parsed and processed. Feeds can manage an arbitrary amount of importers.
  *
- * A FeedsImporter holds a pointer to a fetcher, a parser and a processor
- * plugin. It further contains the configuration for itself and each of the
- * three plugins.
+ * A FeedsImporter holds a pointer to a FeedsFetcher, a FeedsParser and a
+ * FeedsProcessor plugin. It further contains the configuration for itself and
+ * each of the three plugins.
  *
- * Its most important responsibilities are configuration management and expiring
- * of all items produced by this importer.
+ * Its most important responsibilities are configuration management, interfacing
+ * with FeedsScheduler class and expiring of all items produced by this
+ * importer.
  *
  * When a FeedsImporter is instantiated, it loads its configuration. Then it
  * instantiates one fetcher, one parser and one processor plugin depending on

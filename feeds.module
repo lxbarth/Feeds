@@ -1,5 +1,5 @@
 <?php
-// $Id: feeds.module,v 1.30 2010/02/23 04:59:06 alexb Exp $
+// $Id: feeds.module,v 1.33 2010/02/27 01:26:55 alexb Exp $
 
 /**
  * @file
@@ -22,7 +22,7 @@ define('FEEDS_SCHEDULER_QUEUE', 'feeds_queue');
 
 
 /**
- * @defgroup hooks Hooks and callbacks
+ * @defgroup hooks Hook and callback implementations
  * @{
  */
 
@@ -220,6 +220,18 @@ function feeds_ctools_plugin_api($owner, $api) {
 }
 
 /**
+ * Implementation of hook_ctools_plugin_plugins().
+ *
+ * Psuedo hook defintion plugin system options and defaults.
+ */
+function feeds_ctools_plugin_plugins() {
+  return array(
+    'cache' => TRUE,
+    'use hooks' => TRUE,
+  );
+}
+
+/**
  * Implementation of hook_feeds_plugins().
  */
 function feeds_feeds_plugins() {
@@ -367,11 +379,11 @@ function feeds_scheduler_work($feed_info) {
 }
 
 /**
- * @} End of "defgroup hooks".
+ * @}
  */
 
 /**
- * @defgroup batch Batch functions.
+ * @defgroup batch Batch functions
  */
 
 /**
@@ -429,7 +441,7 @@ function feeds_batch($method, $importer_id, $feed_nid = 0, &$context) {
 }
 
 /**
- * @} End of "defgroup batch".
+ * @}
  */
 
 /**
@@ -545,7 +557,7 @@ function feeds_dbg($msg) {
 }
 
 /**
- * @} End of "defgroup utility".
+ * @}
  */
 
 /**
@@ -600,7 +612,7 @@ function feeds_scheduler() {
 }
 
 /**
- * @} End of "defgroup instantiators".
+ * @}
  */
 
 /**
@@ -745,7 +757,7 @@ function feeds_plugin_type($plugin_key) {
 }
 
 /**
- * @} End of "defgroup plugins".
+ * @}
  */
 
 /**
@@ -816,5 +828,5 @@ function feeds_library_exists($file, $library) {
 }
 
 /**
- * @} End of "defgroup include".
+ * @}
  */

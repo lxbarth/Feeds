@@ -1,5 +1,5 @@
 <?php
-// $Id: FeedsScheduler.inc,v 1.15 2010/02/22 03:28:59 alexb Exp $
+// $Id: FeedsScheduler.inc,v 1.16 2010/02/23 23:58:54 alexb Exp $
 
 /**
  * @file
@@ -50,14 +50,16 @@ interface FeedsSchedulerInterface {
 /**
  * Implementation of FeedsSchedulerInterface.
  *
- * This scheduler uses the last_scheduled_time paradigm: By storing the time
- * when a particular feed was scheduled to be refreshed last rather than
- * storing when a feed should be _refreshed_ next, we gain two advantages:
+ * This scheduler uses the last_refreshed_time paradigm: By storing the time
+ * when a particular feed was refreshed last rather than storing when a feed
+ * should be refreshed next, we gain two advantages:
  *
  * 1) If a feed's import_period setting changes, it has immediate effects -
  *    without batch updating an existing schedule.
  * 2) The time between refreshes will always be scheduled based on when it
  *    has been scheduled last. Less drift occurs.
+ *
+ * This behavior may change soon: http://drupal.org/node/721428
  */
 class FeedsScheduler implements FeedsSchedulerInterface {
 

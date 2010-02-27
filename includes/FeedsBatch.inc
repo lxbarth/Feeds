@@ -1,5 +1,5 @@
 <?php
-// $Id: FeedsBatch.inc,v 1.6 2010/02/23 04:59:07 alexb Exp $
+// $Id: FeedsBatch.inc,v 1.7 2010/02/24 00:08:10 alexb Exp $
 
 /**
  * A FeedsBatch object holds the state of an import or clear batch. Used in
@@ -32,16 +32,20 @@ class FeedsBatch {
  * A Parser must populate a FeedsImportBatch object through the set methods upon
  * parse(). For instance:
  *
+ * @code
  * $batch->setItems($parsed_rows);
  * $batch->setTitle('My imported document');
+ * @endcode
  *
  * Finally, a processor can work off the information produced on the parsing
  * stage by consuming items with $batch->shiftItem().
  *
+ * @code
  * while ($item = $batch->shiftItem()) {
  *   $object = $this->map($item);
  *   $object->save();
  * }
+ * @endcode
  *
  * Note: Knowledge of the internal structure of a single item in the $items
  * array is managed by the mapping API specified in FeedsParser class and

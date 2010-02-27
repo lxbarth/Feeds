@@ -1,5 +1,5 @@
 <?php
-// $Id: FeedsHTTPFetcher.inc,v 1.15 2010/02/23 04:59:07 alexb Exp $
+// $Id: FeedsHTTPFetcher.inc,v 1.16 2010/02/23 20:22:14 alexb Exp $
 
 /**
  * @file
@@ -102,9 +102,7 @@ class FeedsHTTPFetcher extends FeedsFetcher {
    * Override parent::configForm().
    */
   public function configForm(&$form_state) {
-    $period = drupal_map_assoc(array(0, 900, 1800, 3600, 10800, 21600, 43200, 86400, 259200, 604800, 2419200), 'format_interval');
-    $period[FEEDS_SCHEDULE_NEVER] = t('Never renew');
-    $period[0] = t('Renew as often as possible');
+    $form = array();
     $form['use_pubsubhubbub'] = array(
       '#type' => 'checkbox',
       '#title' => t('Use PubSubHubbub'),

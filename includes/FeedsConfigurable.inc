@@ -1,5 +1,5 @@
 <?php
-// $Id: FeedsConfigurable.inc,v 1.10 2010/02/19 23:11:06 alexb Exp $
+// $Id: FeedsConfigurable.inc,v 1.11 2010/02/23 23:54:24 alexb Exp $
 
 /**
  * @file
@@ -13,7 +13,9 @@ class FeedsNotExistingException extends Exception {
 }
 
 /**
- * A configurable class.
+ * Base class for configurable classes. Captures configuration handling, form
+ * handling and distinguishes between in-memory configuration and persistent
+ * configuration.
  */
 abstract class FeedsConfigurable {
 

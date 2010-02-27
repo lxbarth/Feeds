@@ -1,5 +1,5 @@
 <?php
-// $Id: feeds.pages.inc,v 1.10 2010/02/23 04:59:06 alexb Exp $
+// $Id: feeds.pages.inc,v 1.13 2010/02/24 00:08:47 alexb Exp $
 
 /**
  * @file
@@ -7,15 +7,16 @@
  */
 
 /**
- * Render a page of available feed configuration.
- *
- * @todo Respect permissions.
+ * Render a page of available importers.
  */
 function feeds_page() {
   $rows = array();
   if ($importers = feeds_importer_load_all()) {
     foreach ($importers as $importer) {
       if ($importer->disabled) {
+        continue;
+      }
+      if (!(user_access('import '. $importer->id .' feeds') || user_access('administer feeds'))) {
         continue;
       }
       if (empty($importer->config['content_type'])) {
