@@ -1,4 +1,4 @@
-// $Id: CHANGELOG.txt,v 1.55 2010/02/27 01:28:03 alexb Exp $
+// $Id: CHANGELOG.txt,v 1.57 2010/02/27 02:02:11 alexb Exp $
 
 
 Feeds 6.x 1.0 xxxxx xx, 2010-xx-xx

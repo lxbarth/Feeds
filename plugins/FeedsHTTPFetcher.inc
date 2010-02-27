@@ -1,5 +1,5 @@
 <?php
-// $Id: FeedsHTTPFetcher.inc,v 1.16 2010/02/23 20:22:14 alexb Exp $
+// $Id: FeedsHTTPFetcher.inc,v 1.18 2010/02/27 02:02:11 alexb Exp $
 
 /**
  * @file
