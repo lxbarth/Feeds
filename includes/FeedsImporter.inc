@@ -11,10 +11,6 @@ require_once(dirname(__FILE__) .'/FeedsConfigurable.inc');
 require_once(dirname(__FILE__) .'/FeedsSource.inc');
 require_once(dirname(__FILE__) .'/FeedsBatch.inc');
 
-// Status of batched operations.
-define('FEEDS_BATCH_COMPLETE', 1);
-define('FEEDS_BATCH_ACTIVE', 0);
-
 /**
  * A FeedsImporter object describes how an external source should be fetched,
  * parsed and processed. Feeds can manage an arbitrary amount of importers.
