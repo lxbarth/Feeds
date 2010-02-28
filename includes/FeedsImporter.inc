@@ -153,7 +153,7 @@ class FeedsImporter extends FeedsConfigurable {
       $config = array_shift($config);
       $this->export_type = $config->export_type;
       $this->disabled = isset($config->disabled) ? $config->disabled : FALSE;
-      $this->config = $config->config;
+      $this->setConfig($config->config);
       return TRUE;
     }
     return FALSE;
@@ -237,6 +237,9 @@ class FeedsImporter extends FeedsConfigurable {
       'import_period' => 1800, // Refresh every 30 minutes by default.
       'expire_period' => 3600, // Expire every hour by default, this is a hidden setting.
       'import_on_create' => TRUE, // Import on create.
+      'item_link' => FALSE,
+      'item_link_path' => '',
+      'item_link_name' => t('Items'),
     );
   }
 
@@ -280,6 +283,24 @@ class FeedsImporter extends FeedsConfigurable {
       '#title' => t('Import on create'),
       '#description' => t('Check if content should be imported at the moment of feed submission.'),
       '#default_value' => $this->config['import_on_create'],
+    );
+    $form['item_link'] = array(
+      '#type' => 'checkbox',
+      '#title' => t('Show link to items'),
+      '#description' => t('Show a link to a list of items on feed nodes and standalone forms.'),
+      '#default_value' => $this->config['item_link'],
+    );
+    $form['item_link_path'] = array(
+      '#type' => 'textfield',
+      '#title' => t('Link path'),
+      '#description' => t('The path to the list of items. Use %source_id as a placeholder for the feed node\'s node id. Example: feeds/feed/%source_id.'),
+      '#default_value' => $this->config['item_link_path'],
+    );
+    $form['item_link_name'] = array(
+      '#type' => 'textfield',
+      '#title' => t('Link name'),
+      '#description' => t('The name of the link.'),
+      '#default_value' => $this->config['item_link_name'],
     );
     return $form;
   }

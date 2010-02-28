@@ -33,3 +33,12 @@ function feeds_defaults_feeds_importer_default() {
   $args = func_get_args();
   return call_user_func_array('_feeds_defaults_feeds_importer_default', $args);
 }
+
+/**
+ * Implementation of hook_views_default_views().
+ */
+function feeds_defaults_views_default_views() {
+  module_load_include('inc', 'feeds_defaults', 'feeds_defaults.features.views');
+  $args = func_get_args();
+  return call_user_func_array('_feeds_defaults_views_default_views', $args);
+}

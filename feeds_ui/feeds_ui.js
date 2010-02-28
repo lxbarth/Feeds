@@ -88,8 +88,37 @@ Drupal.behaviors.feeds = function() {
     $('input.form-submit.feeds-ui-hidden-submit').click();
   });
 
-  // Show pubsub settings conditionally.
+  // Show item link settings conditionally.
   // @todo Generalize dependencies between form elements.
+  // @todo Refuse submission if required form elements are missing.
+  var path_label = $('#edit-item-link-path-wrapper').children('label').text();
+  var name_label = $('#edit-item-link-path-wrapper').children('label').text();
+  if ($('#edit-item-link').attr('checked')) {
+    $('#edit-item-link-path').show();
+    $('#edit-item-link-path-wrapper').children('label').append('<span class="form-required">*</span>');
+    $('#edit-item-link-name').show();
+    $('#edit-item-link-name-wrapper').children('label').append('<span class="form-required">*</span>');
+  }
+  else {
+    $('#edit-item-link-path').hide();
+    $('#edit-item-link-name').hide();
+  }
+  $('#edit-item-link').click(function() {
+    if ($('#edit-item-link').attr('checked')) {
+      $('#edit-item-link-path-wrapper').show(100);
+      $('#edit-item-link-path-wrapper').children('label').append('<span class="form-required">*</span>');
+      $('#edit-item-link-name-wrapper').show(100);
+      $('#edit-item-link-name-wrapper').children('label').append('<span class="form-required">*</span>');
+    }
+    else {
+      $('#edit-item-link-path-wrapper').hide(100);
+      $('#edit-item-link-path-wrapper').children('label').text(path_label);
+      $('#edit-item-link-name-wrapper').hide(100);
+      $('#edit-item-link-name-wrapper').children('label').text(name_label);
+    }
+  });
+
+  // Show pubsub settings conditionally.
   if ($('#edit-use-pubsubhubbub').attr('checked')) {
     $('#edit-designated-hub-wrapper').show();
   }
