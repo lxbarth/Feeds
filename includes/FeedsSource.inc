@@ -1,5 +1,5 @@
 <?php
-// $Id: FeedsSource.inc,v 1.10 2010/02/23 23:51:58 alexb Exp $
+// $Id: FeedsSource.inc,v 1.11 2010/02/27 02:51:19 alexb Exp $
 
 /**
  * @file
@@ -116,6 +116,10 @@ class FeedsSource extends FeedsConfigurable {
    * Lock a source before importing by using FeedsSource::lock(), after
    * importing, release with FeedsSource::release().
    *
+   * @return
+   *   FEEDS_BATCH_COMPLETE if the import process finished. A decimal between
+   *   0.0 and 0.9 periodic if import is still in progress.
+   *
    * @throws
    *   Throws Exception if an error occurs when importing.
    */
@@ -142,6 +146,10 @@ class FeedsSource extends FeedsConfigurable {
 
   /**
    * Remove all items from a feed.
+   *
+   * @return
+   *   FEEDS_BATCH_COMPLETE if the clearing process finished. A decimal between
+   *   0.0 and 0.9 periodic if clearing is still in progress.
    *
    * @throws
    *   Throws Exception if an error occurs when clearing.

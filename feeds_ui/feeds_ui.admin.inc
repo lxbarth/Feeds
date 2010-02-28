@@ -139,15 +139,7 @@ function feeds_ui_overview_form_submit($form, &$form_state) {
     $disabled[$importer->id] = !$form_state['values'][$importer->id];
   }
   variable_set('default_feeds_importer', $disabled);
-
-  // Clear caches: reset export cache, as objects have been enabled/disabled,
-  // reset node type cache, as some features provide content types, rebuild
-  // menu as content type changes or importer enabling/disabling can have
-  // impact on node/add/ or import/.
-  ctools_include('export');
-  ctools_export_load_object_reset('feeds_importer');
-  node_get_types('types', NULL, TRUE);
-  menu_rebuild();
+  feeds_cache_clear();
 }
 
 /**
@@ -225,6 +217,7 @@ function feeds_ui_create_form_submit($form, &$form_state) {
     drupal_set_message(t('A clone of the !name configuration has been created.', array('!name' => $form['#from_importer']->config['name'])));
   }
   $form_state['redirect'] = 'admin/build/feeds/edit/'. $importer->id;
+  feeds_cache_clear();
 }
 
 /**
@@ -257,7 +250,7 @@ function feeds_ui_delete_form_submit($form, &$form_state) {
   $form['#importer']->delete();
 
   // Clear cache, deleting a configuration may have an affect on menu tree.
-  menu_rebuild();
+  feeds_cache_clear();
 }
 
 /**

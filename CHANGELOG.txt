@@ -1,9 +1,12 @@
-// $Id: CHANGELOG.txt,v 1.58 2010/02/27 02:09:57 alexb Exp $
+// $Id: CHANGELOG.txt,v 1.60 2010/02/27 04:45:17 alexb Exp $
 
 
 Feeds 6.x 1.0 xxxxx xx, 2010-xx-xx
 ----------------------------------
 
+- #726012 alex_b: Fix RSS descriptions not being reset in 
+  common_syndication_parser.inc.
+- alex_b: Fix a typo in the return value of process() in FeedsTermProcessor.
 - alex_b: Stop PubSubHubbub from subscribing if it is not enabled.
 - #711664 neclimdul: guarantee compatibility with CTools 1.4  by declaring that
   Feeds uses hooks to define plugins via hook_ctools_plugin_plugins().
