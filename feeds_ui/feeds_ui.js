@@ -92,7 +92,7 @@ Drupal.behaviors.feeds = function() {
   // @todo Generalize dependencies between form elements.
   // @todo Refuse submission if required form elements are missing.
   var path_label = $('#edit-item-link-path-wrapper').children('label').text();
-  var name_label = $('#edit-item-link-path-wrapper').children('label').text();
+  var name_label = $('#edit-item-link-name-wrapper').children('label').text();
   if ($('#edit-item-link').attr('checked')) {
     $('#edit-item-link-path').show();
     $('#edit-item-link-path-wrapper').children('label').append('<span class="form-required">*</span>');

@@ -17,6 +17,19 @@ function _feeds_defaults_views_default_views() {
   $view->api_version = 2;
   $view->disabled = FALSE; /* Edit this to true to make a default view disabled initially */
   $handler = $view->new_display('default', 'Defaults', 'default');
+  $handler->override_option('relationships', array(
+    'feed_nid' => array(
+      'label' => 'Owner feed',
+      'required' => 1,
+      'id' => 'feed_nid',
+      'table' => 'feeds_node_item',
+      'field' => 'feed_nid',
+      'override' => array(
+        'button' => 'Override',
+      ),
+      'relationship' => 'none',
+    ),
+  ));
   $handler->override_option('sorts', array(
     'created' => array(
       'order' => 'DESC',
@@ -37,7 +50,7 @@ function _feeds_defaults_views_default_views() {
       'style_options' => array(),
       'wildcard' => 'all',
       'wildcard_substitution' => 'All',
-      'title' => 'Items for feed %1',
+      'title' => 'Feed items for %1',
       'breadcrumb' => '',
       'default_argument_type' => 'fixed',
       'default_argument' => '',
@@ -52,10 +65,7 @@ function _feeds_defaults_views_default_views() {
       'validate_user_roles' => array(
         '2' => 0,
       ),
-      'override' => array(
-        'button' => 'Override',
-      ),
-      'relationship' => 'none',
+      'relationship' => 'feed_nid',
       'default_options_div_prefix' => '',
       'default_argument_user' => 0,
       'default_argument_fixed' => '',

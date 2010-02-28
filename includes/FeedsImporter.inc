@@ -12,6 +12,14 @@ require_once(dirname(__FILE__) .'/FeedsSource.inc');
 require_once(dirname(__FILE__) .'/FeedsBatch.inc');
 
 /**
+ * Node interface. Importers and plugins can implement this interface and
+ * to implement hook_link($type = 'node').
+ */
+interface FeedsNodeLinkInterface {
+  public function nodeLink($node);
+}
+
+/**
  * A FeedsImporter object describes how an external source should be fetched,
  * parsed and processed. Feeds can manage an arbitrary amount of importers.
  *
@@ -28,7 +36,7 @@ require_once(dirname(__FILE__) .'/FeedsBatch.inc');
  * the configuration information. After instantiating them, it sets them to
  * the configuration information it holds for them.
  */
-class FeedsImporter extends FeedsConfigurable {
+class FeedsImporter extends FeedsConfigurable implements FeedsNodeLinkInterface {
 
   // Every feed has a fetcher, a parser and a processor.
   // These variable names match the possible return values of
@@ -303,6 +311,25 @@ class FeedsImporter extends FeedsConfigurable {
       '#default_value' => $this->config['item_link_name'],
     );
     return $form;
+  }
+
+  /**
+   * Implement FeedsNodeInterface::nodeLink().
+   */
+  function nodeLink($node) {
+    $links = array();
+    foreach ($this->plugin_types as $plugin_type) {
+      if ($this->$plugin_type instanceof FeedsNodeInterface) {
+        $links += $this->$plugin_type->nodeLink($node);
+      }
+    }
+    if ($this->config['item_link']) {
+      $links['item_link'] = array(
+        'title' => $this->config['item_link_name'],
+        'href' => str_replace('%source_id', $node->nid, $this->config['item_link_path']),
+      );
+    }
+    return $links;
   }
 }
 

@@ -12,7 +12,7 @@ define('FEEDS_NODE_BATCH_SIZE', 50);
 /**
  * Creates nodes from feed items.
  */
-class FeedsNodeProcessor extends FeedsProcessor {
+class FeedsNodeProcessor extends FeedsProcessor implements FeedsNodeLinkInterface {
 
   /**
    * Implementation of FeedsProcessor::process().
@@ -166,6 +166,11 @@ class FeedsNodeProcessor extends FeedsProcessor {
       'update_existing' => 0,
       'expire' => FEEDS_EXPIRE_NEVER,
       'mappings' => array(),
+      'original_link' => FALSE,
+      'original_link_name' => t('Original article'),
+      'feed_link' => FALSE,
+      'feed_link_path' => 'node/%source_id',
+      'feed_link_name' => '%source_name',
     );
   }
 
@@ -195,6 +200,36 @@ class FeedsNodeProcessor extends FeedsProcessor {
       '#options' => $period,
       '#description' => t('Select after how much time nodes should be deleted. The node\'s published date will be used for determining the node\'s age, see Mapping settings.'),
       '#default_value' => $this->config['expire'],
+    );
+    $form['original_link'] = array(
+      '#type' => 'checkbox',
+      '#title' => t('Show link to original item'),
+      '#description' => t('Show a link to the original of this item.'),
+      '#default_value' => $this->config['original_link'],
+    );
+    $form['original_link_name'] = array(
+      '#type' => 'textfield',
+      '#title' => t('Link name'),
+      '#description' => t('The name of the link. Use %item_title as a placeholder for the title of the item. The URL will be the URL mapping target of the item.'),
+      '#default_value' => $this->config['original_link_name'],
+    );
+    $form['feed_link'] = array(
+      '#type' => 'checkbox',
+      '#title' => t('Show link to source feed'),
+      '#description' => t('Show a link to the source of this item.'),
+      '#default_value' => $this->config['feed_link'],
+    );
+    $form['feed_link_path'] = array(
+      '#type' => 'textfield',
+      '#title' => t('Link path'),
+      '#description' => t('The path to the list of items. Use %source_id as a placeholder for the feed node\'s node id. Example: node/%source_id.'),
+      '#default_value' => $this->config['feed_link_path'],
+    );
+    $form['feed_link_name'] = array(
+      '#type' => 'textfield',
+      '#title' => t('Link name'),
+      '#description' => t('The name of the link. Use %source_name as a placeholder for the name of the feed.'),
+      '#default_value' => $this->config['feed_link_name'],
     );
     return $form;
   }
@@ -306,6 +341,20 @@ class FeedsNodeProcessor extends FeedsProcessor {
       module_implements('', FALSE, TRUE);
     }
     $loaded = TRUE;
+  }
+
+  /**
+   * Implement FeedsNodeInterface::nodeLink().
+   */
+  public function nodeLink($node) {
+    $links = array();
+    if ($this->config['feed_link']) {
+      $links['item_link'] = array(
+        'title' => $this->config['feed_link_name'],
+        'href' => str_replace('%source_id', $node->nid, $this->config['feed_link_path']),
+      );
+    }
+    return $links;
   }
 
   /**
