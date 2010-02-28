@@ -12,14 +12,6 @@ require_once(dirname(__FILE__) .'/FeedsSource.inc');
 require_once(dirname(__FILE__) .'/FeedsBatch.inc');
 
 /**
- * Node interface. Importers and plugins can implement this interface and
- * to implement hook_link($type = 'node').
- */
-interface FeedsNodeLinkInterface {
-  public function nodeLink($node);
-}
-
-/**
  * A FeedsImporter object describes how an external source should be fetched,
  * parsed and processed. Feeds can manage an arbitrary amount of importers.
  *
@@ -36,7 +28,7 @@ interface FeedsNodeLinkInterface {
  * the configuration information. After instantiating them, it sets them to
  * the configuration information it holds for them.
  */
-class FeedsImporter extends FeedsConfigurable implements FeedsNodeLinkInterface {
+class FeedsImporter extends FeedsConfigurable {
 
   // Every feed has a fetcher, a parser and a processor.
   // These variable names match the possible return values of
@@ -161,7 +153,7 @@ class FeedsImporter extends FeedsConfigurable implements FeedsNodeLinkInterface 
       $config = array_shift($config);
       $this->export_type = $config->export_type;
       $this->disabled = isset($config->disabled) ? $config->disabled : FALSE;
-      $this->setConfig($config->config);
+      $this->config = $config->config;
       return TRUE;
     }
     return FALSE;
@@ -245,9 +237,6 @@ class FeedsImporter extends FeedsConfigurable implements FeedsNodeLinkInterface 
       'import_period' => 1800, // Refresh every 30 minutes by default.
       'expire_period' => 3600, // Expire every hour by default, this is a hidden setting.
       'import_on_create' => TRUE, // Import on create.
-      'item_link' => FALSE,
-      'item_link_path' => '',
-      'item_link_name' => t('Items'),
     );
   }
 
@@ -292,44 +281,7 @@ class FeedsImporter extends FeedsConfigurable implements FeedsNodeLinkInterface 
       '#description' => t('Check if content should be imported at the moment of feed submission.'),
       '#default_value' => $this->config['import_on_create'],
     );
-    $form['item_link'] = array(
-      '#type' => 'checkbox',
-      '#title' => t('Show link to items'),
-      '#description' => t('Show a link to a list of items on feed nodes and standalone forms.'),
-      '#default_value' => $this->config['item_link'],
-    );
-    $form['item_link_path'] = array(
-      '#type' => 'textfield',
-      '#title' => t('Link path'),
-      '#description' => t('The path to the list of items. Use %source_id as a placeholder for the feed node\'s node id. Example: feeds/feed/%source_id.'),
-      '#default_value' => $this->config['item_link_path'],
-    );
-    $form['item_link_name'] = array(
-      '#type' => 'textfield',
-      '#title' => t('Link name'),
-      '#description' => t('The name of the link.'),
-      '#default_value' => $this->config['item_link_name'],
-    );
     return $form;
-  }
-
-  /**
-   * Implement FeedsNodeInterface::nodeLink().
-   */
-  function nodeLink($node) {
-    $links = array();
-    foreach ($this->plugin_types as $plugin_type) {
-      if ($this->$plugin_type instanceof FeedsNodeInterface) {
-        $links += $this->$plugin_type->nodeLink($node);
-      }
-    }
-    if ($this->config['item_link']) {
-      $links['item_link'] = array(
-        'title' => $this->config['item_link_name'],
-        'href' => str_replace('%source_id', $node->nid, $this->config['item_link_path']),
-      );
-    }
-    return $links;
   }
 }
 

@@ -236,17 +236,6 @@ function feeds_feeds_plugins() {
 }
 
 /**
- * Implementation of hook_link().
- */
-function feeds_link($type, $node = NULL) {
-  $links = array();
-  if ($type == 'node' && $id = feeds_get_importer_id($node->type)) {
-    $links += feeds_importer($id)->nodeLink($node);
-  }
-  return $links;
-}
-
-/**
  * Implementation of hook_nodeapi().
  */
 function feeds_nodeapi(&$node, $op, $form) {
