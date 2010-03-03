@@ -1,5 +1,5 @@
 <?php
-// $Id: FeedsScheduler.inc,v 1.16 2010/02/23 23:58:54 alexb Exp $
+// $Id: FeedsScheduler.inc,v 1.17 2010/03/01 14:33:27 alexb Exp $
 
 /**
  * @file
@@ -199,7 +199,7 @@ class FeedsScheduler implements FeedsSchedulerInterface {
      db_query("UPDATE {feeds_schedule} SET scheduled = %d WHERE id = '%s' AND feed_nid = %d AND callback = '%s'", FEEDS_REQUEST_TIME, $job['id'], $job['feed_nid'], $job['callback']);
      if (db_affected_rows()) {
        if ($this->queue()) {
-         if (!$queue->createItem($job)) {
+         if (!$this->queue()->createItem($job)) {
            $this->unschedule($job);
            watchdog('FeedsScheduler', 'Error adding item to queue.', WATCHDOG_CRITICAL);
            return;
