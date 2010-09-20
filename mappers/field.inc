@@ -11,12 +11,12 @@
  */
 
 /**
- * Implements hook_feeds_node_processor_targets_alter().
+ * Implements hook_feeds_processor_targets_alter().
  *
  * @see FeedsNodeProcessor::getMappingTargets().
  */
-function field_feeds_node_processor_targets_alter(&$targets, $content_type) {
-  foreach (field_info_instances('node', $content_type) as $name => $instance) {
+function field_feeds_processor_targets_alter(&$targets, $entity_type, $content_type) {
+  foreach (field_info_instances($entity_type, $content_type) as $name => $instance) {
     $info = field_info_field($name);
     $allowed_types = array(
       'number_integer',
@@ -43,7 +43,7 @@ function field_feeds_node_processor_targets_alter(&$targets, $content_type) {
  * user has decided to map to and $value contains the value of the feed item
  * element the user has picked as a source.
  */
-function field_feeds_set_target($node, $target, $value) {
+function field_feeds_set_target($entity, $target, $value) {
   $info = field_info_field($target);
 
   // Handle non-multiple value fields.
@@ -53,7 +53,7 @@ function field_feeds_set_target($node, $target, $value) {
 
   // Iterate over all values.
   $i = 0;
-  $field = isset($node->$target) ? $node->$target : array();
+  $field = isset($entity->$target) ? $entity->$target : array();
   foreach ($value as $v) {
     if (!is_array($v) && !is_object($v)) {
       $field['und'][$i]['value'] = $v;
@@ -63,5 +63,5 @@ function field_feeds_set_target($node, $target, $value) {
     }
     $i++;
   }
-  $node->$target = $field;
+  $entity->$target = $field;
 }

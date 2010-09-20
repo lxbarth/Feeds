@@ -210,7 +210,7 @@ class FeedsTermProcessor extends FeedsProcessor {
     );
     // Let implementers of hook_feeds_term_processor_targets() add their targets.
     $vocabulary = $this->vocabulary();
-    drupal_alter('feeds_term_processor_targets', $targets, $vocabulary->vid);
+    feeds_alter('feeds_processor_targets', $targets, 'taxonomy_term', $vocabulary->vid);
     return $targets;
   }
 

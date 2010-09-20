@@ -151,7 +151,7 @@ function hook_feeds_parser_sources_alter(&$sources, $content_type) {
 }
 
 /**
- * Callback specified in hook_feeds_parser_sources_alter().
+ * Example callback specified in hook_feeds_parser_sources_alter().
  *
  * To be invoked on mapping time.
  *
@@ -173,25 +173,7 @@ function my_source_get_source(FeedsImportBatch $batch, $key) {
 }
 
 /**
- * Alter mapping targets for users. Use this hook to add additional target
- * options to the mapping form of User processors.
- *
- * For an example implementation, see mappers/profile.inc
- *
- * @param: &$targets
- *  Array containing the targets to be offered to the user. Add to this array
- *  to expose additional options. Remove from this array to suppress options.
- */
-function hook_feeds_user_processor_targets_alter(&$targets) {
-  $targets['my_user_field'] = array(
-    'name' => t('My custom user field'),
-    'description' => t('Description of what my custom user field does.'),
-    'callback' => 'my_callback',
-  );
-}
-
-/**
- * Alter mapping targets for nodes. Use this hook to add additional target
+ * Alter mapping targets for entities. Use this hook to add additional target
  * options to the mapping form of Node processors.
  *
  * If the key in $targets[] does not correspond to the actual key on the node
@@ -203,61 +185,40 @@ function hook_feeds_user_processor_targets_alter(&$targets) {
  *   Array containing the targets to be offered to the user. Add to this array
  *   to expose additional options. Remove from this array to suppress options.
  *   Remove with caution.
+ * @param $entity_type
+ *   The entity type of the target, for instance a 'node' entity.
  * @param $content_type
  *   The content type of the target node.
  */
-function hook_feeds_node_processor_targets_alter(&$targets, $content_type) {
-  $targets['my_node_field'] = array(
-    'name' => t('My custom node field'),
-    'description' => t('Description of what my custom node field does.'),
-    'callback' => 'my_callback',
-  );
-  $targets['my_node_field2'] = array(
-    'name' => t('My Second custom node field'),
-    'description' => t('Description of what my second custom node field does.'),
-    'callback' => 'my_callback2',
-    'real_target' => 'my_node_field_two', // Specify real target field on node.
-  );
-}
-
-/**
- * Alter mapping targets for taxonomy terms. Use this hook to add additional
- * target options to the mapping form of Taxonomy term processor.
- *
- * For an example implementation, look at geotaxnomy module.
- * http://drupal.org/project/geotaxonomy
- *
- * @param &$targets
- *   Array containing the targets to be offered to the user. Add to this array
- *   to expose additional options. Remove from this array to suppress options.
- *   Remove with caution.
- * @param $vid
- *   The vocabulary id
- */
-function hook_feeds_term_processor_targets_alter(&$targets, $vid) {
-  if (variable_get('mymodule_vocabulary_'. $vid, 0)) {
-    $targets['lat'] = array(
-      'name' => t('Latitude'),
-      'description' => t('Latitude of the term.'),
+function hook_feeds_processor_targets_alter(&$targets, $entity_type, $content_type) {
+  if ($entity_type == 'node') {
+    $targets['my_node_field'] = array(
+      'name' => t('My custom node field'),
+      'description' => t('Description of what my custom node field does.'),
+      'callback' => 'my_module_set_target',
     );
-    $targets['lon'] = array(
-      'name' => t('Longitude'),
-      'description' => t('Longitude of the term.'),
+    $targets['my_node_field2'] = array(
+      'name' => t('My Second custom node field'),
+      'description' => t('Description of what my second custom node field does.'),
+      'callback' => 'my_module_set_target2',
+      'real_target' => 'my_node_field_two', // Specify real target field on node.
     );
   }
 }
 
 /**
- * Alter mapping targets for Data table entries. Use this hook to add additional
- * target options to the mapping form of Data processor.
+ * Example callback specified in hook_feeds_processor_targets_alter().
+ *
+ * @param $entity
+ *   An entity object, for instance a node object.
+ * @param $target
+ *   A string identifying the target on the node.
+ * @param $value
+ *   The value to populate the target with.
+ *
  */
-function hook_feeds_data_processor_targets_alter(&$fields, $data_table) {
-  if ($data_table == mymodule_base_table()) {
-    $fields['mytable:category'] = array(
-      'name' => t('Category'),
-      'description' => t('One or more category terms.'),
-    );
-  }
+function my_module_set_target($entity, $target, $value) {
+  $entity->$target['und'][0]['value'] = $value;
 }
 
 /**

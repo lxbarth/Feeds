@@ -189,7 +189,7 @@ class FeedsUserProcessor extends FeedsProcessor {
 
     // Let other modules expose mapping targets.
     self::loadMappers();
-    drupal_alter('feeds_user_processor_targets', $targets);
+    feeds_alter('feeds_processor_targets', $targets, 'user');
 
     return $targets;
   }
