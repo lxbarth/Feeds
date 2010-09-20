@@ -187,8 +187,8 @@ abstract class FeedsProcessor extends FeedsPlugin {
    *
    * @ingroup mappingapi
    */
-  public function setTargetElement(&$target_item, $target_element, $value) {
-    $target_item[$target_element] = $value;
+  public function setTargetElement($target_item, $target_element, $value) {
+    $target_item->$target_element = $value;
   }
 
   /**
