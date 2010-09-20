@@ -83,6 +83,8 @@ abstract class FeedsPlugin extends FeedsConfigurable implements FeedsSourceInter
    *
    * @see FeedsNodeProcessor::map()
    * @see FeedsUserProcessor::map()
+   *
+   * @todo: Use CTools Plugin API.
    */
   protected static function loadMappers() {
     static $loaded = FALSE;
@@ -94,8 +96,6 @@ abstract class FeedsPlugin extends FeedsConfigurable implements FeedsSourceInter
           require_once("./$file->uri");
         }
       }
-      // Rebuild cache.
-      module_implements('', FALSE, TRUE);
     }
     $loaded = TRUE;
   }
