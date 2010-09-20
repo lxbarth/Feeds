@@ -501,7 +501,7 @@ function feeds_taxonomy_term_delete($term) {
  * Implements hook_form_alter().
  */
 function feeds_form_alter(&$form, $form_state, $form_id) {
-  if ($form['#id'] == 'node-form') {
+  if ($form['#node_edit_form']) {
     if ($importer_id = feeds_get_importer_id($form['type']['#value'])) {
       // Set title to not required, try to retrieve it from feed.
       $form['title']['#required'] = FALSE;
