@@ -37,24 +37,24 @@ function feeds_news_feeds_importer_default() {
             'unique' => FALSE,
           ),
           1 => array(
-            'source' => 'description',
-            'target' => 'body',
-            'unique' => FALSE,
-          ),
-          2 => array(
             'source' => 'timestamp',
             'target' => 'created',
             'unique' => FALSE,
           ),
-          3 => array(
+          2 => array(
             'source' => 'url',
             'target' => 'url',
-            'unique' => TRUE,
+            'unique' => 1,
           ),
-          4 => array(
+          3 => array(
             'source' => 'guid',
             'target' => 'guid',
-            'unique' => TRUE,
+            'unique' => 1,
+          ),
+          4 => array(
+            'source' => 'description',
+            'target' => 'field_body',
+            'unique' => FALSE,
           ),
         ),
         'input_format' => 0,

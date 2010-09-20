@@ -107,6 +107,7 @@ function feeds_news_views_default_views() {
   $handler->display->display_options['fields']['entity_id']['id'] = 'entity_id';
   $handler->display->display_options['fields']['entity_id']['table'] = 'field_data_field_body';
   $handler->display->display_options['fields']['entity_id']['field'] = 'entity_id';
+  $handler->display->display_options['fields']['entity_id']['label'] = '';
   $handler->display->display_options['fields']['entity_id']['alter']['alter_text'] = 0;
   $handler->display->display_options['fields']['entity_id']['alter']['make_link'] = 0;
   $handler->display->display_options['fields']['entity_id']['alter']['absolute'] = 0;
@@ -115,7 +116,7 @@ function feeds_news_views_default_views() {
   $handler->display->display_options['fields']['entity_id']['alter']['ellipsis'] = 1;
   $handler->display->display_options['fields']['entity_id']['alter']['strip_tags'] = 0;
   $handler->display->display_options['fields']['entity_id']['alter']['html'] = 0;
-  $handler->display->display_options['fields']['entity_id']['hide_empty'] = 0;
+  $handler->display->display_options['fields']['entity_id']['hide_empty'] = 1;
   $handler->display->display_options['fields']['entity_id']['empty_zero'] = 0;
   /* Field: Node: Edit link */
   $handler->display->display_options['fields']['edit_node']['id'] = 'edit_node';
