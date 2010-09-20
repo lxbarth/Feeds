@@ -14,7 +14,15 @@
 function field_feeds_node_processor_targets_alter(&$targets, $content_type) {
   foreach (field_info_instances('node', $content_type) as $name => $instance) {
     $info = field_info_field($name);
-    if (in_array($info['type'], array('text_with_summary'))) {
+    $allowed_types = array(
+      'number_integer',
+      'number_decimal',
+      'number_float',
+      'text',
+      'text_long',
+      'text_with_summary',
+    );
+    if (in_array($info['type'], $allowed_types)) {
       $targets[$name] = array(
         'name' => $instance['label'],
         'callback' => 'field_feeds_set_target',
@@ -32,22 +40,24 @@ function field_feeds_node_processor_targets_alter(&$targets, $content_type) {
  * element the user has picked as a source.
  */
 function field_feeds_set_target($node, $target, $value) {
+  $info = field_info_field($target);
 
+  // Handle non-multiple value fields.
+  if (!is_array($value)) {
+    $value = array($value);
+  }
+
+  // Iterate over all values.
+  $i = 0;
   $field = isset($node->$target) ? $node->$target : array();
-
-  // Handle multiple value fields.
-  if (is_array($value)) {
-    $i = 0;
-    foreach ($value as $v) {
-      if (!is_array($v) && !is_object($v)) {
-        $field[$i]['value'] = $v;
-      }
-      $i++;
+  foreach ($value as $v) {
+    if (!is_array($v) && !is_object($v)) {
+      $field['und'][$i]['value'] = $v;
     }
+    if ($info['cardinality'] == 1) {
+      break;
+    }
+    $i++;
   }
-  else {
-    $field[0]['value'] = $value;
-  }
-
   $node->$target = $field;
 }
