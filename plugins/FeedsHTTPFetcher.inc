@@ -1,5 +1,5 @@
 <?php
-// $Id: FeedsHTTPFetcher.inc,v 1.20 2010/03/01 21:48:02 alexb Exp $
+// $Id: FeedsHTTPFetcher.inc,v 1.29 2010/09/18 00:06:39 alexb Exp $
 
 /**
  * @file
@@ -19,18 +19,18 @@ class FeedsHTTPBatch extends FeedsImportBatch {
   /**
    * Constructor.
    */
-  public function __construct($url = NULL) {
+  public function __construct($url = NULL, $feed_nid) {
     $this->url = $url;
-    parent::__construct();
+    parent::__construct('', $feed_nid);
   }
 
   /**
-   * Implementation of FeedsImportBatch::getRaw();
+   * Implements FeedsImportBatch::getRaw();
    */
   public function getRaw() {
     feeds_include_library('http_request.inc', 'http_request');
     $result = http_request_get($this->url);
-    if ($result->code != 200) {
+    if (!in_array($result->code, array(200, 201, 202, 203, 204, 205, 206))) {
       throw new Exception(t('Download of @url failed with code !code.', array('@url' => $this->url, '!code' => $result->code)));
     }
     return $result->data;
@@ -43,14 +43,14 @@ class FeedsHTTPBatch extends FeedsImportBatch {
 class FeedsHTTPFetcher extends FeedsFetcher {
 
   /**
-   * Implementation of FeedsFetcher::fetch().
+   * Implements FeedsFetcher::fetch().
    */
   public function fetch(FeedsSource $source) {
     $source_config = $source->getConfigFor($this);
     if ($this->config['use_pubsubhubbub'] && ($raw = $this->subscriber($source->feed_nid)->receive())) {
-      return new FeedsImportBatch($raw);
+      return new FeedsImportBatch($raw, $source->feed_nid);
     }
-    return new FeedsHTTPBatch($source_config['source']);
+    return new FeedsHTTPBatch($source_config['source'], $source->feed_nid);
   }
 
   /**
@@ -64,7 +64,7 @@ class FeedsHTTPFetcher extends FeedsFetcher {
   }
 
   /**
-   * Implementation of FeedsFetcher::request().
+   * Implements FeedsFetcher::request().
    */
   public function request($feed_nid = 0) {
     feeds_dbg($_GET);
@@ -94,6 +94,7 @@ class FeedsHTTPFetcher extends FeedsFetcher {
    */
   public function configDefaults() {
     return array(
+      'auto_detect_feeds' => FALSE,
       'use_pubsubhubbub' => FALSE,
       'designated_hub' => '',
     );
@@ -104,6 +105,12 @@ class FeedsHTTPFetcher extends FeedsFetcher {
    */
   public function configForm(&$form_state) {
     $form = array();
+    $form['auto_detect_feeds'] = array(
+      '#type' => 'checkbox',
+      '#title' => t('Auto detect feeds'),
+      '#description' => t('If the supplied URL does not point to a feed but an HTML document, attempt to extract a feed URL from the document.'),
+      '#default_value' => $this->config['auto_detect_feeds'],
+    );
     $form['use_pubsubhubbub'] = array(
       '#type' => 'checkbox',
       '#title' => t('Use PubSubHubbub'),
@@ -115,6 +122,10 @@ class FeedsHTTPFetcher extends FeedsFetcher {
       '#title' => t('Designated hub'),
       '#description' => t('Enter the URL of a designated PubSubHubbub hub (e. g. superfeedr.com). If given, this hub will be used instead of the hub specified in the actual feed.'),
       '#default_value' => $this->config['designated_hub'],
+//      '#process' => array('ctools_dependent_process'),
+      '#dependency' => array(
+        'edit-use-pubsubhubbub' => array(1),
+      ),
     );
     return $form;
   }
@@ -133,6 +144,18 @@ class FeedsHTTPFetcher extends FeedsFetcher {
       '#required' => TRUE,
     );
     return $form;
+  }
+
+  /**
+   * Override parent::sourceFormValidate().
+   */
+  public function sourceFormValidate(&$values) {
+    if ($this->config['auto_detect_feeds']) {
+      feeds_include_library('http_request.inc', 'http_request');
+      if ($url = http_request_get_common_syndication($values['source'])) {
+        $values['source'] = $url;
+      }
+    }
   }
 
   /**
@@ -170,6 +193,15 @@ class FeedsHTTPFetcher extends FeedsFetcher {
   }
 
   /**
+   * Implement FeedsFetcher::importPeriod().
+   */
+  public function importPeriod(FeedsSource $source) {
+    if ($this->subscriber($source->feed_nid)->subscribed()) {
+      return 259200; // Delay for three days if there is a successful subscription.
+    }
+  }
+
+  /**
    * Convenience method for instantiating a subscriber object.
    */
   protected function subscriber($subscriber_id) {
@@ -194,7 +226,7 @@ class PuSHSubscription implements PuSHSubscriptionInterface {
    * Load a subscription.
    */
   public static function load($domain, $subscriber_id) {
-    if ($v = db_fetch_array(db_query("SELECT * FROM {feeds_push_subscriptions} WHERE domain = '%s' AND subscriber_id = %d", $domain, $subscriber_id))) {
+    if ($v = db_query("SELECT * FROM {feeds_push_subscriptions} WHERE domain = :domain AND subscriber_id = :sid", array(':domain' => $domain, ':sid' => $subscriber_id))->fetchAssoc()) {
       $v['post_fields'] = unserialize($v['post_fields']);
       return new PuSHSubscription($v['domain'], $v['subscriber_id'], $v['hub'], $v['topic'], $v['secret'], $v['status'], $v['post_fields'], $v['timestamp']);
     }
@@ -226,7 +258,10 @@ class PuSHSubscription implements PuSHSubscriptionInterface {
    * Delete a subscription.
    */
   public function delete() {
-    db_query("DELETE FROM {feeds_push_subscriptions} WHERE domain = '%s' AND subscriber_id = %d", $this->domain, $this->subscriber_id);
+    db_delete('feeds_push_subscriptions')
+      ->condition('domain', $this->domain)
+      ->condition('subscriber_id', $this->subscriber_id)
+      ->execute();
   }
 }
 
@@ -246,14 +281,14 @@ class PuSHEnvironment implements PuSHSubscriberEnvironmentInterface {
   }
 
   /**
-   * Implementation of PuSHSubscriberEnvironmentInterface::msg().
+   * Implements PuSHSubscriberEnvironmentInterface::msg().
    */
   public function msg($msg, $level = 'status') {
     drupal_set_message($msg, $level);
   }
 
   /**
-   * Implementation of PuSHSubscriberEnvironmentInterface::log().
+   * Implements PuSHSubscriberEnvironmentInterface::log().
    */
   public function log($msg, $level = 'status') {
     switch ($level) {

@@ -1,5 +1,5 @@
 <?php
-// $Id: FeedsUserProcessor.inc,v 1.6 2010/02/17 22:58:18 alexb Exp $
+// $Id: FeedsUserProcessor.inc,v 1.21 2010/09/17 17:25:19 alexb Exp $
 
 /**
  * @file
@@ -12,7 +12,7 @@
 class FeedsUserProcessor extends FeedsProcessor {
 
   /**
-   * Implementation of FeedsProcessor::process().
+   * Implements FeedsProcessor::process().
    */
   public function process(FeedsImportBatch $batch, FeedsSource $source) {
 
@@ -21,10 +21,10 @@ class FeedsUserProcessor extends FeedsProcessor {
 
     while ($item = $batch->shiftItem()) {
 
-      if (!($uid = $this->existingItemId($item, $source)) || $this->config['update_existing']) {
+      if (!($uid = $this->existingItemId($batch, $source)) || $this->config['update_existing']) {
 
         // Map item to a term.
-        $account = $this->map($item);
+        $account = $this->map($batch);
 
         // Check if user name and mail are set, otherwise continue.
         if (empty($account->name) || empty($account->mail) || !valid_email_address($account->mail)) {
@@ -61,23 +61,29 @@ class FeedsUserProcessor extends FeedsProcessor {
 
     // Set messages.
     if ($failed) {
-      drupal_set_message(t('There were !number users that could not be imported because either their name or their email was empty or not valid. Check import data and mapping settings on User processor.', array('!number' => $failed)), 'error');
+      drupal_set_message(
+        format_plural(
+          $failed,
+          'There was @number user that could not be imported because either their name or their email was empty or not valid. Check import data and mapping settings on User processor.',
+          'There were @number users that could not be imported because either their name or their email was empty or not valid. Check import data and mapping settings on User processor.',
+          array('@number' => $failed)
+        ),
+        'error'
+      );
     }
     if ($created) {
-      drupal_set_message(t('Created !number users.', array('!number' => $created)));
+      drupal_set_message(format_plural($created, 'Created @number user.', 'Created @number users.', array('@number' => $created)));
     }
     elseif ($updated) {
-      drupal_set_message(t('Updated !number users.', array('!number' => $updated)));
+      drupal_set_message(format_plural($updated, 'Updated @number user.', 'Updated @number users.', array('@number' => $updated)));
     }
     else {
       drupal_set_message(t('There are no new users.'));
     }
-
-    return FEEDS_BATCH_COMPLETE;
   }
 
   /**
-   * Implementation of FeedsProcessor::clear().
+   * Implements FeedsProcessor::clear().
    */
   public function clear(FeedsBatch $batch, FeedsSource $source) {
     // Do not support deleting users as we have no way of knowing which ones we
@@ -88,15 +94,15 @@ class FeedsUserProcessor extends FeedsProcessor {
   /**
    * Execute mapping on an item.
    */
-  protected function map($source_item) {
+  protected function map(FeedsImportBatch $batch) {
     // Prepare term object.
     $target_account = new stdClass();
     $target_account->uid = 0;
-    $target_account->roles = $this->config['roles'];
+    $target_account->roles = array_filter($this->config['roles']);
     $target_account->status = $this->config['status'];
 
     // Have parent class do the iterating.
-    return parent::map($source_item, $target_account);
+    return parent::map($batch, $target_account);
   }
 
   /**
@@ -131,16 +137,16 @@ class FeedsUserProcessor extends FeedsProcessor {
       $form['roles'] = array(
         '#type' => 'checkboxes',
         '#title' => t('Additional roles'),
-        '#description' => t('Every user will be assigned the "autenticated user" role. Select additional roles here.'),
+        '#description' => t('Every user is assigned the "authenticated user" role. Select additional roles here.'),
         '#default_value' => $this->config['roles'],
         '#options' => $roles,
       );
     }
-
+    // @todo Implement true updating.
     $form['update_existing'] = array(
       '#type' => 'checkbox',
-      '#title' => t('Update existing users'),
-      '#description' => t('Check if existing users should be updated from imported data.'),
+      '#title' => t('Replace existing users'),
+      '#description' => t('If an existing user is found for an imported user, replace it. Existing users will be determined using mappings that are a "unique target".'),
       '#default_value' => $this->config['update_existing'],
     );
     return $form;
@@ -180,26 +186,31 @@ class FeedsUserProcessor extends FeedsProcessor {
         'optional_unique' => TRUE,
        );
     }
+
+    // Let other modules expose mapping targets.
+    self::loadMappers();
+    drupal_alter('feeds_user_processor_targets', $targets);
+
     return $targets;
   }
 
   /**
    * Get id of an existing feed item term if available.
    */
-  protected function existingItemId($source_item, FeedsSource $source) {
+  protected function existingItemId(FeedsImportBatch $batch, FeedsSource $source) {
 
     // Iterate through all unique targets and try to find a user for the
     // target's value.
-    foreach ($this->uniqueTargets($source_item) as $target => $value) {
+    foreach ($this->uniqueTargets($batch) as $target => $value) {
       switch ($target) {
         case 'name':
-          $uid = db_result(db_query('SELECT uid FROM {users} WHERE name = "%s"', $value));
+          $uid = db_query("SELECT uid FROM {users} WHERE name = :name", array(':name' => $value))->fetchField();
           break;
         case 'mail':
-          $uid = db_result(db_query('SELECT uid FROM {users} WHERE mail = "%s"', $value));
+          $uid = db_query("SELECT uid FROM {users} WHERE mail = :mail", array(':mail' => $value))->fetchField();
           break;
         case 'openid':
-          $uid = db_result(db_query("SELECT uid FROM {authmap} WHERE authname = '%s' AND module = 'openid'", $value));
+          $uid = db_query("SELECT uid FROM {authmap} WHERE authname = :authname AND module = 'openid'", array(':authname' => $value))->fetchField();
           break;
       }
       if ($uid) {

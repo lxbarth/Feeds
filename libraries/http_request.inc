@@ -1,5 +1,5 @@
 <?php
-// $Id: http_request.inc,v 1.4 2009/12/20 23:48:38 alexb Exp $
+// $Id: http_request.inc,v 1.9 2010/09/17 22:02:45 alexb Exp $
 
 /**
  * @file
@@ -10,16 +10,27 @@
  */
 
 /**
- * Download RSS or Atom feeds from a given URL. If document in given URL is an
- * HTML document, function attempts to discover RSS or Atom feeds and downloads
- * them.
- *
- * @todo Debug
- * @todo Cache detected rss feeds in url.
- * @todo Use exceptions, not string or false return values.
+ * PCRE for finding the link tags in html.
+ */
+define('HTTP_REQUEST_PCRE_LINK_TAG', '/<link((?:[\x09\x0A\x0B\x0C\x0D\x20]+[^\x09\x0A\x0B\x0C\x0D\x20\x2F\x3E][^\x09\x0A\x0B\x0C\x0D\x20\x2F\x3D\x3E]*(?:[\x09\x0A\x0B\x0C\x0D\x20]*=[\x09\x0A\x0B\x0C\x0D\x20]*(?:"(?:[^"]*)"|\'(?:[^\']*)\'|(?:[^\x09\x0A\x0B\x0C\x0D\x20\x22\x27\x3E][^\x09\x0A\x0B\x0C\x0D\x20\x3E]*)?))?)*)[\x09\x0A\x0B\x0C\x0D\x20]*(>(.*)<\/link>|(\/)?>)/si');
+
+/**
+ * PCRE for matching all the attributes in a tag.
+ */
+define('HTTP_REQUEST_PCRE_TAG_ATTRIBUTES', '/[\x09\x0A\x0B\x0C\x0D\x20]+([^\x09\x0A\x0B\x0C\x0D\x20\x2F\x3E][^\x09\x0A\x0B\x0C\x0D\x20\x2F\x3D\x3E]*)(?:[\x09\x0A\x0B\x0C\x0D\x20]*=[\x09\x0A\x0B\x0C\x0D\x20]*(?:"([^"]*)"|\'([^\']*)\'|([^\x09\x0A\x0B\x0C\x0D\x20\x22\x27\x3E][^\x09\x0A\x0B\x0C\x0D\x20\x3E]*)?))?/');
+
+/**
+ * For cUrl specific errors.
+ */
+class HRCurlException extends Exception {}
+
+/**
+ * Discover RSS or atom feeds at the given URL. If document in given URL is an
+ * HTML document, function attempts to discover RSS or Atom feeds.
  *
  * @return
- *  string - the downloaded data, FALSE - if the URL is not reachable
+ *  string - the discovered feed, FALSE - if the URL is not reachable or there
+ *    no feeds.
  */
 function http_request_get_common_syndication($url, $settings = NULL) {
   if (valid_url($url, TRUE)) {
@@ -36,62 +47,26 @@ function http_request_get_common_syndication($url, $settings = NULL) {
   $download = http_request_get($url, $username, $password, $accept_invalid_cert);
 
   // Cannot get the feed, return.
-  if ($download->data == FALSE) {
+  // http_request_get() always returns 200 even if its 304.
+  if ($download->code != 200) {
     return FALSE;
   }
 
-  // Do the autodiscovery at this level, pass back the real data.
-  // Maybe it's HTML. If it's not HTML, not worth to take a look into the
-  // downloaded string.
+  // Drop the data into a seperate variable so all manipulations of the html
+  // will not effect the actual object that exists in the static cache.
+  // @see http_request_get.
   $downloaded_string = $download->data;
-  if (strpos(strtolower($downloaded_string), "<html") === FALSE) {
-    return $download;
+  // If this happens to be a feed then just return the url.
+  if (http_request_is_feed($download->headers['Content-Type'], $downloaded_string)) {
+    return $url;
   }
-  else {
-    // Ugly hack to be able to retrieve the xml:base property, no way to access
-    // xml:lang inside <feed>
-    $downloaded_string = preg_replace('/xml:base *=/', 'base=', $downloaded_string);
-    // Filter out strange tags.
-    $downloaded_string_filtered = preg_replace(array('@<script[^>]*?.*?</script>@si', '@<object[^>]*?.*?</object>@si', '@<embed[^>]*?.*?</embed>@si', '@<applet[^>]*?.*?</applet>@si', '@<noframes[^>]*?.*?</noframes>@si', '@<noscript[^>]*?.*?</noscript>@si', '@<noembed[^>]*?.*?</noembed>@si'), '', $downloaded_string);
-    $downloaded_string = $downloaded_string_filtered ? $downloaded_string_filtered : $downloaded_string;
 
-    $allowed_mime = array("text/xml", "application/rss+xml", "application/atom+xml", "application/rdf+xml", "application/xml");
-
-    $matches = array();
-    // Get all the links tag
-    preg_match_all('/<link\s+(.*?)\s*\/?>/si', $downloaded_string, $matches);
-    $links = $matches[1];
-    $rss_link = FALSE;
-    foreach ($links as $link) {
-      $mime = array();
-      // Get the type attribute and check if the mime type is allowed.
-      preg_match_all('/type\s*=\s*("|\')([A-Za-z\/+]*)("|\')/si', $link, $mime);
-      if (in_array(array_pop($mime[2]), $allowed_mime)) {
-        $href = array();
-        // Get the href attribute.
-        preg_match_all('/href\s*=\s*("|\')([=#\?_:.0-9A-Za-z\/+]*)("|\')/si', $link, $href);
-        $rss_link = array_pop($href[2]);
-        if (is_string($rss_link) && strlen($rss_link) > 0 && $rss_link != $url) {
-          // Handle base url related stuff.
-          $parsed_url = parse_url($rss_link);
-          if (!isset($parsed_url['host'])) {
-            // It's relative so make it absolute.
-            $base_tag = array();
-            preg_match_all('/<base href\s*=\s*("|\')([_:.0-9A-Za-z\/+]*)("|\')/si', $link, $base_tag);
-            $base_url = array_pop($base_tag[2]);
-            if (is_string($base_url) && strlen($base_url) > 0) {
-              // Get from the HTML base tag.
-              $rss_link = $base_url . $rss_link;
-            }
-            else {
-              // Guess from the original URL.
-              $original_url = parse_url($url);
-              $rss_link = $original_url['scheme'] .'://'. $original_url['host'] . (isset($original_url['port']) ? ':' : '') . $original_url['port'] . $parsed_url['path'] .'?'. $parsed_url['query']  .'#'. $parsed_url['fragment'];
-            }
-          }
-          return http_request_get_common_syndication($rss_link, $settings);
-        }
-      }
+  $discovered_feeds = http_request_find_feeds($downloaded_string);
+  foreach ($discovered_feeds as $feed_url) {
+    $absolute = http_request_create_absolute_url($feed_url, $url);
+    if (!empty($absolute)) {
+      // @TODO: something more intelligent?
+      return $absolute;
     }
   }
 }
@@ -170,11 +145,15 @@ function http_request_get($url, $username = NULL, $password = NULL, $accept_inva
       curl_setopt($download, CURLOPT_HEADER, TRUE);
       curl_setopt($download, CURLOPT_RETURNTRANSFER, TRUE);
       curl_setopt($download, CURLOPT_ENCODING, '');
+      curl_setopt($download, CURLOPT_TIMEOUT, variable_get('http_request_timeout', 15));
       if ($accept_invalid_cert) {
         curl_setopt($download, CURLOPT_SSL_VERIFYPEER, 0);
       }
       $header = '';
       $data = curl_exec($download);
+      if (curl_error($download)) {
+        throw new HRCurlException(t('cURL error (@code) @error for @url', array('@code' => curl_errno($download), '@error' => curl_error($download), '@url' => $url)), curl_errno($download));
+      }
       $header_size = curl_getinfo($download, CURLINFO_HEADER_SIZE);
       $header = substr($data, 0, $header_size - 1);
       $result->data = substr($data, $header_size);
@@ -199,7 +178,7 @@ function http_request_get($url, $username = NULL, $password = NULL, $accept_inva
     }
   }
   else {
-    $result = drupal_http_request($url, $headers);
+    $result = drupal_http_request($url, array('headers' => $headers));
   }
 
   $result->code = isset($result->code) ? $result->code : 200;
@@ -248,4 +227,146 @@ function http_request_use_curl() {
  */
 function http_request_clear_cache($url) {
   cache_clear_all('feeds_http_download_'. md5($url), 'cache');
+}
+
+/**
+ * Returns if the provided $content_type is a feed.
+ *
+ * @param string $content_type
+ *  The Content-Type header.
+ *
+ * @param string $data
+ *  The actual data from the http request.
+ *
+ * @return boolean
+ *  Returns TRUE if this is a parsable feed.
+ */
+function http_request_is_feed($content_type, $data) {
+  $pos = strpos($content_type, ';');
+  if ($pos !== FALSE) {
+    $content_type = substr($content_type, 0, $pos);
+  }
+  $content_type = strtolower($content_type);
+  if (strpos($content_type, 'xml') !== FALSE) {
+    return TRUE;
+  }
+
+  // @TODO: Sometimes the content-type can be text/html but still be a valid
+  // feed.
+  return FALSE;
+}
+
+/**
+ * Finds potential feed tags in the HTML document.
+ *
+ * @param string $html
+ *  The html string to search.
+ *
+ * @return array()
+ *  An array of href to feeds.
+ */
+function http_request_find_feeds($html) {
+  $matches = array();
+  preg_match_all(HTTP_REQUEST_PCRE_LINK_TAG, $html, $matches);
+  $links = $matches[1];
+  $candidates = array();
+  $valid_links = array();
+
+  // Build up all the links information.
+  foreach ($links as $link_tag) {
+    $attributes = array();
+    $candidate = array();
+
+    preg_match_all(HTTP_REQUEST_PCRE_TAG_ATTRIBUTES, $link_tag, $attributes, PREG_SET_ORDER);
+    foreach ($attributes as $attribute) {
+      // Find the key value pairs, attribute[1] is key and attribute[2] is the
+      // value.
+      if(!empty($attribute[1]) && !empty($attribute[2])) {
+        $candidate[drupal_strtolower($attribute[1])] = drupal_strtolower(decode_entities($attribute[2]));
+      }
+    }
+
+    // Examine candidate to see if it s a feed.
+    // @TODO: could/should use http_request_is_feed ??
+    if (isset($candidate['rel']) && $candidate['rel'] == 'alternate') {
+      if (isset($candidate['href']) && isset($candidate['type']) && strpos($candidate['type'], 'xml') !== FALSE) {
+        // All tests pass, its a valid candidate.
+        $valid_links[] = $candidate['href'];
+      }
+    }
+  }
+
+  return $valid_links;
+}
+
+/**
+ * Create an absolute url.
+ *
+ * @param string $url
+ *  The href to transform.
+ *
+ * @param $base_url
+ *  The url to be used as the base for a relative $url.
+ *
+ * @return string
+ *  an absolute url
+ */
+function http_request_create_absolute_url($url, $base_url) {
+  $url = trim($url);
+  if (valid_url($url, TRUE)) {
+    // Valid absolute url already.
+    return $url;
+  }
+
+  // Turn relative url into absolute.
+  if (valid_url($url, FALSE)) {
+    // Produces variables $scheme, $host, $user, $pass, $path, $query and $fragment.
+    $parsed_url = parse_url($base_url);
+
+    $path = dirname($parsed_url['path']);
+
+    // Adding to the existing path.
+    if ($url{0} == '/') {
+      $cparts = array_filter(explode("/", $url));
+    }
+    else {
+      // Backtracking from the existing path.
+      $cparts = array_merge(array_filter(explode("/", $path)), array_filter(explode("/", $url)));
+      foreach($cparts as $i => $part) {
+        if($part == '.') {
+          $cparts[$i] = null;
+        }
+        if($part == '..') {
+          $cparts[$i - 1] = null;
+          $cparts[$i] = null;
+        }
+      }
+      $cparts = array_filter($cparts);
+    }
+    $path = implode("/", $cparts);
+
+    // Build the prefix to the path.
+    $absolute_url = '';
+    if (isset($parsed_url['scheme'])) {
+      $absolute_url = $parsed_url['scheme'] . '://';
+    }
+
+    if (isset($parsed_url['user'])) {
+      $absolute_url .= $parsed_url['user'];
+      if (isset($pass)) {
+        $absolute_url .= ':' . $parsed_url['pass'];
+      }
+      $absolute_url .= '@';
+    }
+    if (isset($parsed_url['host'])) {
+      $absolute_url .= $parsed_url['host'] . '/';
+    }
+
+    $absolute_url .= $path;
+
+    if (valid_url($absolute_url, TRUE)) {
+      return $absolute_url;
+    }
+  }
+  return FALSE;
 }

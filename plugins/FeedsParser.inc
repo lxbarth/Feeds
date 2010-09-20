@@ -1,5 +1,5 @@
 <?php
-// $Id: FeedsParser.inc,v 1.11 2010/02/24 01:19:33 alexb Exp $
+// $Id: FeedsParser.inc,v 1.24 2010/09/20 15:41:03 alexb Exp $
 
 /**
  * Abstract class, defines interface for parsers.
@@ -47,7 +47,17 @@ abstract class FeedsParser extends FeedsPlugin {
    *   @endcode
    */
   public function getMappingSources() {
-    return FALSE;
+    self::loadMappers();
+    $sources = array();
+    drupal_alter('feeds_parser_sources', $sources, feeds_importer($this->id)->config['content_type']);
+    if (!feeds_importer($this->id)->config['content_type']) {
+      return $sources;
+    }
+    $sources['parent:uid'] = array(
+      'name' => t('Feed node: User ID'),
+      'description' => t('The feed node author uid.'),
+    );
+    return $sources;
   }
 
   /**
@@ -60,8 +70,8 @@ abstract class FeedsParser extends FeedsPlugin {
    *
    * @ingroup mappingapi
    *
-   * @param $item
-   *   The source item that the source element should be retrieved from.
+   * @param $batch
+   *   FeedsImportBatch object containing the sources to be mapped from.
    * @param $element_key
    *   The key identifying the element that should be retrieved from $source
    *
@@ -71,7 +81,11 @@ abstract class FeedsParser extends FeedsPlugin {
    * @see FeedsProcessor::map()
    * @see FeedsCSVParser::getSourceElement().
    */
-  public function getSourceElement($item, $element_key) {
+  public function getSourceElement(FeedsImportBatch $batch, $element_key) {
+    if (($node = $batch->feedNode()) && $element_key == 'parent:uid') {
+      return $node->uid;
+    }
+    $item = $batch->currentItem();
     return isset($item[$element_key]) ? $item[$element_key] : '';
   }
 }
@@ -95,6 +109,8 @@ class FeedsElement {
   }
 
   /**
+   * @todo Make value public and deprecate use of getValue().
+   *
    * @return
    *   Standard value of this FeedsElement.
    */
@@ -113,7 +129,63 @@ class FeedsElement {
     if (is_object($this->value)) {
       return 'Object';
     }
-    return (string) $this->value;
+    return (string) $this->getValue();
+  }
+}
+
+/**
+ * Encapsulates a taxonomy style term object.
+ *
+ * Objects of this class can be turned into a taxonomy term style arrays by
+ * casting them.
+ *
+ * @code
+ *   $term_object = new FeedsTermElement($term_array);
+ *   $term_array = (array)$term_object;
+ * @endcode
+ */
+class FeedsTermElement extends FeedsElement {
+  public $tid, $vid, $name;
+
+  /**
+   * @param $term
+   *   An array or a stdClass object that is a Drupal taxonomy term.
+   */
+  public function __construct($term) {
+    if (is_array($term)) {
+      parent::__construct($term['name']);
+      foreach ($this as $key => $value) {
+        $this->$key = isset($term[$key]) ? $term[$key] : NULL;
+      }
+    }
+    elseif (is_object($term)) {
+      parent::__construct($term->name);
+      foreach ($this as $key => $value) {
+        $this->$key = isset($term->$key) ? $term->$key : NULL;
+      }
+    }
+  }
+
+  /**
+   * Use $name as $value.
+   */
+  public function getValue() {
+    return $this->name;
+  }
+}
+
+/**
+ * A geo term element.
+ */
+class FeedsGeoTermElement extends FeedsTermElement {
+  public $lat, $lon, $bound_top, $bound_right, $bound_bottom, $bound_left, $geometry;
+  /**
+   * @param $term
+   *   An array or a stdClass object that is a Drupal taxonomy term. Can include
+   *   geo extensions.
+   */
+  public function __construct($term) {
+    parent::__construct($term);
   }
 }
 
@@ -130,6 +202,15 @@ class FeedsEnclosure extends FeedsElement {
   public function __construct($value, $mime_type) {
     parent::__construct($value);
     $this->mime_type = $mime_type;
+  }
+
+  /**
+   * Destructor, clean up any temporary files.
+   */
+  public function __destruct() {
+    if (!empty($this->file)) {
+      file_delete($this->file);
+    }
   }
 
   /**
@@ -155,20 +236,37 @@ class FeedsEnclosure extends FeedsElement {
 
   /**
    * @return
-   *   The file path to the downloaded resource referenced by the enclosure.
-   *   Downloads resource if not downloaded yet.
+   *   A temporary file path to the downloaded resource referenced by the
+   *   enclosure. Downloads resource if not downloaded yet. The file path is
+   *   valid for the time of the page load.
    *
    * @todo Get file extension from mime_type.
    * @todo This is not concurrency safe.
    */
   public function getFile() {
-    if(!isset($this->file)) {
-      $dest = file_destination(file_directory_temp() .'/'. get_class($this) .'-'. basename($this->getValue()), FILE_EXISTS_RENAME);
+    if(empty($this->file) && $this->getValue()) {
+      // Check if this enclosure contains a local file.
+      if (!parse_url($this->getValue(), PHP_URL_SCHEME)) {
+        if (strpos($this->getValue(), 'public://') === 0) {
+          if (file_exists($this->getValue())) {
+            $this->file = $this->getValue();
+            return $this->file;
+          }
+        }
+        throw new Exception(t('Invalid enclosure %enclosure', array('%enclosure' => $this->getValue())));
+      }
+      $filename = basename($this->getValue());
+      if (module_exists('transliteration')) {
+        require_once (drupal_get_path('module', 'transliteration') . '/transliteration.inc');
+        $filename = transliteration_clean_filename($filename);
+      }
+      $dest = file_destination(file_directory_temp() .'/'. $filename, FILE_EXISTS_RENAME);
       if (ini_get('allow_url_fopen')) {
         $this->file = copy($this->getValue(), $dest) ? $dest : 0;
       }
       else {
-        $this->file = file_save_data($this->getContent(), $dest);
+        $file = file_save_data($this->getContent(), $dest);
+        $this->file = $file ? $file->uri : 0;
       }
       if ($this->file === 0) {
         throw new Exception(t('Cannot write content to %dest', array('%dest' => $dest)));
@@ -210,7 +308,7 @@ class FeedsDateTimeElement extends FeedsElement {
   }
 
   /**
-   * Implementation of toString magic php method.
+   * Implements toString magic php method.
    */
   public function __toString() {
     $val = $this->getValue();
@@ -346,6 +444,28 @@ class FeedsDateTimeElement extends FeedsElement {
 class FeedsDateTime extends DateTime {
   public $granularity = array();
   protected static $allgranularity = array('year', 'month', 'day', 'hour', 'minute', 'second', 'zone');
+  private $_serialized_time;
+  private $_serialized_timezone;
+
+  /**
+   * Helper function to prepare the object during serialization.
+   *
+   * We are extending a core class and core classes cannot be serialized.
+   *
+   * Ref: http://bugs.php.net/41334, http://bugs.php.net/39821
+   */
+  public function __sleep(){
+    $this->_serialized_time = $this->format('c');
+    $this->_serialized_timezone = $this->getTimezone()->getName();
+    return array('_serialized_time', '_serialized_timezone');
+  }
+
+  /**
+   * Upon unserializing, we must re-build ourselves using local variables.
+   */
+  public function __wakeup() {
+    $this->__construct($this->_serialized_time, new DateTimeZone($this->_serialized_timezone));
+  }
 
   /**
    * Overridden constructor.

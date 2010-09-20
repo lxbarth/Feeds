@@ -1,5 +1,5 @@
 <?php
-// $Id: ParserCSV.inc,v 1.2 2009/11/05 18:26:27 alexb Exp $
+// $Id: ParserCSV.inc,v 1.4 2010/07/10 23:45:36 alexb Exp $
 
 /**
  * Contains CSV Parser.
@@ -14,10 +14,12 @@
 class ParserCSVIterator implements Iterator {
   private $handle;
   private $currentLine;
+  private $currentPos;
 
   public function __construct($filepath) {
     $this->handle = fopen($filepath, 'r');
     $this->currentLine = NULL;
+    $this->currentPos = NULL;
   }
 
   function __destruct() {
@@ -26,9 +28,9 @@ class ParserCSVIterator implements Iterator {
     }
   }
 
-  public function rewind() {
+  public function rewind($pos = 0) {
     if ($this->handle) {
-      fseek($this->handle, 0);
+      fseek($this->handle, $pos);
       $this->next();
     }
   }
@@ -36,6 +38,7 @@ class ParserCSVIterator implements Iterator {
   public function next() {
     if ($this->handle) {
       $this->currentLine = feof($this->handle) ? NULL : fgets($this->handle);
+      $this->currentPos = ftell($this->handle);
       return $this->currentLine;
     }
   }
@@ -46,6 +49,10 @@ class ParserCSVIterator implements Iterator {
 
   public function current() {
     return $this->currentLine;
+  }
+
+  public function currentPos() {
+    return $this->currentPos;
   }
 
   public function key() {
@@ -62,6 +69,9 @@ class ParserCSV {
   private $columnNames;
   private $timeout;
   private $timeoutReached;
+  private $startByte;
+  private $lineLimit;
+  private $lastLinePos;
 
   public function __construct() {
     $this->delimiter = ',';
@@ -69,6 +79,9 @@ class ParserCSV {
     $this->columnNames = FALSE;
     $this->timeout = FALSE;
     $this->timeoutReached = FALSE;
+    $this->startByte = 0;
+    $this->lineLimit = 0;
+    $this->lastLinePos = 0;
   }
 
   /**
@@ -116,9 +129,46 @@ class ParserCSV {
   /**
    * After calling the parse() method, determine if the timeout (set by the
    * setTimeout() method) has been reached.
+   *
+   * @deprecated Use lastLinePos() instead to determine whether a file has
+   *   finished parsing.
    */
   public function timeoutReached() {
     return $this->timeoutReached;
+  }
+
+  /**
+   * Define the number of lines to parse in one parsing operation.
+   *
+   * By default, all lines of a file are being parsed.
+   */
+  public function setLineLimit($lines) {
+    $this->lineLimit = $lines;
+  }
+
+  /**
+   * Get the byte number where the parser left off after last parse() call.
+   *
+   * @return
+   *  0 if all lines or no line has been parsed, the byte position of where a
+   *  timeout or the line limit has been reached otherwise. This position can be
+   *  used to set the start byte for the next iteration after parse() has
+   *  reached the timeout set with setTimeout() or the line limit set with
+   *  setLineLimit().
+   *
+   * @see ParserCSV::setStartByte($start);
+   */
+  public function lastLinePos() {
+    return $this->lastLinePos;
+  }
+
+  /**
+   * Set the byte where file should be started to read.
+   *
+   * Useful when parsing a file in batches.
+   */
+  public function setStartByte($start) {
+    return $this->startByte = $start;
   }
 
   /**
@@ -126,6 +176,10 @@ class ParserCSV {
    *
    * @param Iterator $lineIterator
    *   An Iterator object that yields line strings, e.g. ParserCSVIterator.
+   * @param $start
+   *   The byte number from where to start parsing the file.
+   * @param $lines
+   *   The number of lines to parse, 0 for all lines.
    * @return
    *   Two dimensional array that contains the data in the CSV file.
    */
@@ -134,14 +188,11 @@ class ParserCSV {
     $rows = array();
 
     $this->timeoutReached = FALSE;
+    $this->lastLinePos = 0;
     $maxTime = empty($this->timeout) ? FALSE : (microtime() + $this->timeout);
+    $linesParsed = 0;
 
-    for ($lineIterator->rewind(); $lineIterator->valid(); $lineIterator->next()) {
-      // If the timeout has been reached, quit parsing even if we're not yet done.
-      if (!empty($maxTime) && microtime() > $maxTime) {
-        $this->timeoutReached = TRUE;
-        break;
-      }
+    for ($lineIterator->rewind($this->startByte); $lineIterator->valid(); $lineIterator->next()) {
 
       // Make really sure we've got lines without trailing newlines.
       $line = trim($lineIterator->current(), "\r\n");
@@ -254,6 +305,19 @@ class ParserCSV {
         }
       }
       $rows[] = $row;
+
+      // Quit parsing if timeout has been reached or requested lines have been
+      // reached.
+      if (!empty($maxTime) && microtime() > $maxTime) {
+        $this->timeoutReached = TRUE;
+        $this->lastLinePos = $lineIterator->currentPos();
+        break;
+      }
+      $linesParsed++;
+      if ($this->lineLimit && $linesParsed >= $this->lineLimit) {
+        $this->lastLinePos = $lineIterator->currentPos();
+        break;
+      }
     }
     return $rows;
   }

@@ -1,4 +1,4 @@
-$Id: README.txt,v 1.26 2010/02/26 14:50:03 alexb Exp $
+$Id: README.txt,v 1.35 2010/09/18 00:40:43 alexb Exp $
 
 
 "It feeds"
@@ -24,8 +24,8 @@ Features
 -- Additional fetchers/parsers or processors can be added by an object oriented
    plugin system.
 -- Granular mapping of parsed data to content elements.
-- Import configurations can be piggy backed on nodes, thus using nodes as
-  importers ("feed as node" approach) or they can be used on a standalone form.
+- Import configurations can be piggy backed on nodes (thus using nodes to track
+  subscriptions to feeds) or they can be used on a standalone form.
 - Unlimited number of import configurations.
 - Export import configurations to code.
 - Optional libraries module support.
@@ -35,23 +35,66 @@ Requirements
 
 - CTools 1.x
   http://drupal.org/project/ctools
-- Drupal 6.x
+- Job Scheduler
+  http://drupal.org/project/job_scheduler
+- Drupal 7.x
   http://drupal.org/project/drupal
-- PHP 5.2.x recommended
+- PHP safe mode is not supported, depending on your Feeds Importer configuration
+  safe mode may cause no problems though.
 
 Installation
 ============
 
-- Install Feeds, Feeds Admin UI and Feeds defaults.
+- Install Feeds, Feeds Admin UI.
+- To get started quick, install one or all of the following Feature modules:
+  Feeds News, Feeds Import, Feeds Fast News (more info below).
 - Make sure cron is correctly configured http://drupal.org/cron
-- Navigate to admin/build/feeds.
-- Enable one or more importers, create your own by adding a new one, modify an
-  existing one by clicking on 'override' or copy and modify an existing one by
-  clicking on 'clone'.
 - Go to import/ to import data.
 - To use SimplePie parser, download SimplePie and place simplepie.inc into
   feeds/libraries. Recommended version: 1.2.
   http://simplepie.org/
+
+Feature modules
+===============
+
+Feeds ships with three feature modules that can be enabled on
+admin/build/modules or - if you are using Features - on admin/build/features.
+http://drupal.org/project/features
+
+The purpose of these modules is to provide a quick start for using Feeds. You
+can either use them out of the box as they come or you can take them as samples
+to learn how to build import or aggregation functionality with Feeds.
+
+The feature modules merely contain sets of configurations using Feeds and in
+some cases the modules Node, Views or Data. If the default configurations do not
+fit your use case you can change them on the respective configuration pages for
+Feeds, Node, Views or Data.
+
+Here is a description of the provided feature modules:
+
+- Feeds News -
+
+This feature is a news aggregator. It provides a content type "Feed" that can
+be used to subscribe to RSS or Atom feeds. Every item on such a feed is
+aggregated as a node of the type "Feed item", also provided by the module.
+
+What's neat about Feeds News is that it comes with a configured View that shows
+a list of news items with every feed on the feed node's "View items" tab. It
+also comes with an OPML importer filter that can be accessed under /import.
+
+- Feeds Fast News -
+
+This feature is very similar to Feeds News. The big difference is that instead
+of aggregating a node for every item on a feed, it creates a database record
+in a single table, thus significantly improving performance. This approach
+especially starts to save resources when many items are being aggregated and
+expired (= deleted) on a site.
+
+- Feeds Import -
+
+This feature is an example illustrating Feeds' import capabilities. It contains
+a node importer and a user importer that can be accessed under /import. Both
+accept CSV or TSV files as imports.
 
 PubSubHubbub support
 ====================
@@ -79,6 +122,14 @@ external library used at the moment is SimplePie.
 Libraries found in the libraries search path are preferred over libraries in
 feeds/libraries/.
 
+Transliteration support
+=======================
+
+If you plan to store files with Feeds - for instance when storing podcasts
+or images from syndication feeds - it is recommended to enable the
+Transliteration module to avoid issues with non-ASCII characters in file names.
+http://drupal.org/project/transliteration
+
 API Overview
 ============
 
@@ -103,10 +154,8 @@ Note: at the moment, only PubSubHubbub related actions are logged.
 Performance
 ===========
 
-Use Drupal Queue to improve Feeds' performance when scheduling many very active
-feeds. An example for "many very active feeds" would be 300 news feeds with an
-average of four items a day.
-http://drupal.org/project/drupal_queue
+See "The site builder's guide to Feeds":
+http://drupal.org/node/622698
 
 Hidden settings
 ===============
@@ -127,26 +176,10 @@ Name:        feeds_source_class
 Default:     'FeedsSource'
 Description: The class to use for handling feed sources.
 
-Name:        feeds_scheduler_class
-Default:     'FeedsScheduler'
-Description: The class to use for scheduling feed refreshing.
-
 Name:        feeds_worker_time
 Default:     15
 Description: Execution time for a queue worker, only effective if used with
              drupal_queue.
-
-Name:        feeds_schedule_num
-Default:     5
-Description: The number of feeds to import on cron time.
-             Only has an effect if Drupal Queue is *not* enabled.
-             http://drupal.org/project/drupal_queue
-
-Name:        feeds_schedule_queue_num
-Default:     200
-Description: The number of feeds to queue on cron time. Only has an effect if
-             Drupal Queue is enabled.
-             http://drupal.org/project/drupal_queue
 
 Name:        feeds_data_$importer_id
 Default:     feeds_data_$importer_id
@@ -159,6 +192,10 @@ Name:        feeds_node_batch_size
 Default:     50
              The number of nodes feed node processor creates or deletes in one
              page load.
+
+Name:        http_request_timeout
+Default:     15
+Description: Timeout in seconds to wait for an HTTP get request to finish.
 
 Glossary
 ========

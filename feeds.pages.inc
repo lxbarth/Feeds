@@ -1,5 +1,5 @@
 <?php
-// $Id: feeds.pages.inc,v 1.13 2010/02/24 00:08:47 alexb Exp $
+// $Id: feeds.pages.inc,v 1.33 2010/09/20 16:56:24 alexb Exp $
 
 /**
  * @file
@@ -25,11 +25,11 @@ function feeds_page() {
       }
       elseif (user_access('create '. $importer->config['content_type'] .' content')) {
         $link = 'node/add/'. str_replace('_', '-', $importer->config['content_type']);
-        $title = node_get_types('name', $importer->config['content_type']);
+        $title = node_type_get_name($importer->config['content_type']);
       }
       $rows[] = array(
         l($title, $link),
-        $importer->config['description'],
+        check_plain($importer->config['description']),
       );
     }
   }
@@ -37,13 +37,13 @@ function feeds_page() {
     t('Import'),
     t('Description'),
   );
-  return theme('table', $header, $rows);
+  return theme('table', array('header' => $header, 'rows' => $rows));
 }
 
 /**
  * Render a feeds import form on import/[config] pages.
  */
-function feeds_import_form(&$form_state, $importer_id) {
+function feeds_import_form($form, &$form_state, $importer_id) {
   $source = feeds_source($importer_id, empty($form['nid']['#value']) ? 0 : $form['nid']['#value']);
 
   $form = array();
@@ -64,8 +64,6 @@ function feeds_import_form(&$form_state, $importer_id) {
 
 /**
  * Validation handler for node forms and feeds_import_form().
- *
- * Has to live in feeds.module, needs to be callable from node form.
  */
 function feeds_import_form_validate($form, &$form_state) {
   // @todo This may be a problem here, as we don't have a feed_nid at this point.
@@ -87,15 +85,15 @@ function feeds_import_form_submit($form, &$form_state) {
     feeds_batch_set(t('Importing'), 'import', $form['#importer_id']);
   }
 
-  // Add importer to schedule.
-  feeds_scheduler()->add($form['#importer_id'], 'import');
-  feeds_scheduler()->add($form['#importer_id'], 'expire');
+  // Add to schedule, make sure importer is scheduled, too.
+  $source->schedule();
+  $source->importer->schedule();
 }
 
 /**
  * Render a feeds import form on node/id/import pages.
  */
-function feeds_import_tab_form(&$form_state, $node) {
+function feeds_import_tab_form($form, &$form_state, $node) {
   $importer_id = feeds_get_importer_id($node->type);
 
   $form = array();
@@ -117,9 +115,9 @@ function feeds_import_tab_form_submit($form, &$form_state) {
  * Render a feeds delete form.
  *
  * Used on both node pages and configuration pages.
- * Therefore either $feed_id or $node may be missing.
+ * Therefore $node may be missing.
  */
-function feeds_delete_tab_form(&$form_state, $importer_id, $node = NULL) {
+function feeds_delete_tab_form($form, &$form_state, $importer_id, $node = NULL) {
   if (empty($node)) {
     $form['#redirect'] = 'import/'. $importer_id;
   }
@@ -138,7 +136,8 @@ function feeds_delete_tab_form(&$form_state, $importer_id, $node = NULL) {
  */
 function feeds_delete_tab_form_submit($form, &$form_state) {
   $form_state['redirect'] = $form['#redirect'];
-  feeds_batch_set(t('Deleting'), 'clear', $form['#importer_id'], empty($form['#feed_nid']) ? 0 : $form['#feed_nid']);
+  $feed_nid = empty($form['#feed_nid']) ? 0 : $form['#feed_nid'];
+  feeds_batch_set(t('Deleting'), 'clear', $form['#importer_id'], $feed_nid);
 }
 
 /**
@@ -149,4 +148,38 @@ function feeds_fetcher_callback($importer, $feed_nid = 0) {
     return $importer->fetcher->request($feed_nid);
   }
   drupal_access_denied();
+}
+
+/**
+ * Theme upload widget.
+ */
+function theme_feeds_upload($variables) {
+  $element = $variables['element'];
+  drupal_add_css(drupal_get_path('module', 'feeds') .'/feeds.css');
+  _form_set_class($element, array('form-file'));
+  $description = '';
+  if (!empty($element['#file_info'])) {
+    $info = $element['#file_info'];
+    $description .= '<div class="file-info">';
+    $description .= '<div class="file-name">';
+    $description .= l(basename($info['path']), $info['path']);
+    $description .= '</div>';
+    $description .= '<div class="file-size">';
+    $description .= format_size($info['size']);
+    $description .= '</div>';
+    if (isset($info['mime'])) {
+      $description .= '<div class="file-mime">';
+      $description .= check_plain($info['mime']);
+      $description .= '</div>';
+    }
+    $description .= '</div>';
+  }
+  $description .= '<div class="file-upload">';
+  $description .= '<input type="file" name="'. $element['#name'] .'"'. ($element['#attributes'] ? ' '. drupal_attributes($element['#attributes']) : '') .' id="'. $element['#id'] .'" size="'. $element['#size'] ."\" />\n";
+  $description .= '</div>';
+  $element['#description'] = $description;
+
+  // For some reason not unsetting #title leads to printing the title twice.
+  unset($element['#title']);
+  return theme('form_element', $element);
 }

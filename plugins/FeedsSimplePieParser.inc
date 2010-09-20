@@ -1,17 +1,38 @@
 <?php
-// $Id: FeedsSimplePieParser.inc,v 1.11 2010/03/02 14:41:21 alexb Exp $
+// $Id: FeedsSimplePieParser.inc,v 1.17 2010/09/17 22:25:07 alexb Exp $
 
 /**
  * Adapter to present SimplePie_Enclosure as FeedsEnclosure object.
  */
 class FeedsSimplePieEnclosure extends FeedsEnclosure {
   protected $simplepie_enclosure;
+  private $_serialized_simplepie_enclosure;
 
   /**
    * Constructor requires SimplePie enclosure object.
    */
   function __construct(SimplePie_Enclosure $enclosure) {
     $this->simplepie_enclosure = $enclosure;
+  }
+
+  /**
+   * Serialization helper.
+   *
+   * Handle the simplepie enclosure class seperately ourselves.
+   */
+  public function __sleep() {
+    $this->_serialized_simplepie_enclosure = serialize($this->simplepie_enclosure);
+    return array('_serialized_simplepie_enclosure');
+  }
+
+  /**
+   * Unserialization helper.
+   *
+   * Ensure that the simplepie class definitions are loaded for the enclosure when unserializing.
+   */
+   public function __wakeup() {
+    feeds_include_library('simplepie.inc', 'simplepie');
+    $this->simplepie_enclosure = unserialize($this->_serialized_simplepie_enclosure);
   }
 
   /**
@@ -37,7 +58,7 @@ class FeedsSimplePieEnclosure extends FeedsEnclosure {
 class FeedsSimplePieParser extends FeedsParser {
 
   /**
-   * Implementation of FeedsParser::parse().
+   * Implements FeedsParser::parse().
    */
   public function parse(FeedsImportBatch $batch, FeedsSource $source) {
     feeds_include_library('simplepie.inc', 'simplepie');
@@ -64,10 +85,10 @@ class FeedsSimplePieParser extends FeedsParser {
       $item['title'] = html_entity_decode(($title = $simplepie_item->get_title()) ? $title : $this->createTitle($simplepie_item->get_content()));
       $item['description'] = $simplepie_item->get_content();
       $item['url'] = html_entity_decode($simplepie_item->get_link());
-      // Use UNIX time. If no date is defined, fall back to FEEDS_REQUEST_TIME.
+      // Use UNIX time. If no date is defined, fall back to REQUEST_TIME.
       $item['timestamp'] = $simplepie_item->get_date("U");
       if (empty($item['timestamp'])) {
-        $item['timestamp'] = FEEDS_REQUEST_TIME;
+        $item['timestamp'] = REQUEST_TIME;
       }
       $item['guid'] = $simplepie_item->get_id();
       // Use URL as GUID if there is no GUID.
@@ -183,7 +204,7 @@ class FeedsSimplePieParser extends FeedsParser {
         'name' => t('Enclosures'),
         'description' => t('An array of enclosures attached to the feed item.'),
       ),
-     );
+     ) + parent::getMappingSources();
   }
 
   /**
@@ -191,7 +212,7 @@ class FeedsSimplePieParser extends FeedsParser {
    */
   protected function cacheDirectory() {
     $directory = file_directory_path() .'/simplepie';
-    file_check_directory($directory, TRUE);
+    file_prepare_directory($dir, FILE_CREATE_DIRECTORY | FILE_MODIFY_PERMISSIONS);
     return $directory;
   }
 

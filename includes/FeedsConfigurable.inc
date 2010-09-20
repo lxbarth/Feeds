@@ -1,5 +1,5 @@
 <?php
-// $Id: FeedsConfigurable.inc,v 1.12 2010/02/28 17:16:25 alexb Exp $
+// $Id: FeedsConfigurable.inc,v 1.18 2010/09/18 00:14:36 alexb Exp $
 
 /**
  * @file
@@ -77,12 +77,15 @@ abstract class FeedsConfigurable {
   }
 
   /**
-   * Determine whether this object is persistent. I. e. it is defined either
-   * in code or in the database.
+   * Determine whether this object is persistent and enabled. I. e. it is
+   * defined either in code or in the database and it is enabled.
    */
   public function existing() {
     if ($this->export_type == FEEDS_EXPORT_NONE) {
       throw new FeedsNotExistingException(t('Object is not persistent.'));
+    }
+    if ($this->disabled) {
+      throw new FeedsNotExistingException(t('Object is disabled.'));
     }
     return $this;
   }
@@ -138,7 +141,7 @@ abstract class FeedsConfigurable {
   }
 
   /**
-   * Implementation of getConfig().
+   * Implements getConfig().
    */
   public function getConfig() {
     return $this->config;
@@ -178,31 +181,41 @@ abstract class FeedsConfigurable {
    */
   public function configFormValidate(&$values) {
   }
+
+  /**
+   *  Submission handler for configForm().
+   *
+   *  @param $values
+   */
+  public function configFormSubmit(&$values) {
+    $this->addConfig($values);
+    $this->save();
+    drupal_set_message(t('Your changes have been saved.'));
+    feeds_cache_clear(FALSE);
+  }
 }
 
 /**
  * Config form wrapper. Use to render the configuration form of
  * a FeedsConfigurable object.
  *
- * @param
+ * @param $configurable
  *   FeedsConfigurable object.
- * @param
- *   The parent object to perform the save on.
+ * @param $form_method
+ *   The form method that should be rendered.
  *
  * @return
- *   Rendered config form, if available. Empty string otherwise.
+ *   Config form array if available. NULL otherwise.
  */
-function feeds_get_config_form($configurable) {
-  $form_state = array();
-  if ($configurable->configForm($form_state)) {
-    return drupal_get_form(get_class($configurable) .'_feeds_config_form', $configurable);
+function feeds_get_form($configurable, $form_method) {
+  if (method_exists($configurable, $form_method)) {
+    return drupal_get_form(get_class($configurable) .'_feeds_form', $configurable, $form_method);
   }
-  return '';
 }
 
 /**
  * Config form callback. Don't call directly, but use
- * feeds_get_config_form($configurable) instead.
+ * feeds_get_form($configurable, 'method') instead.
  *
  * @param
  *   FormAPI $form_state.
@@ -210,12 +223,15 @@ function feeds_get_config_form($configurable) {
  *   FeedsConfigurable object.
  * @param
  *   The object to perform the save() operation on.
+ * @param $form_method
+ *   The $form_method that should be rendered.
  */
-function feeds_config_form(&$form_state, $configurable) {
-  $form = $configurable->configForm($form_state);
+function feeds_form($form, &$form_state, $configurable, $form_method) {
+  $form = $configurable->$form_method($form_state);
   $form['#configurable'] = $configurable;
-  $form['#validate'] = array('feeds_config_form_validate');
-  $form['#submit'] = array('feeds_config_form_submit');
+  $form['#feeds_form_method'] = $form_method;
+  $form['#validate'] = array('feeds_form_validate');
+  $form['#submit'] = array('feeds_form_submit');
   $form['submit'] = array(
     '#type' => 'submit',
     '#value' => t('Save'),
@@ -225,18 +241,21 @@ function feeds_config_form(&$form_state, $configurable) {
 }
 
 /**
- * Validation handler for feeds_config_form().
+ * Validation handler for feeds_form().
  */
-function feeds_config_form_validate($form, &$form_state) {
-  $form['#configurable']->configFormValidate($form_state['values']);
+function feeds_form_validate($form, &$form_state) {
+  $validate_method = $form['#feeds_form_method'] .'Validate';
+  if (method_exists($form['#configurable'], $validate_method)) {
+    $form['#configurable']->$validate_method($form_state['values']);
+  }
 }
 
 /**
  * Submit handler for feeds_config_form().
  */
-function feeds_config_form_submit($form, &$form_state) {
-  $form['#configurable']->addConfig($form_state['values']);
-  $form['#configurable']->save();
-  drupal_set_message(t('Your changes have been saved.'));
-  feeds_cache_clear(FALSE);
+function feeds_form_submit($form, &$form_state) {
+  $submit_method = $form['#feeds_form_method'] .'Submit';
+  if (method_exists($form['#configurable'], $submit_method)) {
+    $form['#configurable']->$submit_method($form_state['values']);
+  }
 }

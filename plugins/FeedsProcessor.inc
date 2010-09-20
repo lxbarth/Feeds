@@ -1,5 +1,11 @@
 <?php
-// $Id: FeedsProcessor.inc,v 1.8 2010/02/24 01:19:33 alexb Exp $
+// $Id: FeedsProcessor.inc,v 1.19 2010/09/16 22:30:18 alexb Exp $
+
+
+// Update mode for existing items.
+define('FEEDS_SKIP_EXISTING', 0);
+define('FEEDS_REPLACE_EXISTING', 1);
+define('FEEDS_UPDATE_EXISTING', 2);
 
 /**
  * Abstract class, defines interface for processors.
@@ -14,10 +20,6 @@ abstract class FeedsProcessor extends FeedsPlugin {
    *   The current feed import data passed in from the parsing stage.
    * @param FeedsSource $source
    *   Source information about this import.
-   *
-   * @return
-   *   FEEDS_BATCH_COMPLETE if all items have been processed, a float between 0
-   *   and 0.99* indicating progress otherwise.
    */
   public abstract function process(FeedsImportBatch $batch, FeedsSource $source);
 
@@ -34,10 +36,6 @@ abstract class FeedsProcessor extends FeedsPlugin {
    *   item pertains to a certain souce is by using $source->feed_nid. It is the
    *   processor's responsibility to store the feed_nid of an imported item in
    *   the processing stage.
-   *
-   * @return
-   *   FEEDS_BATCH_COMPLETE if all items have been processed, a float between 0
-   *   and 0.99* indicating progress otherwise.
    */
   public abstract function clear(FeedsBatch $batch, FeedsSource $source);
 
@@ -50,7 +48,7 @@ abstract class FeedsProcessor extends FeedsPlugin {
    *
    * @param $time
    *   If implemented, all items produced by this configuration that are older
-   *   than FEEDS_REQUEST_TIME - $time should be deleted.
+   *   than REQUEST_TIME - $time should be deleted.
    *   If $time === NULL processor should use internal configuration.
    *
    * @return
@@ -62,10 +60,12 @@ abstract class FeedsProcessor extends FeedsPlugin {
   }
 
   /**
-   * Execute mapping on an item. This method encapsulates the central mapping
-   * functionality. When an item is processed, it is passed through map() where
-   * the properties of $source_item are mapped onto $target_item following
-   * the processor's mapping configuration.
+   * Execute mapping on an item.
+   *
+   * This method encapsulates the central mapping functionality. When an item is
+   * processed, it is passed through map() where the properties of $source_item
+   * are mapped onto $target_item following the processor's mapping
+   * configuration.
    *
    * For each mapping FeedsParser::getSourceElement() is executed to retrieve
    * the source element, then FeedsProcessor::setTargetElement() is invoked
@@ -76,20 +76,45 @@ abstract class FeedsProcessor extends FeedsPlugin {
    *
    * @ingroup mappingapi
    *
+   * @see hook_feeds_parser_sources_alter()
+   * @see hook_feeds_data_processor_targets_alter()
    * @see hook_feeds_node_processor_targets_alter()
    * @see hook_feeds_term_processor_targets_alter()
-   * @see hook_feeds_data_processor_targets_alter()
+   * @see hook_feeds_user_processor_targets_alter()
    */
-  protected function map($source_item, $target_item = NULL) {
+  protected function map(FeedsImportBatch $batch, $target_item = NULL) {
 
     // Static cache $targets as getMappingTargets() may be an expensive method.
+    static $sources;
+    if (!isset($sources[$this->id])) {
+      $sources[$this->id] = feeds_importer($this->id)->parser->getMappingSources();
+    }
     static $targets;
-    if (empty($targets)) {
-      $targets = $this->getMappingTargets();
+    if (!isset($targets[$this->id])) {
+      $targets[$this->id] = $this->getMappingTargets();
     }
     $parser = feeds_importer($this->id)->parser;
     if (empty($target_item)) {
       $target_item = array();
+    }
+
+    // Many mappers add to existing fields rather than replacing them. Hence we
+    // need to clear target elements of each item before mapping in case we are
+    // mapping on a prepopulated item such as an existing node.
+    if (is_array($target_item)) {
+      $target_item = (object)$target_item;
+      $convert_to_array = TRUE;
+    }
+    foreach ($this->config['mappings'] as $mapping) {
+      if (isset($targets[$mapping['target']]['real_target'])) {
+        unset($target_item->{$targets[$mapping['target']]['real_target']});
+      }
+      elseif (isset($target_item->{$mapping['target']})) {
+        unset($target_item->{$mapping['target']});
+      }
+    }
+    if ($convert_to_array) {
+      $target_item = (array)$target_item;
     }
 
     /*
@@ -101,11 +126,24 @@ abstract class FeedsProcessor extends FeedsPlugin {
     If the mapping specifies a callback method, use the callback instead of
     setTargetElement().
     */
+    self::loadMappers();
     foreach ($this->config['mappings'] as $mapping) {
-      $value = $parser->getSourceElement($source_item, $mapping['source']);
+      // Retrieve source element's value from parser.
+      if (is_array($sources[$this->id][$mapping['source']]) &&
+          isset($sources[$this->id][$mapping['source']]['callback']) &&
+          function_exists($sources[$this->id][$mapping['source']]['callback'])) {
+        $callback = $sources[$this->id][$mapping['source']]['callback'];
+        $value = $callback($batch, $mapping['source']);
+      }
+      else {
+        $value = $parser->getSourceElement($batch, $mapping['source']);
+      }
 
-      if (is_array($targets[$mapping['target']]) && isset($targets[$mapping['target']]['callback']) && function_exists($targets[$mapping['target']]['callback'])) {
-        $callback = $targets[$mapping['target']]['callback'];
+      // Map the source element's value to the target.
+      if (is_array($targets[$this->id][$mapping['target']]) &&
+          isset($targets[$this->id][$mapping['target']]['callback']) &&
+          function_exists($targets[$this->id][$mapping['target']]['callback'])) {
+        $callback = $targets[$this->id][$mapping['target']]['callback'];
         $callback($target_item, $mapping['target'], $value);
       }
       else {
@@ -128,54 +166,6 @@ abstract class FeedsProcessor extends FeedsPlugin {
    */
   public function configDefaults() {
     return array('mappings' => array());
-  }
-
-  /**
-   * Add a mapping to existing mappings.
-   *
-   * @param $source
-   *   A string that identifies a source element.
-   * @param $target
-   *   A string that identifies a target element.
-   * @param $unique
-   *   A boolean that defines whether the target value should be unique. If
-   *   TRUE only one item with a given target value can exist on the local
-   *   system. Compare with existingItemId() and uniqueTargets().
-   */
-  public function addMapping($source, $target, $unique = FALSE) {
-    if (!empty($source) && !empty($target)) {
-      $this->config['mappings'][] = array(
-        'source' => $source,
-        'target' => $target,
-        'unique' => $unique,
-      );
-    }
-  }
-
-  /**
-   * Set unique state of a mapping target.
-   */
-  public function setUnique($source, $target, $unique) {
-    if (!empty($source) && !empty($target)) {
-      foreach ($this->config['mappings'] as $k => $mapping) {
-        if ($mapping['source'] == $source && $mapping['target'] == $target) {
-          $this->config['mappings'][$k]['unique'] = $unique;
-        }
-      }
-    }
-  }
-
-  /**
-   * Remove a mapping.
-   */
-  public function removeMapping($source, $target) {
-    foreach ($this->config['mappings'] as $k => $mapping) {
-      if ($mapping['source'] == $source && $mapping['target'] == $target) {
-        unset($this->config['mappings'][$k]);
-      }
-    }
-    // Keep or keys clean.
-    $this->config['mappings'] = array_values($this->config['mappings']);
   }
 
   /**
@@ -213,12 +203,12 @@ abstract class FeedsProcessor extends FeedsPlugin {
    *
    * @ingroup mappingapi
    *
-   * @param $source_item
-   *   A single item that has been aggregated from a feed.
+   * @param $batch
+   *   A FeedsImportBatch object.
    * @param FeedsSource $source
    *   The source information about this import.
    */
-  protected function existingItemId($source_item, FeedsSource $source) {
+  protected function existingItemId(FeedsImportBatch $batch, FeedsSource $source) {
     return 0;
   }
 
@@ -226,21 +216,21 @@ abstract class FeedsProcessor extends FeedsPlugin {
    * Utility function that iterates over a target array and retrieves all
    * sources that are unique.
    *
-   * @param $source_item
-   *   A feed item from a FeedsImportBatch.
+   * @param $batch
+   *   A FeedsImportBatch.
    *
    * @return
    *   An array where the keys are target field names and the values are the
    *   elements from the source item mapped to these targets.
    */
-  protected function uniqueTargets($source_item) {
+  protected function uniqueTargets(FeedsImportBatch $batch) {
     $parser = feeds_importer($this->id)->parser;
     $targets = array();
     foreach ($this->config['mappings'] as $mapping) {
       if ($mapping['unique']) {
         // Invoke the parser's getSourceElement to retrieve the value for this
         // mapping's source.
-        $targets[$mapping['target']] = $parser->getSourceElement($source_item, $mapping['source']);
+        $targets[$mapping['target']] = $parser->getSourceElement($batch, $mapping['source']);
       }
     }
     return $targets;

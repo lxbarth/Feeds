@@ -1,6 +1,9 @@
-;$Id: feeds_ui.info,v 1.1 2009/09/16 17:58:12 alexb Exp $
+;$Id: feeds_ui.info,v 1.6 2010/09/17 23:58:18 alexb Exp $
 name = Feeds Admin UI
 description = Administrative UI for Feeds module.
 package = Feeds
 dependencies[] = feeds
-core = 6.x
+files[] = feeds_ui.module
+configure = admin/structure/feeds
+core = 7.x
+php = 5.2

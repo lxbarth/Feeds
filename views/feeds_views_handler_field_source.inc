@@ -1,5 +1,5 @@
 <?php
-// $Id: feeds_views_handler_field_source.inc,v 1.2 2009/12/20 23:48:38 alexb Exp $
+// $Id: feeds_views_handler_field_source.inc,v 1.3 2010/09/17 17:25:02 alexb Exp $
 
 /**
  * @file

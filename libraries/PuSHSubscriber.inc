@@ -76,7 +76,7 @@ class PuSHSubscriber {
     $data = curl_exec($request);
     if (curl_getinfo($request, CURLINFO_HTTP_CODE) == 200) {
       try {
-        $xml = new SimpleXMLElement($data);
+        $xml = @ new SimpleXMLElement($data);
         $xml->registerXPathNamespace('atom', 'http://www.w3.org/2005/Atom');
         if (empty($hub) && $hub = @current($xml->xpath("//atom:link[attribute::rel='hub']"))) {
           $hub = (string) $hub->attributes()->href;
@@ -108,7 +108,7 @@ class PuSHSubscriber {
    *   The callback to unsubscribe.
    */
   public function unsubscribe($topic_url, $callback_url) {
-    if ($sub = $this->loadSubscription()) {
+    if ($sub = $this->subscription()) {
       $this->request($sub->hub, $sub->topic, 'unsubscribe', $callback_url);
       $sub->delete();
     }
@@ -156,7 +156,7 @@ class PuSHSubscriber {
         if ($ignore_signature) {
           return $raw;
         }
-        if (isset($_SERVER['HTTP_X_HUB_SIGNATURE']) && ($sub = $this->loadSubscription())) {
+        if (isset($_SERVER['HTTP_X_HUB_SIGNATURE']) && ($sub = $this->subscription())) {
           $result = array();
           parse_str($_SERVER['HTTP_X_HUB_SIGNATURE'], $result);
           if (isset($result['sha1']) && $result['sha1'] == hash_hmac('sha1', $raw, $sub->secret)) {
@@ -192,7 +192,7 @@ class PuSHSubscriber {
        *
        * In all other cases confirm negative.
        */
-      if ($sub = $this->loadSubscription()) {
+      if ($sub = $this->subscription()) {
         if ($_GET['hub_verify_token'] == $sub->post_fields['hub.verify_token']) {
           if ($_GET['hub_mode'] == 'subscribe' && $sub->status == 'subscribe') {
             $sub->status = 'subscribed';
@@ -267,16 +267,32 @@ class PuSHSubscriber {
     else {
       $sub->status = $mode .' failed';
       $sub->save();
-      $this->log("Error issuing \"$mode\" request ($code).", 'error');
+      $this->log("Error issuing \"$mode\" request to $hub ($code).", 'error');
     }
     curl_close($request);
   }
 
   /**
-   * Helper for loading a subscription.
+   * Get the subscription associated with this subscriber.
+   *
+   * @return
+   *   A PuSHSubscriptionInterface object if a subscription exist, NULL
+   *   otherwise.
    */
-  protected function loadSubscription() {
-    return call_user_func("{$this->subscription_class}::load", $this->domain, $this->subscriber_id);
+  public function subscription() {
+    return call_user_func(array($this->subscription_class, 'load'), $this->domain, $this->subscriber_id);
+  }
+
+  /**
+   * Determine whether this subscriber is successfully subscribed or not.
+   */
+  public function subscribed() {
+    if ($sub = $this->subscription()) {
+      if ($sub->status == 'subscribed') {
+        return TRUE;
+      }
+    }
+    return FALSE;
   }
 
   /**

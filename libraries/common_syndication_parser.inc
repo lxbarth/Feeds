@@ -1,5 +1,5 @@
 <?php
-// $Id: common_syndication_parser.inc,v 1.8 2010/02/27 04:45:17 alexb Exp $
+// $Id: common_syndication_parser.inc,v 1.15 2010/09/07 22:26:02 alexb Exp $
 
 /**
  * @file
@@ -94,6 +94,10 @@ function _parser_common_syndication_feed_format_detect($xml) {
 function _parser_common_syndication_atom10_parse($feed_XML) {
   $parsed_source = array();
 
+  $ns = array(
+    "georss" => "http://www.georss.org/georss",
+  );
+
   $base = (string) array_shift($feed_XML->xpath("@base"));
   if (!valid_url($base, TRUE)) {
     $base = FALSE;
@@ -112,17 +116,32 @@ function _parser_common_syndication_atom10_parse($feed_XML) {
   $parsed_source['items'] = array();
 
   foreach ($feed_XML->entry as $news) {
+
     $original_url = NULL;
-
     $guid = !empty($news->id) ? "{$news->id}" : NULL;
-
-    // I don't know how standard this is, but sometimes the id is the URL.
     if (valid_url($guid, TRUE)) {
       $original_url = $guid;
     }
 
-    $additional_taxonomies = array();
+    $georss = (array)$news->children($ns["georss"]);
+    $geoname = '';
+    if (isset($georss['featureName'])) {
+      $geoname = "{$georss['featureName']}";
+    }
 
+    $latlon =
+    $lat =
+    $lon = NULL;
+    if (isset($georss['point'])) {
+      $latlon = explode(' ', $georss['point']);
+      $lat = "{$latlon[0]}";
+      $lon = "{$latlon[1]}";
+      if (!$geoname) {
+        $geoname = "{$lat} {$lon}";
+      }
+    }
+
+    $additional_taxonomies = array();
     if (isset($news->category)) {
       $additional_taxonomies['ATOM Categories'] = array();
       $additional_taxonomies['ATOM Domains'] = array();
@@ -139,6 +158,7 @@ function _parser_common_syndication_atom10_parse($feed_XML) {
         $additional_taxonomies['ATOM Categories'][] = "{$category['term']}";
       }
     }
+
     $title = "{$news->title}";
 
     $body = '';
@@ -163,7 +183,6 @@ function _parser_common_syndication_atom10_parse($feed_XML) {
     }
 
     $author_found = FALSE;
-
     if (!empty($news->source->author->name)) {
       $original_author = "{$news->source->author->name}";
       $author_found = TRUE;
@@ -172,7 +191,6 @@ function _parser_common_syndication_atom10_parse($feed_XML) {
       $original_author = "{$news->author->name}";
       $author_found = TRUE;
     }
-
     if (!empty($feed_XML->author->name) && !$author_found) {
       $original_author = "{$feed_XML->author->name}";
     }
@@ -194,6 +212,16 @@ function _parser_common_syndication_atom10_parse($feed_XML) {
     }
     else {
       $item['guid'] = $item['url'];
+    }
+    $item['geolocations'] = array();
+    if ($lat && $lon) {
+      $item['geolocations'] = array(
+        array(
+          'name' => $geoname,
+          'lat' => $lat,
+          'lon' => $lon,
+        ),
+      );
     }
     $item['tags'] = isset($additional_taxonomies['ATOM Categories']) ? $additional_taxonomies['ATOM Categories'] : array();
     $item['domains'] = isset($additional_taxonomies['ATOM Domains']) ? $additional_taxonomies['ATOM Domains'] : array();
@@ -231,7 +259,7 @@ function _parser_common_syndication_RDF10_parse($feed_XML) {
     $parsed_source = array(
       'title'       => _parser_common_syndication_title((string)$rss_channel->title),
       'description' => (string)$rss_channel->description,
-      'options'     => (object)array('link' => (string)$rss_channel->link),
+      'link'        => (string)$rss_channel->link,
       'items'       => array(),
     );
     break;
@@ -260,16 +288,14 @@ function _parser_common_syndication_RDF10_parse($feed_XML) {
     }
 
     // Declaratively define mappings that determine how to construct the result object.
-    $item = _parser_common_syndication_RDF10_item($rdf_data, (object)array(
+    $item = _parser_common_syndication_RDF10_item($rdf_data, array(
       'title'       => array('rss:title', 'dc:title'),
       'description' => array('rss:description', 'dc:description', 'content:encoded'),
-      'options'     => (object)array(
-        'guid'            => 'rdf:about',
-        'timestamp'       => 'dc:date',
-        'author' => array('dc:creator', 'dc:publisher'),
-        'url'    => array('rss:link', 'rdf:about'),
-        'tags'            => 'dc:subject',
-      ),
+      'url'         => array('rss:link', 'rdf:about'),
+      'author_name'      => array('dc:creator', 'dc:publisher'),
+      'guid'        => 'rdf:about',
+      'timestamp'   => 'dc:date',
+      'tags'        => 'dc:subject'
     ));
 
     // Special handling for the title:
@@ -278,18 +304,13 @@ function _parser_common_syndication_RDF10_parse($feed_XML) {
     // Parse any date/time values into Unix timestamps:
     $item['timestamp'] = _parser_common_syndication_parse_date($item['timestamp']);
 
-    // If no author name found, use the feed title:
-    if (empty($item['author'])) {
-      $item['author_name'] = $parsed_source['title'];
-    }
-
     // If no GUID found, use the URL of the feed.
     if (empty($item['guid'])) {
       $item['guid'] = $item['url'];
     }
 
     // Add every found RDF property to the feed item.
-    $item['rdf'] = (object)array();
+    $item['rdf'] = array();
     foreach ($rdf_data as $rdf_property => $rdf_value) {
       // looks nicer in the mapper UI
       // @todo Revisit, not used with feedapi mapper anymore.
@@ -314,16 +335,11 @@ function _parser_common_syndication_RDF10_property($rdf_data, $rdf_properties = 
 }
 
 function _parser_common_syndication_RDF10_item($rdf_data, $mappings) {
-  foreach (get_object_vars($mappings) as $k => $v) {
-    if (is_object($v)) {
-      $mappings->$k = _parser_common_syndication_RDF10_item($rdf_data, $v);
-    }
-    else {
-      $values = _parser_common_syndication_RDF10_property($rdf_data, $v);
-      $mappings->$k = !is_array($values) || count($values) > 1 ? $values : reset($values);
-    }
+  foreach ($mappings as $k => $v) {
+    $values = _parser_common_syndication_RDF10_property($rdf_data, $v);
+    $mappings[$k] = !is_array($values) || count($values) > 1 ? $values : reset($values);
   }
-  return (object)$mappings;
+  return $mappings;
 }
 
 /**
@@ -334,6 +350,7 @@ function _parser_common_syndication_RSS20_parse($feed_XML) {
   $ns = array (
     "content" => "http://purl.org/rss/1.0/modules/content/",
      "dc" => "http://purl.org/dc/elements/1.1/",
+     "georss" => "http://www.georss.org/georss",
   );
 
   $parsed_source = array();
@@ -347,11 +364,13 @@ function _parser_common_syndication_RSS20_parse($feed_XML) {
 
   foreach ($feed_XML->xpath('//item') as $news) {
     $title = $body = $original_author = $original_url = $guid = '';
+
     $category = $news->xpath('category');
     // Get children for current namespace.
     if (version_compare(phpversion(), '5.1.2', '>')) {
       $content = (array)$news->children($ns["content"]);
       $dc      = (array)$news->children($ns["dc"]);
+      $georss  = (array)$news->children($ns["georss"]);
     }
     $news = (array) $news;
     $news['category'] = $category;
@@ -395,6 +414,23 @@ function _parser_common_syndication_RSS20_parse($feed_XML) {
       $guid = "{$news['guid']}";
     }
 
+    if (isset($georss['featureName'])) {
+      $geoname = "{$georss['featureName']}";
+    }
+
+    $lat =
+    $lon =
+    $latlon =
+    $geoname = NULL;
+    if (isset($georss['point'])) {
+      $latlon = explode(' ', $georss['point']);
+      $lat = "{$latlon[0]}";
+      $lon = "{$latlon[1]}";
+      if (!$geoname) {
+        $geoname = "$lat $lon";
+      }
+    }
+
     $additional_taxonomies = array();
     $additional_taxonomies['RSS Categories'] = array();
     $additional_taxonomies['RSS Domains'] = array();
@@ -425,6 +461,18 @@ function _parser_common_syndication_RSS20_parse($feed_XML) {
     }
     $item['url'] = trim($original_url);
     $item['guid'] = $guid;
+
+    $item['geolocations'] = array();
+    if (isset($geoname, $lat, $lon)) {
+      $item['geolocations'] = array(
+        array(
+          'name' => $geoname,
+          'lat' => $lat,
+          'lon' => $lon,
+        ),
+      );
+    }
+
     $item['domains'] = $additional_taxonomies['RSS Domains'];
     $item['tags'] = $additional_taxonomies['RSS Categories'];
     $parsed_source['items'][] = $item;
@@ -520,7 +568,7 @@ function _parser_common_syndication_link($links) {
 function _parser_common_syndication_title($title, $body = FALSE) {
   if (empty($title) && !empty($body)) {
     // Explode to words and use the first 3 words.
-    $words = preg_split("/[\s,]+/", $body);
+    $words = preg_split("/[\s,]+/", strip_tags($body));
     $title = $words[0] .' '. $words[1] .' '. $words[2];
   }
   return $title;

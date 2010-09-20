@@ -1,9 +1,9 @@
 <?php
-// $Id: feeds_mapper_date.test,v 1.2 2010/01/28 19:40:49 alexb Exp $
+// $Id: feeds_mapper_date.test,v 1.5 2010/09/15 19:27:42 alexb Exp $
 
 /**
  * @file
- * Test case for CCK date field mapper mappers/content.inc.
+ * Test case for CCK date field mapper mappers/date.inc.
  */
 
 require_once(drupal_get_path('module', 'feeds') . '/tests/feeds_mapper_test.inc');
@@ -29,7 +29,7 @@ class FeedsMapperDateTestCase extends FeedsMapperTestCase {
    */
   public function setUp() {
     // Call parent setup with the required module.
-    parent::setUp('feeds', 'feeds_ui', 'ctools', 'content', 'date_api', 'date');
+    parent::setUp('feeds', 'feeds_ui', 'ctools', 'job_scheduler', 'content', 'date_api', 'date');
 
     // Create user and login.
     $this->drupalLogin($this->drupalCreateUser(
@@ -54,7 +54,7 @@ class FeedsMapperDateTestCase extends FeedsMapperTestCase {
     ));
 
     // Create and configure importer.
-    $this->createFeedConfiguration('Date RSS', 'daterss');
+    $this->createImporterConfiguration('Date RSS', 'daterss');
     $this->setSettings('daterss', NULL, array('content_type' => '', 'import_period' => FEEDS_SCHEDULE_NEVER,));
     $this->setPlugin('daterss', 'FeedsFileFetcher');
     $this->setPlugin('daterss', 'FeedsSyndicationParser');

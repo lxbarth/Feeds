@@ -1,5 +1,5 @@
 <?php
-// $Id: FeedsSyndicationParser.inc,v 1.13 2010/02/08 19:48:15 alexb Exp $
+// $Id: FeedsSyndicationParser.inc,v 1.18 2010/09/17 17:25:19 alexb Exp $
 
 /**
  * Class definition for Common Syndication Parser.
@@ -9,7 +9,7 @@
 class FeedsSyndicationParser extends FeedsParser {
 
   /**
-   * Implementation of FeedsParser::parse().
+   * Implements FeedsParser::parse().
    */
   public function parse(FeedsImportBatch $batch, FeedsSource $source) {
     feeds_include_library('common_syndication_parser.inc', 'common_syndication_parser');
@@ -18,7 +18,14 @@ class FeedsSyndicationParser extends FeedsParser {
     $batch->setDescription($result['description']);
     $batch->setLink($result['link']);
     if (is_array($result['items'])) {
-      $batch->setItems($result['items']);
+      foreach ($result['items'] as $item) {
+        if (isset($item['geolocations'])) {
+          foreach ($item['geolocations'] as $k => $v) {
+            $item['geolocations'][$k] = new FeedsGeoTermElement($v);
+          }
+        }
+        $batch->addItem($item);
+      }
     }
   }
 
@@ -59,6 +66,10 @@ class FeedsSyndicationParser extends FeedsParser {
         'name' => t('Categories'),
         'description' => t('An array of categories that have been assigned to the feed item.'),
       ),
-     );
+      'geolocations' => array(
+        'name' => t('Geo Locations'),
+        'description' => t('An array of geographic locations with a name and a position.'),
+      ),
+     ) + parent::getMappingSources();
   }
 }

@@ -1,5 +1,5 @@
 <?php
-// $Id: date.inc,v 1.1 2010/01/15 19:44:54 alexb Exp $
+// $Id: date.inc,v 1.4 2010/09/17 17:25:19 alexb Exp $
 
 /**
  * @file
@@ -7,7 +7,7 @@
  */
 
 /**
- * Implementation of hook_feeds_node_processor_targets_alter().
+ * Implements hook_feeds_node_processor_targets_alter().
  *
  * @see FeedsNodeProcessor::getMappingTargets().
  *
@@ -23,11 +23,13 @@ function date_feeds_node_processor_targets_alter(&$targets, $content_type) {
           'name' => $name .': Start',
           'callback' => 'date_feeds_set_target',
           'description' => t('The start date for the !name field. Also use if mapping both start and end.', array('!name' => $name)),
+          'real_target' => $field_name,
         );
         $targets[$field_name .':end'] = array(
           'name' => $name .': End',
           'callback' => 'date_feeds_set_target',
           'description' => t('The end date for the @name field.', array('@name' => $name)),
+          'real_target' => $field_name,
         );
       }
     }
@@ -35,7 +37,7 @@ function date_feeds_node_processor_targets_alter(&$targets, $content_type) {
 }
 
 /**
- * Implementation of hook_feeds_set_target().
+ * Implements hook_feeds_set_target().
  *
  * @param $node
  *   The target node.

@@ -1,5 +1,10 @@
 <?php
-// $Id: feeds_mapper_filefield.test,v 1.3 2010/01/28 20:07:29 alexb Exp $
+// $Id: feeds_mapper_filefield.test,v 1.9 2010/09/15 19:27:42 alexb Exp $
+
+/**
+ * @file
+ * Test case for Filefield mapper mappers/filefield.inc.
+ */
 
 require_once(drupal_get_path('module', 'feeds') . '/tests/feeds_mapper_test.inc');
 
@@ -15,7 +20,7 @@ class FeedsMapperFileFieldTestCase extends FeedsMapperTestCase {
   public static function getInfo() {
     return array(
       'name' => t('Mapper: FileField'),
-      'description' => t('Test Feeds Mapper support for FileField CCK fields. <strong>Requires CCK and filefield module</strong>.'),
+      'description' => t('Test Feeds Mapper support for FileField CCK fields. <strong>Requires CCK and filefield module; requires SimplePie library</strong>.'),
       'group' => t('Feeds'),
     );
   }
@@ -25,7 +30,7 @@ class FeedsMapperFileFieldTestCase extends FeedsMapperTestCase {
    */
   public function setUp() {
     // Call parent setup with the required module
-    parent::setUp('feeds', 'feeds_ui', 'ctools', 'content', 'filefield');
+    parent::setUp('feeds', 'feeds_ui', 'ctools', 'job_scheduler', 'content', 'filefield', 'libraries');
 
     // Create user and login
     $this->drupalLogin($this->drupalCreateUser(
@@ -54,8 +59,8 @@ class FeedsMapperFileFieldTestCase extends FeedsMapperTestCase {
       ),
     ));
 
-    //Create importer configuration
-    $this->createFeedConfiguration(); //Create a default importer configuration
+    // Create importer configuration.
+    $this->createImporterConfiguration(); //Create a default importer configuration
     $this->setPlugin('syndication', 'FeedsSimplePieParser');
     $this->setSettings('syndication', 'FeedsNodeProcessor', array('content_type' => $typename)); //Processor settings
     $this->addMappings('syndication', array(
@@ -77,12 +82,12 @@ class FeedsMapperFileFieldTestCase extends FeedsMapperTestCase {
       ),
     ));
 
-    $nid = $this->createFeedNode('syndication', $GLOBALS['base_url'] .'/'. drupal_get_path('module', 'feeds') . '/tests/feeds/flickr.xml');
-    $this->assertText('Created 4 '.$typename.' nodes.');
+    $nid = $this->createFeedNode('syndication', $GLOBALS['base_url'] .'/'. drupal_get_path('module', 'feeds') .'/tests/feeds/flickr.xml');
+    $this->assertText('Created 4 '. $typename .' nodes.');
 
     $filename = array('3596408735_ce2f0c4824_b', '2640019371_495c3f51a2_b', '3686290986_334c427e8c_b', '2640845934_85c11e5a18_b');
     for($i = 0; $i < 4; $i++) {
-      $this->drupalGet('node/'.($i+2).'/edit');
+      $this->drupalGet('node/'. ($i+2) .'/edit');
       $this->assertText($filename[$i]);
     }
   }

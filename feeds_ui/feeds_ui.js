@@ -1,4 +1,4 @@
-// $Id: feeds_ui.js,v 1.5 2010/02/23 04:59:06 alexb Exp $
+// $Id: feeds_ui.js,v 1.6 2010/05/05 23:52:48 alexb Exp $
 
 Drupal.behaviors.feeds = function() {
 
@@ -86,22 +86,5 @@ Drupal.behaviors.feeds = function() {
     // handler.
     $('#' + $(this).attr('id')).attr('checked', 1);
     $('input.form-submit.feeds-ui-hidden-submit').click();
-  });
-
-  // Show pubsub settings conditionally.
-  // @todo Generalize dependencies between form elements.
-  if ($('#edit-use-pubsubhubbub').attr('checked')) {
-    $('#edit-designated-hub-wrapper').show();
-  }
-  else {
-    $('#edit-designated-hub-wrapper').hide();
-  }
-  $('#edit-use-pubsubhubbub').click(function() {
-    if ($(this).attr('checked')) {
-      $('#edit-designated-hub-wrapper').show(100);
-    }
-    else {
-      $('#edit-designated-hub-wrapper').hide(100);
-    }
   });
 };

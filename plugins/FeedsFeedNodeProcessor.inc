@@ -1,5 +1,5 @@
 <?php
-// $Id: FeedsFeedNodeProcessor.inc,v 1.8 2010/02/10 23:49:35 alexb Exp $
+// $Id: FeedsFeedNodeProcessor.inc,v 1.19 2010/09/17 21:00:47 alexb Exp $
 
 /**
  * @file
@@ -13,22 +13,22 @@
 class FeedsFeedNodeProcessor extends FeedsProcessor {
 
   /**
-   * Implementation of FeedsProcessor::process().
+   * Implements FeedsProcessor::process().
    */
   public function process(FeedsImportBatch $batch, FeedsSource $source) {
     while ($item = $batch->shiftItem()) {
 
       // If the target item does not exist OR if update_existing is enabled,
       // map and save.
-      if (!$nid = $this->existingItemId($item, $source) || $this->config['update_existing']) {
+      if (!$nid = $this->existingItemId($batch, $source) || $this->config['update_existing']) {
 
         // Map item to a node.
-        $node = $this->map($item);
+        $node = $this->map($batch);
 
         // If updating populate nid and vid avoiding an expensive node_load().
         if (!empty($nid)) {
           $node->nid = $nid;
-          $node->vid = db_result(db_query('SELECT vid FROM {node} WHERE nid = %d', $nid));
+          $node->vid = db_query("SELECT vid FROM {node} WHERE nid = :nid", array(':nid' => $nid))->fetchField();
         }
 
         // Save the node.
@@ -45,20 +45,18 @@ class FeedsFeedNodeProcessor extends FeedsProcessor {
 
     // Set messages.
     if ($batch->created) {
-      drupal_set_message(t('Created !number !type nodes.', array('!number' => $batch->created, '!type' => $this->config['content_type'])));
+      drupal_set_message(format_plural($batch->created, 'Created @number @type node.', 'Created @number @type nodes.', array('@number' => $batch->created, '@type' => $this->config['content_type'])));
     }
     elseif ($batch->updated) {
-      drupal_set_message(t('Updated !number !type nodes.', array('!number' => $batch->updated, '!type' => $this->config['content_type'])));
+      drupal_set_message(format_plural($batch->updated, 'Updated @number @type node.', 'Updated @number @type nodes.', array('@number' => $batch->updated, '@type' => $this->config['content_type'])));
     }
     else {
       drupal_set_message(t('There is no new content.'));
     }
-
-    return FEEDS_BATCH_COMPLETE;
   }
 
   /**
-   * Implementation of FeedsProcessor::clear().
+   * Implements FeedsProcessor::clear().
    */
   public function clear(FeedsBatch $batch, FeedsSource $source) {
     // Do not support deleting imported items as we would have to delete all
@@ -70,7 +68,7 @@ class FeedsFeedNodeProcessor extends FeedsProcessor {
   /**
    * Execute mapping on an item.
    */
-  protected function map($source_item) {
+  protected function map(FeedsImportBatch $batch) {
 
     // Prepare node object.
     static $included;
@@ -96,7 +94,7 @@ class FeedsFeedNodeProcessor extends FeedsProcessor {
     $target_node->uid = $user->uid;
 
     // Have parent class do the iterating.
-    return parent::map($source_item, $target_node);
+    return parent::map($batch, $target_node);
   }
 
   /**
@@ -118,7 +116,7 @@ class FeedsFeedNodeProcessor extends FeedsProcessor {
     $types = array();
     foreach ($feeds as $feed) {
       if ($feed->id != $this->id && !empty($feed->config['content_type'])) {
-        $types[$feed->config['content_type']] = node_get_types('name', $feed->config['content_type']);
+        $types[$feed->config['content_type']] = check_plain(node_type_get_name($feed->config['content_type']));
       }
     }
     if (empty($types)) {
@@ -137,10 +135,11 @@ class FeedsFeedNodeProcessor extends FeedsProcessor {
       '#options' => $types,
       '#default_value' => $this->config['content_type'],
     );
+    // @todo Implement real updating.
     $form['update_existing'] = array(
       '#type' => 'checkbox',
-      '#title' => t('Update existing items'),
-      '#description' => t('Check if existing items should be updated from the feed.'),
+      '#title' => t('Replace existing feed nodes'),
+      '#description' => t('If an existing node is found for an imported node, replace it. Existing nodes will be determined using mappings that are a "unique target".'),
       '#default_value' => $this->config['update_existing'],
     );
     return $form;
@@ -152,7 +151,7 @@ class FeedsFeedNodeProcessor extends FeedsProcessor {
   public function setTargetElement($target_node, $target_element, $value) {
     if ($target_element == 'source') {
       // Get the class of the feed node importer's fetcher and set the source
-      // property. See feeds_nodeapi() how $node->feeds gets stored.
+      // property. See feeds_node_update() how $node->feeds gets stored.
       $class = get_class($this->feedNodeImporter()->fetcher);
       $target_node->feeds[$class]['source'] = $value;
     }
@@ -198,12 +197,12 @@ class FeedsFeedNodeProcessor extends FeedsProcessor {
   /**
    * Get nid of an existing feed item node if available.
    */
-  protected function existingItemId($source_item, FeedsSource $source) {
+  protected function existingItemId(FeedsImportBatch $batch, FeedsSource $source) {
 
     // We only support one unique target: source
-    foreach ($this->uniqueTargets($source_item) as $target => $value) {
+    foreach ($this->uniqueTargets($batch) as $target => $value) {
       if ($target == 'source') {
-        return db_result(db_query('SELECT fs.feed_nid FROM {node} n JOIN {feeds_source} fs ON n.nid = fs.feed_nid WHERE fs.id = "%s" AND fs.source = "%s"', $this->feedNodeImporter()->id, $value));
+        return db_query("SELECT fs.feed_nid FROM {node} n JOIN {feeds_source} fs ON n.nid = fs.feed_nid WHERE fs.id = :id AND fs.source = :source", array(':id' => $this->feedNodeImporter()->id, ':source' => $value))->fetchField();
       }
     }
     return 0;
