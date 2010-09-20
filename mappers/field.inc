@@ -67,5 +67,5 @@ function field_feeds_set_target($entity, $target, $value) {
     }
     $i++;
   }
-  $entity->$target = $field;
+  $entity->{$target} = $field;
 }

@@ -85,7 +85,9 @@ function taxonomy_feeds_set_target($entity, $target, $terms) {
     elseif (is_string($term)) {
       $tid = taxonomy_term_check_term($term, $info['settings']['allowed_values'][0]['vid']);
     }
-    $entity->$target['und'][$i]['tid'] = $tid;
+    if ($tid) {
+      $entity->{$target}['und'][$i]['tid'] = $tid;
+    }
 
     if ($info['cardinality'] == 1) {
       break;
