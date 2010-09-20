@@ -348,7 +348,9 @@ function feeds_node_validate($node, $form, &$form_state) {
   // $node->nid at this stage.
   $source = feeds_source($importer_id);
 
-  // Node module magically moved $form['feeds'] to $node->feeds :P
+  // Node module magically moved $form['feeds'] to $node->feeds :P.
+  // configFormValidate may modify $last_feed, smuggle it to update/insert stage
+  // through a static variable.
   $last_feeds = $node->feeds;
   $source->configFormValidate($last_feeds);
 
@@ -371,12 +373,17 @@ function feeds_node_validate($node, $form, &$form_state) {
  * Implements hook_node_presave().
  */
 function feeds_node_presave($node) {
-  // Populate title from result of validation phase.
+  // Populate $node->title and $node->feed from result of validation phase.
   $last_title = &drupal_static('feeds_node_last_title');
-  if (!empty($last_title)) {
+  $last_feeds = &drupal_static('feeds_node_last_feeds');
+  if (empty($node->title) && !empty($last_title)) {
     $node->title = $last_title;
   }
+  if (!empty($last_feeds)) {
+    $node->feeds = $last_feeds;
+  }
   $last_title = NULL;
+  $last_feeds = NULL;
 }
 
 /**
@@ -386,18 +393,13 @@ function feeds_node_insert($node) {
   _feeds_node_processor_node_insert($node);
   feeds_node_update($node);
   if ($importer_id = feeds_get_importer_id($node->type)) {
-    // A node may not have been validated, make sure $last_feeds is present.
-    $last_feeds = &drupal_static('feeds_node_last_feeds');
-    if (empty($last_feeds)) {
-      $last_feeds = $node->feeds;
-    }
-    if (feeds_importer($importer_id)->config['import_on_create'] && !isset($last_feeds['suppress_import'])) {
+    // Start import if requested.
+    if (feeds_importer($importer_id)->config['import_on_create'] && !isset($node->feeds['suppress_import'])) {
       feeds_batch_set(t('Importing'), 'import', $importer_id, $node->nid);
     }
-    $source = feeds_source($importer_id, $node->nid);
-    $source->schedule();
-    $source->importer->schedule();
-
+    // Schedule source and importer.
+    feeds_source($importer_id, $node->nid)->schedule();
+    feeds_importer($importer_id)->schedule();
   }
 }
 
@@ -409,14 +411,9 @@ function feeds_node_update($node) {
   if (!$importer_id = feeds_get_importer_id($node->type)) {
     return;
   }
-  // A node may not have been validated, make sure $last_feeds is present.
-  $last_feeds = &drupal_static('feeds_node_last_feeds');
-  if (empty($last_feeds)) {
-    $last_feeds = $node->feeds;
-  }
   // Add configuration to feed source and save.
   $source = feeds_source($importer_id, $node->nid);
-  $source->addConfig($last_feeds);
+  $source->addConfig($node->feeds);
   $source->save();
 }
 
