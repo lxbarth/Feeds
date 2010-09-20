@@ -73,6 +73,7 @@ function taxonomy_feeds_set_target($entity, $target, $terms) {
   $info = field_info_field($target);
 
   $i = 0;
+  $entity->$target = isset($entity->$target) ? $entity->$target : array();
   foreach ($terms as $term) {
     $tid = 0;
     if ($term instanceof FeedsTermElement) {
