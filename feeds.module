@@ -385,9 +385,20 @@ function feeds_node_presave($node) {
 function feeds_node_insert($node) {
   _feeds_node_processor_node_insert($node);
   feeds_node_update($node);
-  $source = feeds_source($importer_id, $node->nid);
-  $source->schedule();
-  $source->importer->schedule();
+  if ($importer_id = feeds_get_importer_id($node->type)) {
+    // A node may not have been validated, make sure $last_feeds is present.
+    $last_feeds = &drupal_static('feeds_node_last_feeds');
+    if (empty($last_feeds)) {
+      $last_feeds = $node->feeds;
+    }
+    if (feeds_importer($importer_id)->config['import_on_create'] && !isset($last_feeds['suppress_import'])) {
+      feeds_batch_set(t('Importing'), 'import', $importer_id, $node->nid);
+    }
+    $source = feeds_source($importer_id, $node->nid);
+    $source->schedule();
+    $source->importer->schedule();
+
+  }
 }
 
 /**
@@ -407,13 +418,6 @@ function feeds_node_update($node) {
   $source = feeds_source($importer_id, $node->nid);
   $source->addConfig($last_feeds);
   $source->save();
-
-  // Refresh feed if import on create is selected and suppress_import is
-  // not set.
-  if ($op == 'insert' && feeds_importer($importer_id)->config['import_on_create'] && !isset($last_feeds['suppress_import'])) {
-    feeds_batch_set(t('Importing'), 'import', $importer_id, $node->nid);
-  }
-  $last_feeds = NULL;
 }
 
 /**
