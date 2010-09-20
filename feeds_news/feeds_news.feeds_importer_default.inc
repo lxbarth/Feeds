@@ -15,8 +15,8 @@ function feeds_news_feeds_importer_default() {
     'fetcher' => array(
       'plugin_key' => 'FeedsHTTPFetcher',
       'config' => array(
-        'auto_detect_feeds' => FALSE,
-        'use_pubsubhubbub' => FALSE,
+        'auto_detect_feeds' => 1,
+        'use_pubsubhubbub' => 0,
         'designated_hub' => '',
       ),
     ),
