@@ -1,4 +1,4 @@
-core = "6.x"
+core = "7.x"
 dependencies[] = "feeds"
 dependencies[] = "views"
 description = "A news aggregator built with feeds, creates nodes from imported feed items. With OPML import."
@@ -12,3 +12,4 @@ features[views_api][] = "api:2"
 name = "Feeds News"
 package = "Feeds"
 project = "Feeds"
+files[] = feeds_news.module
