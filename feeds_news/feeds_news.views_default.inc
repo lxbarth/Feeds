@@ -14,353 +14,168 @@ function feeds_news_views_default_views() {
   $view->view_php = '';
   $view->base_table = 'node';
   $view->is_cacheable = FALSE;
-  $view->api_version = 2;
+  $view->api_version = '3.0-alpha1';
   $view->disabled = FALSE; /* Edit this to true to make a default view disabled initially */
+  
+/* Display: Defaults */
   $handler = $view->new_display('default', 'Defaults', 'default');
-  $handler->override_option('relationships', array(
-    'feed_nid' => array(
-      'label' => 'Owner feed',
-      'required' => 1,
-      'id' => 'feed_nid',
-      'table' => 'feeds_node_item',
-      'field' => 'feed_nid',
-      'override' => array(
-        'button' => 'Override',
-      ),
-      'relationship' => 'none',
-    ),
-  ));
-  $handler->override_option('fields', array(
-    'url' => array(
-      'label' => '',
-      'alter' => array(
-        'alter_text' => 0,
-        'text' => '',
-        'make_link' => 0,
-        'path' => '',
-        'link_class' => '',
-        'alt' => '',
-        'prefix' => '',
-        'suffix' => '',
-        'target' => '',
-        'help' => '',
-        'trim' => 0,
-        'max_length' => '',
-        'word_boundary' => 1,
-        'ellipsis' => 1,
-        'html' => 0,
-        'strip_tags' => 0,
-      ),
-      'empty' => '',
-      'hide_empty' => 0,
-      'empty_zero' => 0,
-      'display_as_link' => 1,
-      'exclude' => 1,
-      'id' => 'url',
-      'table' => 'feeds_node_item',
-      'field' => 'url',
-      'override' => array(
-        'button' => 'Override',
-      ),
-      'relationship' => 'none',
-    ),
-    'title' => array(
-      'label' => '',
-      'alter' => array(
-        'alter_text' => 0,
-        'text' => '',
-        'make_link' => 1,
-        'path' => '[url]',
-        'link_class' => '',
-        'alt' => '',
-        'prefix' => '<h2>',
-        'suffix' => '</h2>',
-        'target' => '',
-        'help' => '',
-        'trim' => 0,
-        'max_length' => '',
-        'word_boundary' => 1,
-        'ellipsis' => 1,
-        'html' => 0,
-        'strip_tags' => 0,
-      ),
-      'empty' => '',
-      'hide_empty' => 0,
-      'empty_zero' => 0,
-      'link_to_node' => 0,
-      'exclude' => 0,
-      'id' => 'title',
-      'table' => 'node',
-      'field' => 'title',
-      'override' => array(
-        'button' => 'Override',
-      ),
-      'relationship' => 'none',
-    ),
-    'title_1' => array(
-      'label' => '',
-      'alter' => array(
-        'alter_text' => 0,
-        'text' => '',
-        'make_link' => 0,
-        'path' => '',
-        'link_class' => '',
-        'alt' => '',
-        'prefix' => '',
-        'suffix' => '',
-        'target' => '',
-        'help' => '',
-        'trim' => 0,
-        'max_length' => '',
-        'word_boundary' => 1,
-        'ellipsis' => 1,
-        'html' => 0,
-        'strip_tags' => 0,
-      ),
-      'empty' => '',
-      'hide_empty' => 0,
-      'empty_zero' => 0,
-      'link_to_node' => 1,
-      'exclude' => 1,
-      'id' => 'title_1',
-      'table' => 'node',
-      'field' => 'title',
-      'override' => array(
-        'button' => 'Override',
-      ),
-      'relationship' => 'feed_nid',
-    ),
-    'nothing' => array(
-      'label' => '',
-      'alter' => array(
-        'text' => 'From [title_1]',
-        'make_link' => 0,
-        'path' => '',
-        'link_class' => '',
-        'alt' => '',
-        'prefix' => '',
-        'suffix' => '',
-        'target' => '',
-        'help' => '',
-        'trim' => 0,
-        'max_length' => '',
-        'word_boundary' => 1,
-        'ellipsis' => 1,
-        'html' => 0,
-        'strip_tags' => 0,
-      ),
-      'empty' => '',
-      'hide_empty' => 0,
-      'empty_zero' => 0,
-      'exclude' => 0,
-      'id' => 'nothing',
-      'table' => 'views',
-      'field' => 'nothing',
-      'override' => array(
-        'button' => 'Override',
-      ),
-      'relationship' => 'none',
-    ),
-    'body' => array(
-      'label' => '',
-      'alter' => array(
-        'alter_text' => 0,
-        'text' => '',
-        'make_link' => 0,
-        'path' => '',
-        'link_class' => '',
-        'alt' => '',
-        'prefix' => '',
-        'suffix' => '',
-        'target' => '',
-        'help' => '',
-        'trim' => 0,
-        'max_length' => '',
-        'word_boundary' => 1,
-        'ellipsis' => 1,
-        'html' => 0,
-        'strip_tags' => 0,
-      ),
-      'empty' => '',
-      'hide_empty' => 0,
-      'empty_zero' => 0,
-      'exclude' => 0,
-      'id' => 'body',
-      'table' => 'node_revisions',
-      'field' => 'body',
-      'override' => array(
-        'button' => 'Override',
-      ),
-      'relationship' => 'none',
-    ),
-    'edit_node' => array(
-      'label' => '',
-      'alter' => array(
-        'alter_text' => 0,
-        'text' => '',
-        'make_link' => 0,
-        'path' => '',
-        'link_class' => '',
-        'alt' => '',
-        'prefix' => '',
-        'suffix' => '',
-        'target' => '',
-        'help' => '',
-        'trim' => 0,
-        'max_length' => '',
-        'word_boundary' => 1,
-        'ellipsis' => 1,
-        'html' => 0,
-        'strip_tags' => 0,
-      ),
-      'empty' => '',
-      'hide_empty' => 0,
-      'empty_zero' => 0,
-      'text' => 'Edit',
-      'exclude' => 0,
-      'id' => 'edit_node',
-      'table' => 'node',
-      'field' => 'edit_node',
-      'override' => array(
-        'button' => 'Override',
-      ),
-      'relationship' => 'none',
-    ),
-  ));
-  $handler->override_option('arguments', array(
-    'nid' => array(
-      'default_action' => 'empty',
-      'style_plugin' => 'default_summary',
-      'style_options' => array(),
-      'wildcard' => 'all',
-      'wildcard_substitution' => 'All',
-      'title' => 'Articles from %1',
-      'breadcrumb' => '',
-      'default_argument_type' => 'fixed',
-      'default_argument' => '',
-      'validate_type' => 'none',
-      'validate_fail' => 'not found',
-      'break_phrase' => 0,
-      'not' => 0,
-      'id' => 'nid',
-      'table' => 'node',
-      'field' => 'nid',
-      'validate_user_argument_type' => 'uid',
-      'validate_user_roles' => array(
-        '2' => 0,
-      ),
-      'relationship' => 'feed_nid',
-      'default_options_div_prefix' => '',
-      'default_argument_fixed' => '',
-      'default_argument_user' => 0,
-      'default_argument_php' => '',
-      'validate_argument_node_type' => array(
-        'feed' => 0,
-        'feed_item' => 0,
-        'article' => 0,
-      ),
-      'validate_argument_node_access' => 0,
-      'validate_argument_nid_type' => 'nid',
-      'validate_argument_vocabulary' => array(),
-      'validate_argument_type' => 'tid',
-      'validate_argument_transform' => 0,
-      'validate_user_restrict_roles' => 0,
-      'validate_argument_php' => '',
-      'override' => array(
-        'button' => 'Override',
-      ),
-    ),
-  ));
-  $handler->override_option('filters', array(
-    'type' => array(
-      'operator' => 'in',
-      'value' => array(
-        'feed_item' => 'feed_item',
-      ),
-      'group' => '0',
-      'exposed' => FALSE,
-      'expose' => array(
-        'operator' => FALSE,
-        'label' => '',
-      ),
-      'id' => 'type',
-      'table' => 'node',
-      'field' => 'type',
-      'override' => array(
-        'button' => 'Override',
-      ),
-      'relationship' => 'none',
-    ),
-  ));
-  $handler->override_option('access', array(
-    'type' => 'perm',
-    'perm' => 'access content',
-  ));
-  $handler->override_option('cache', array(
-    'type' => 'none',
-  ));
-  $handler->override_option('empty', 'There are no items for this feed at the moment.');
-  $handler->override_option('empty_format', '1');
+  $handler->display->display_options['access']['type'] = 'perm';
+  $handler->display->display_options['cache']['type'] = 'none';
+  $handler->display->display_options['query']['type'] = 'views_query';
+  $handler->display->display_options['exposed_form']['type'] = 'basic';
+  $handler->display->display_options['pager']['type'] = 'full';
+  $handler->display->display_options['style_plugin'] = 'default';
+  $handler->display->display_options['row_plugin'] = 'fields';
+  /* Empty text: Global: Text area */
+  $handler->display->display_options['empty']['text']['id'] = 'area';
+  $handler->display->display_options['empty']['text']['table'] = 'views';
+  $handler->display->display_options['empty']['text']['field'] = 'area';
+  $handler->display->display_options['empty']['text']['empty'] = FALSE;
+  $handler->display->display_options['empty']['text']['content'] = 'There are no items for this feed at the moment.';
+  $handler->display->display_options['empty']['text']['format'] = '1';
+  /* Relationship: Feeds Item: Owner feed */
+  $handler->display->display_options['relationships']['feed_nid']['id'] = 'feed_nid';
+  $handler->display->display_options['relationships']['feed_nid']['table'] = 'feeds_node_item';
+  $handler->display->display_options['relationships']['feed_nid']['field'] = 'feed_nid';
+  $handler->display->display_options['relationships']['feed_nid']['required'] = 1;
+  /* Field: Feeds Item: Item URL */
+  $handler->display->display_options['fields']['url']['id'] = 'url';
+  $handler->display->display_options['fields']['url']['table'] = 'feeds_node_item';
+  $handler->display->display_options['fields']['url']['field'] = 'url';
+  $handler->display->display_options['fields']['url']['label'] = '';
+  $handler->display->display_options['fields']['url']['exclude'] = TRUE;
+  $handler->display->display_options['fields']['url']['alter']['alter_text'] = 0;
+  $handler->display->display_options['fields']['url']['alter']['make_link'] = 0;
+  $handler->display->display_options['fields']['url']['alter']['trim'] = 0;
+  $handler->display->display_options['fields']['url']['alter']['word_boundary'] = 1;
+  $handler->display->display_options['fields']['url']['alter']['ellipsis'] = 1;
+  $handler->display->display_options['fields']['url']['alter']['strip_tags'] = 0;
+  $handler->display->display_options['fields']['url']['alter']['html'] = 0;
+  $handler->display->display_options['fields']['url']['hide_empty'] = 0;
+  $handler->display->display_options['fields']['url']['empty_zero'] = 0;
+  $handler->display->display_options['fields']['url']['display_as_link'] = 1;
+  /* Field: Node: Title */
+  $handler->display->display_options['fields']['title']['id'] = 'title';
+  $handler->display->display_options['fields']['title']['table'] = 'node';
+  $handler->display->display_options['fields']['title']['field'] = 'title';
+  $handler->display->display_options['fields']['title']['label'] = '';
+  $handler->display->display_options['fields']['title']['alter']['alter_text'] = 0;
+  $handler->display->display_options['fields']['title']['alter']['make_link'] = 1;
+  $handler->display->display_options['fields']['title']['alter']['path'] = '[url]';
+  $handler->display->display_options['fields']['title']['alter']['prefix'] = '<h2>';
+  $handler->display->display_options['fields']['title']['alter']['suffix'] = '</h2>';
+  $handler->display->display_options['fields']['title']['alter']['trim'] = 0;
+  $handler->display->display_options['fields']['title']['alter']['word_boundary'] = 1;
+  $handler->display->display_options['fields']['title']['alter']['ellipsis'] = 1;
+  $handler->display->display_options['fields']['title']['alter']['strip_tags'] = 0;
+  $handler->display->display_options['fields']['title']['alter']['html'] = 0;
+  $handler->display->display_options['fields']['title']['hide_empty'] = 0;
+  $handler->display->display_options['fields']['title']['empty_zero'] = 0;
+  $handler->display->display_options['fields']['title']['link_to_node'] = 0;
+  /* Field: Node: Title */
+  $handler->display->display_options['fields']['title_1']['id'] = 'title_1';
+  $handler->display->display_options['fields']['title_1']['table'] = 'node';
+  $handler->display->display_options['fields']['title_1']['field'] = 'title';
+  $handler->display->display_options['fields']['title_1']['relationship'] = 'feed_nid';
+  $handler->display->display_options['fields']['title_1']['label'] = '';
+  $handler->display->display_options['fields']['title_1']['exclude'] = TRUE;
+  $handler->display->display_options['fields']['title_1']['alter']['alter_text'] = 0;
+  $handler->display->display_options['fields']['title_1']['alter']['make_link'] = 0;
+  $handler->display->display_options['fields']['title_1']['alter']['trim'] = 0;
+  $handler->display->display_options['fields']['title_1']['alter']['word_boundary'] = 1;
+  $handler->display->display_options['fields']['title_1']['alter']['ellipsis'] = 1;
+  $handler->display->display_options['fields']['title_1']['alter']['strip_tags'] = 0;
+  $handler->display->display_options['fields']['title_1']['alter']['html'] = 0;
+  $handler->display->display_options['fields']['title_1']['hide_empty'] = 0;
+  $handler->display->display_options['fields']['title_1']['empty_zero'] = 0;
+  $handler->display->display_options['fields']['title_1']['link_to_node'] = 1;
+  /* Field: Global: Custom text */
+  $handler->display->display_options['fields']['nothing']['id'] = 'nothing';
+  $handler->display->display_options['fields']['nothing']['table'] = 'views';
+  $handler->display->display_options['fields']['nothing']['field'] = 'nothing';
+  $handler->display->display_options['fields']['nothing']['label'] = '';
+  $handler->display->display_options['fields']['nothing']['alter']['text'] = 'From [title_1]';
+  $handler->display->display_options['fields']['nothing']['alter']['make_link'] = 0;
+  $handler->display->display_options['fields']['nothing']['alter']['trim'] = 0;
+  $handler->display->display_options['fields']['nothing']['alter']['word_boundary'] = 1;
+  $handler->display->display_options['fields']['nothing']['alter']['ellipsis'] = 1;
+  $handler->display->display_options['fields']['nothing']['alter']['strip_tags'] = 0;
+  $handler->display->display_options['fields']['nothing']['alter']['html'] = 0;
+  $handler->display->display_options['fields']['nothing']['hide_empty'] = 0;
+  $handler->display->display_options['fields']['nothing']['empty_zero'] = 0;
+  /* Field: Fields: field_body */
+  $handler->display->display_options['fields']['entity_id']['id'] = 'entity_id';
+  $handler->display->display_options['fields']['entity_id']['table'] = 'field_data_field_body';
+  $handler->display->display_options['fields']['entity_id']['field'] = 'entity_id';
+  $handler->display->display_options['fields']['entity_id']['alter']['alter_text'] = 0;
+  $handler->display->display_options['fields']['entity_id']['alter']['make_link'] = 0;
+  $handler->display->display_options['fields']['entity_id']['alter']['absolute'] = 0;
+  $handler->display->display_options['fields']['entity_id']['alter']['trim'] = 0;
+  $handler->display->display_options['fields']['entity_id']['alter']['word_boundary'] = 1;
+  $handler->display->display_options['fields']['entity_id']['alter']['ellipsis'] = 1;
+  $handler->display->display_options['fields']['entity_id']['alter']['strip_tags'] = 0;
+  $handler->display->display_options['fields']['entity_id']['alter']['html'] = 0;
+  $handler->display->display_options['fields']['entity_id']['hide_empty'] = 0;
+  $handler->display->display_options['fields']['entity_id']['empty_zero'] = 0;
+  /* Field: Node: Edit link */
+  $handler->display->display_options['fields']['edit_node']['id'] = 'edit_node';
+  $handler->display->display_options['fields']['edit_node']['table'] = 'node';
+  $handler->display->display_options['fields']['edit_node']['field'] = 'edit_node';
+  $handler->display->display_options['fields']['edit_node']['label'] = '';
+  $handler->display->display_options['fields']['edit_node']['alter']['alter_text'] = 0;
+  $handler->display->display_options['fields']['edit_node']['alter']['make_link'] = 0;
+  $handler->display->display_options['fields']['edit_node']['alter']['trim'] = 0;
+  $handler->display->display_options['fields']['edit_node']['alter']['word_boundary'] = 1;
+  $handler->display->display_options['fields']['edit_node']['alter']['ellipsis'] = 1;
+  $handler->display->display_options['fields']['edit_node']['alter']['strip_tags'] = 0;
+  $handler->display->display_options['fields']['edit_node']['alter']['html'] = 0;
+  $handler->display->display_options['fields']['edit_node']['hide_empty'] = 0;
+  $handler->display->display_options['fields']['edit_node']['empty_zero'] = 0;
+  $handler->display->display_options['fields']['edit_node']['text'] = 'Edit';
+  /* Argument: Node: Nid */
+  $handler->display->display_options['arguments']['nid']['id'] = 'nid';
+  $handler->display->display_options['arguments']['nid']['table'] = 'node';
+  $handler->display->display_options['arguments']['nid']['field'] = 'nid';
+  $handler->display->display_options['arguments']['nid']['relationship'] = 'feed_nid';
+  $handler->display->display_options['arguments']['nid']['default_action'] = 'empty';
+  $handler->display->display_options['arguments']['nid']['style_plugin'] = 'default_summary';
+  $handler->display->display_options['arguments']['nid']['title'] = 'Articles from %1';
+  $handler->display->display_options['arguments']['nid']['default_argument_type'] = 'fixed';
+  $handler->display->display_options['arguments']['nid']['break_phrase'] = 0;
+  $handler->display->display_options['arguments']['nid']['not'] = 0;
+  /* Filter: Node: Type */
+  $handler->display->display_options['filters']['type']['id'] = 'type';
+  $handler->display->display_options['filters']['type']['table'] = 'node';
+  $handler->display->display_options['filters']['type']['field'] = 'type';
+  $handler->display->display_options['filters']['type']['value'] = array(
+    'feed_item' => 'feed_item',
+  );
+  $handler->display->display_options['filters']['type']['expose']['operator'] = FALSE;
+  
+/* Display: Page */
   $handler = $view->new_display('page', 'Page', 'page_1');
-  $handler->override_option('arguments', array(
-    'nid' => array(
-      'default_action' => 'empty',
-      'style_plugin' => 'default_summary',
-      'style_options' => array(),
-      'wildcard' => 'all',
-      'wildcard_substitution' => 'All',
-      'title' => 'All items from %1',
-      'breadcrumb' => '',
-      'default_argument_type' => 'fixed',
-      'default_argument' => '',
-      'validate_type' => 'node',
-      'validate_fail' => 'not found',
-      'break_phrase' => 0,
-      'not' => 0,
-      'id' => 'nid',
-      'table' => 'node',
-      'field' => 'nid',
-      'validate_user_argument_type' => 'uid',
-      'validate_user_roles' => array(
-        '2' => 0,
-      ),
-      'relationship' => 'feed_nid',
-      'default_options_div_prefix' => '',
-      'default_argument_fixed' => '',
-      'default_argument_user' => 0,
-      'default_argument_php' => '',
-      'validate_argument_node_type' => array(
-        'feed' => 'feed',
-        'feed_item' => 0,
-        'article' => 0,
-      ),
-      'validate_argument_node_access' => 0,
-      'validate_argument_nid_type' => 'nid',
-      'validate_argument_vocabulary' => array(),
-      'validate_argument_type' => 'tid',
-      'validate_argument_transform' => 0,
-      'validate_user_restrict_roles' => 0,
-      'validate_argument_php' => '',
-      'override' => array(
-        'button' => 'Use default',
-      ),
-    ),
-  ));
-  $handler->override_option('path', 'node/%/feed-items');
-  $handler->override_option('menu', array(
-    'type' => 'tab',
-    'title' => 'View items',
-    'description' => '',
-    'weight' => '0',
-    'name' => 'navigation',
-  ));
-  $handler->override_option('tab_options', array(
-    'type' => 'none',
-    'title' => '',
-    'description' => '',
-    'weight' => 0,
-    'name' => 'navigation',
-  ));
+  $handler->display->display_options['defaults']['arguments'] = FALSE;
+  /* Argument: Node: Nid */
+  $handler->display->display_options['arguments']['nid']['id'] = 'nid';
+  $handler->display->display_options['arguments']['nid']['table'] = 'node';
+  $handler->display->display_options['arguments']['nid']['field'] = 'nid';
+  $handler->display->display_options['arguments']['nid']['relationship'] = 'feed_nid';
+  $handler->display->display_options['arguments']['nid']['default_action'] = 'empty';
+  $handler->display->display_options['arguments']['nid']['style_plugin'] = 'default_summary';
+  $handler->display->display_options['arguments']['nid']['title'] = 'All items from %1';
+  $handler->display->display_options['arguments']['nid']['default_argument_type'] = 'fixed';
+  $handler->display->display_options['arguments']['nid']['validate_type'] = 'node';
+  $handler->display->display_options['arguments']['nid']['validate_options']['types'] = array(
+    'feed' => 'feed',
+    'feed_item' => 0,
+    'article' => 0,
+  );
+  $handler->display->display_options['arguments']['nid']['break_phrase'] = 0;
+  $handler->display->display_options['arguments']['nid']['not'] = 0;
+  $handler->display->display_options['path'] = 'node/%/feed-items';
+  $handler->display->display_options['menu']['type'] = 'tab';
+  $handler->display->display_options['menu']['title'] = 'View items';
+  $handler->display->display_options['menu']['weight'] = '0';
 
   $views[$view->name] = $view;
 
