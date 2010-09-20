@@ -4,6 +4,10 @@
 /**
  * @file
  * On behalf implementation of Feeds mapping API for field.module.
+ *
+ * Does actually not include mappers for field types defined in fields module
+ * (because there aren't any) but mappers for all fields that contain their
+ * value simply in $entity->fieldname['und'][$i]['value'].
  */
 
 /**
