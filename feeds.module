@@ -433,7 +433,7 @@ function feeds_node_delete($node) {
 function _feeds_node_processor_node_load($nodes) {
   if ($items = db_query("SELECT nid, imported, guid, url, feed_nid FROM {feeds_node_item} WHERE nid IN (:nids)", array(':nids' => array_keys($nodes)))) {
     foreach ($items as $item) {
-      $node->{$item->nid} = $item;
+      $nodes[$item->nid]->feeds_node_item = $item;
     }
   }
 }
@@ -462,11 +462,9 @@ function _feeds_node_processor_node_update($node) {
  * FeedsNodeProcessor's hook_node_delete().
  */
 function _feeds_node_processor_node_delete($node) {
-  if (isset($node->feeds_node_item)) {
-    db_delete('feeds_node_item')
-      ->condition('nid', $node->nid)
-      ->execute();
-  }
+  db_delete('feeds_node_item')
+    ->condition('nid', $node->nid)
+    ->execute();
 }
 
 /**
