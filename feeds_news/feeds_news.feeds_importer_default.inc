@@ -31,27 +31,27 @@ function feeds_news_feeds_importer_default() {
         'update_existing' => 0,
         'expire' => '-1',
         'mappings' => array(
-          '0' => array(
+          0 => array(
             'source' => 'title',
             'target' => 'title',
             'unique' => FALSE,
           ),
-          '1' => array(
+          1 => array(
             'source' => 'description',
             'target' => 'body',
             'unique' => FALSE,
           ),
-          '2' => array(
+          2 => array(
             'source' => 'timestamp',
             'target' => 'created',
             'unique' => FALSE,
           ),
-          '3' => array(
+          3 => array(
             'source' => 'url',
             'target' => 'url',
             'unique' => TRUE,
           ),
-          '4' => array(
+          4 => array(
             'source' => 'guid',
             'target' => 'guid',
             'unique' => TRUE,
@@ -92,12 +92,12 @@ function feeds_news_feeds_importer_default() {
         'content_type' => 'feed',
         'update_existing' => 0,
         'mappings' => array(
-          '0' => array(
+          0 => array(
             'source' => 'title',
             'target' => 'title',
             'unique' => FALSE,
           ),
-          '1' => array(
+          1 => array(
             'source' => 'xmlurl',
             'target' => 'source',
             'unique' => 1,
