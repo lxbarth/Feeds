@@ -195,7 +195,7 @@ class FeedsGeoTermElement extends FeedsTermElement {
 class FeedsEnclosure extends FeedsElement {
   protected $mime_type;
   protected $file;
-  protected $destination;
+  protected $directory;
 
   /**
    * Constructor, requires MIME type.
@@ -203,11 +203,7 @@ class FeedsEnclosure extends FeedsElement {
   public function __construct($value, $mime_type) {
     parent::__construct($value);
     $this->mime_type = $mime_type;
-    $this->destination = file_directory_temp();
-  }
-
-  public function setFileDestination($destination) {
-    $this->destination = $destination;
+    $this->directory = file_directory_temp();
   }
 
   /**
@@ -232,33 +228,40 @@ class FeedsEnclosure extends FeedsElement {
   }
 
   /**
+   * Get the path to the enclosed resource, download if necessary.
+   *
+   * @param $directory
+   *   The path or uri specifying the target directory in which the file is
+   *   expected. If not given, a previously defined directory will be assumed.
+   *   The default directory is tmp.
+   *
    * @return
-   *   A temporary file path to the downloaded resource referenced by the
-   *   enclosure. Downloads resource if not downloaded yet. The file path is
-   *   valid for the time of the page load.
+   *   A file path to the enclosed resource.
    *
    * @todo file_destination(*, FILE_EXISTS_RENAME) is not concurrency safe.
    */
-  public function getFilePath() {
+  public function getFilePath($directory = NULL) {
+    if ($directory) {
+      $this->directory = $directory;
+    }
 
     if (empty($this->file) && $this->getValue()) {
 
       // File is in the right place, nothing to do.
-      if (strpos($this->getValue(), $this->destination) === 0) {
+      if (strpos($this->getValue(), $this->directory) === 0) {
         $this->file = $this->getValue();
         return $this->file;
       }
 
-      // Generate a file name and a destination.
+      // Generate a file name.
       $filename = basename($this->getValue());
       if (module_exists('transliteration')) {
         require_once (drupal_get_path('module', 'transliteration') . '/transliteration.inc');
         $filename = transliteration_clean_filename($filename);
       }
-      $dest = file_destination($this->destination .'/'. $filename, FILE_EXISTS_RENAME);
 
       // Copy (download) the file to its destination.
-      $this->file = copy($this->getValue(), $dest) ? $dest : 0;
+      $this->file = file_unmanaged_copy($this->getValue(), $this->directory .'/'. $filename);
 
       // We couldn't make sense of this enclosure, throw an exception.
       if (!$this->file) {

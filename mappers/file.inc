@@ -49,19 +49,16 @@ function file_feeds_set_target($entity, $target, $value) {
   $bundle_name = $entity->entity_type == 'node' ? $entity->type : $entity->entity_type;
   $instance_info = field_info_instance($entity->entity_type, $target, $bundle_name);
   $account = $entity->uid ? user_load($entity->uid) : NULL;
-  $destination = file_field_widget_uri($info, $instance_info, $account);
+  $directory = file_field_widget_uri($info, $instance_info, $account);
 
   // Make sure $value is an array of objects of type FeedsEnclosure.
   if (!is_array($value)) {
     $value = array($value);
   }
   foreach ($value as $k => $v) {
-    if ($v instanceof FeedsEnclosure) {
-      $v->setFileDestination($destination);
-    }
-    elseif (is_string($v)) {
+    if (!($v instanceof FeedsEnclosure) && is_string($v)) {
       $value[$k] = new FeedsEnclosure($v, 'application/octet-stream');
-      $value[$k]->setFileDestination($destination);
+      $value[$k]->setDestinationDirectory($destination);
     }
     else {
       unset($value[$k]);
@@ -72,7 +69,7 @@ function file_feeds_set_target($entity, $target, $value) {
   $i = 0;
   $field = isset($entity->$target) ? $entity->$target : array();
   foreach ($value as $v) {
-    $field['und'][$i]['uri'] = $v->getFilePath();
+    $field['und'][$i]['uri'] = $v->getFilePath($directory);
     if ($info['cardinality'] == 1) {
       break;
     }
