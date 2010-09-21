@@ -183,10 +183,10 @@ class FeedsImportBatch extends FeedsBatch {
   }
 
   /**
-   * Get a path to a file containing the resource provided by the fetcher.
+   * Get a path to a temporary file containing the resource provided by the
+   * fetcher.
    *
-   * @todo Clean up file after import. Every new download will create a new
-   * file.
+   * File will be deleted after DRUPAL_MAXIMUM_TEMP_FILE_AGE.
    *
    * @return
    *   A path to a file containing the raw content as a source.
@@ -201,11 +201,14 @@ class FeedsImportBatch extends FeedsBatch {
         throw new Exception(t('Feeds directory either cannot be created or is not writable.'));
       }
       $this->file_path = FALSE;
-      $file = file_unmanaged_save_data($this->getRaw(), $destination . '/'. get_class($this) . REQUEST_TIME);
-      if ($file === FALSE) {
+      if ($file = file_save_data($this->getRaw(), $destination . '/'. get_class($this) . REQUEST_TIME)) {
+        $file->status = 0;
+        file_save($file);
+        $this->file_path = $file->uri;
+      }
+      else {
         throw new Exception(t('Cannot write content to %dest', array('%dest' => $destination)));
       }
-      $this->file_path = $file;
     }
     return $this->file_path;
   }
