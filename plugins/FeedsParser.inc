@@ -260,7 +260,12 @@ class FeedsEnclosure extends FeedsElement {
         $this->file = file_copy($file, $destination);
       }
       else {
-        $this->file = file_save_data($this->getContent(), $destination);
+        $filename = basename($this->getValue());
+        if (module_exists('transliteration')) {
+          require_once (drupal_get_path('module', 'transliteration') . '/transliteration.inc');
+          $filename = transliteration_clean_filename($filename);
+        }
+        $this->file = file_save_data($this->getContent(), "$destination/$filename");
       }
 
       // We couldn't make sense of this enclosure, throw an exception.
