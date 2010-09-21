@@ -195,6 +195,7 @@ class FeedsGeoTermElement extends FeedsTermElement {
 class FeedsEnclosure extends FeedsElement {
   protected $mime_type;
   protected $file;
+  protected $destination;
 
   /**
    * Constructor, requires MIME type.
@@ -211,6 +212,10 @@ class FeedsEnclosure extends FeedsElement {
     if (!empty($this->file)) {
       file_delete($this->file);
     }
+  }
+
+  public function setFileDestination($destination) {
+    $this->destination = $destination;
   }
 
   /**
