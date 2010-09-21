@@ -92,6 +92,7 @@ class FeedsFileFetcher extends FeedsFetcher {
 
     // If there is a file uploaded, save it, otherwise validate input on
     // file.
+    // @todo: Track usage of file, remove file when removing source.
     if ($file = file_save_upload('feeds', array('file_validate_extensions' => array(0 => $this->config['allowed_extensions'])), $feed_dir)) {
       $values['source'] = $file->uri;
     }
