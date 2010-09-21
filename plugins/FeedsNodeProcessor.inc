@@ -358,11 +358,10 @@ class FeedsNodeProcessor extends FeedsProcessor {
       $node->feeds_node_item->guid = '';
     }
 
-    static $included;
-    if (!$included) {
-      module_load_include('inc', 'node', 'node.pages');
-      $included = TRUE;
-    }
+    // Give mappers a hint at what they're operating on.
+    $node->entity_type = 'node';
+
+    // Let other modules populate default values.
     node_object_prepare($node);
 
     // Populate properties that are set by node_object_prepare().
