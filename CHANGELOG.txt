@@ -4,6 +4,7 @@ Feeds 7.x XXXXXXXXXXXXXXXXXXXXXX
 --------------------------------
 
 - FeedsFileFetcher: track uploaded files, delete unused files.
+- yhahn: Upgrade FeedsTaxonomyProcessor.
 - Upgrade file and image mapper.
 - Upgrade taxonomy mapper.
 - Upgrade field mapper.
