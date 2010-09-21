@@ -259,9 +259,15 @@ class FeedsEnclosure extends FeedsElement {
         require_once (drupal_get_path('module', 'transliteration') . '/transliteration.inc');
         $filename = transliteration_clean_filename($filename);
       }
+      $destination = $this->directory .'/'. $filename;
 
       // Copy (download) the file to its destination.
-      $this->file = file_unmanaged_copy($this->getValue(), $this->directory .'/'. $filename);
+      if (drupal_realpath($this->getValue())) {
+        $this->file = file_unmanaged_copy($this->getValue(), $destination);
+      }
+      else {
+        $this->file = file_unmanaged_save_data($this->getContent(), $destination);
+      }
 
       // We couldn't make sense of this enclosure, throw an exception.
       if (!$this->file) {
