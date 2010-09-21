@@ -59,7 +59,6 @@ function file_feeds_set_target($entity, $target, $value) {
     if (!($v instanceof FeedsEnclosure)) {
       if (is_string($v)) {
         $value[$k] = new FeedsEnclosure($v, 'application/octet-stream');
-        $value[$k]->setDestinationDirectory($destination);
       }
       else {
         unset($value[$k]);
