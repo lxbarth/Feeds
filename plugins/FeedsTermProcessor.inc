@@ -30,7 +30,7 @@ class FeedsTermProcessor extends FeedsProcessor {
         // Map item to a term.
         $term = new stdClass();
         if ($tid && $this->config['update_existing'] == FEEDS_UPDATE_EXISTING) {
-          $term = taxonomy_get_term($tid, TRUE);
+          $term = taxonomy_term_load($tid);
           $term = module_invoke_all('feeds_taxonomy_load', $term);
         }
         $term->entity_type = 'taxonomy_term';
@@ -198,7 +198,8 @@ class FeedsTermProcessor extends FeedsProcessor {
     );
     // Let implementers of hook_feeds_term_processor_targets() add their targets.
     if ($vocabulary = $this->vocabulary()) {
-      feeds_alter('feeds_processor_targets', $targets, 'taxonomy_term', $vocabulary->vid);
+      self::loadMappers();
+      feeds_alter('feeds_processor_targets', $targets, 'taxonomy_term', $vocabulary->machine_name);
     }
     return $targets;
   }
