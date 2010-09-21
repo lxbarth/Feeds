@@ -5,9 +5,12 @@ Feeds 7.x XXXXXXXXXXXXXXXXXXXXXX
 
 - FeedsFileFetcher: track uploaded files, delete unused files.
 - yhahn: Upgrade FeedsTaxonomyProcessor.
+- Remove handling of target items that are array. All target items must be
+  objects now.
 - Upgrade file and image mapper.
 - Upgrade taxonomy mapper.
 - Upgrade field mapper.
+- Move plugin handling into FeedsPlugin class.
 - Base level upgrade.
 
 Feeds 6.x 1.0 Beta 6, 2010-09-16
