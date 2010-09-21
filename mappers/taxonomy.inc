@@ -72,6 +72,14 @@ function taxonomy_feeds_set_target($entity, $target, $terms) {
 
   $info = field_info_field($target);
 
+  // See http://drupal.org/node/881530
+  if (isset($info['settings']['allowed_values'][0]['vocabulary'])) {
+    $vocabulary = taxonomy_vocabulary_machine_name_load($info['settings']['allowed_values'][0]['vocabulary']);
+  }
+  else {
+    $vocabulary = taxonomy_vocabulary_load($info['settings']['allowed_values'][0]['vid']);
+  }
+
   $i = 0;
   $entity->$target = isset($entity->$target) ? $entity->$target : array();
   foreach ($terms as $term) {
@@ -83,7 +91,7 @@ function taxonomy_feeds_set_target($entity, $target, $terms) {
       $tid = $term;
     }
     elseif (is_string($term)) {
-      $tid = taxonomy_term_check_term($term, $info['settings']['allowed_values'][0]['vid']);
+      $tid = taxonomy_term_check_term($term, $vocabulary->vid);
     }
     if ($tid) {
       $entity->{$target}['und'][$i]['tid'] = $tid;
@@ -117,5 +125,6 @@ function taxonomy_term_check_term($name, $vid) {
     taxonomy_term_save($term);
     return $term->tid;
   }
-  return $terms[0]->tid;
+  $term = reset($terms);
+  return $term->tid;
 }
