@@ -788,9 +788,10 @@ function theme_feeds_ui_mapping_form($variables) {
     foreach ($form['#mappings'] as $i => $mapping) {
       // Some parsers do not define source options.
       $source = isset($form['source']['#options'][$mapping['source']]) ? $form['source']['#options'][$mapping['source']] : $mapping['source'];
+      $target = isset($form['target']['#options'][$mapping['target']]) ? check_plain($form['target']['#options'][$mapping['target']]) : '<em>' . t('Missing') . '</em>';
       $rows[] = array(
         check_plain($source),
-        check_plain($form['target']['#options'][$mapping['target']]),
+        $target,
         drupal_render($form['unique_flags'][$i]),
         drupal_render($form['remove_flags'][$i]),
       );
