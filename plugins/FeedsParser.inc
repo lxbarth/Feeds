@@ -226,7 +226,7 @@ class FeedsEnclosure extends FeedsElement {
   }
 
   /**
-   * Get the path to the enclosed resource, download if necessary.
+   * Get a Drupal file object of the enclosed resource, download if necessary.
    *
    * @param $destination
    *   The path or uri specifying the target directory in which the file is
