@@ -239,7 +239,7 @@ class FeedsEnclosure extends FeedsElement {
    *
    * @todo file_destination(*, FILE_EXISTS_RENAME) is not concurrency safe.
    */
-  public function getFile() {
+  public function getFilePath() {
 
     if (empty($this->file) && $this->getValue()) {
 

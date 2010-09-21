@@ -72,7 +72,7 @@ function file_feeds_set_target($entity, $target, $value) {
   $i = 0;
   $field = isset($entity->$target) ? $entity->$target : array();
   foreach ($value as $v) {
-    $field['und'][$i]['uri'] = $v->getFile();
+    $field['und'][$i]['uri'] = $v->getFilePath();
     if ($info['cardinality'] == 1) {
       break;
     }
