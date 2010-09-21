@@ -262,6 +262,7 @@ class FeedsEnclosure extends FeedsElement {
       $destination = $this->directory .'/'. $filename;
 
       // Copy (download) the file to its destination.
+      file_prepare_directory($this->directory, FILE_MODIFY_PERMISSIONS | FILE_CREATE_DIRECTORY);
       if (drupal_realpath($this->getValue())) {
         $this->file = file_unmanaged_copy($this->getValue(), $destination);
       }
