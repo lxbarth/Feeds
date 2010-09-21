@@ -41,6 +41,7 @@ function file_feeds_set_target($entity, $target, $value) {
   if (empty($value)) {
     return;
   }
+  module_load_include('inc', 'file');
 
   // Determine file destination.
   // @todo This needs review and debugging.
@@ -67,7 +68,7 @@ function file_feeds_set_target($entity, $target, $value) {
     }
   }
 
-  // Iterate over all values.
+  // Populate entity.
   $i = 0;
   $field = isset($entity->$target) ? $entity->$target : array();
   foreach ($value as $v) {
