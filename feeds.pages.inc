@@ -159,19 +159,18 @@ function theme_feeds_upload($variables) {
   _form_set_class($element, array('form-file'));
   $description = '';
   if (!empty($element['#file_info'])) {
-    $info = $element['#file_info'];
+    $file = $element['#file_info'];
+    $wrapper = file_stream_wrapper_get_instance_by_uri($file->uri);
     $description .= '<div class="file-info">';
     $description .= '<div class="file-name">';
-    $description .= l(basename($info['path']), $info['path']);
+    $description .= l($file->filename, $wrapper->getExternalUrl());
     $description .= '</div>';
     $description .= '<div class="file-size">';
-    $description .= format_size($info['size']);
+    $description .= format_size($file->filesize);
     $description .= '</div>';
-    if (isset($info['mime'])) {
-      $description .= '<div class="file-mime">';
-      $description .= check_plain($info['mime']);
-      $description .= '</div>';
-    }
+    $description .= '<div class="file-mime">';
+    $description .= check_plain($file->filemime);
+    $description .= '</div>';
     $description .= '</div>';
   }
   $description .= '<div class="file-upload">';

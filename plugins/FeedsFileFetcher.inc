@@ -54,18 +54,7 @@ class FeedsFileFetcher extends FeedsFetcher {
    * Source form.
    */
   public function sourceForm($source_config) {
-    $form = $info = array();
-    if (!empty($source_config['source']) && file_exists($source_config['source'])) {
-      $wrapper = file_stream_wrapper_get_instance_by_uri($source_config['source']);
-      $path = $wrapper->getExternalUrl();
-      $info = array(
-        'path' => $path,
-        'size' => filesize($source_config['source']),
-      );
-      if (module_exists('mimedetect')) {
-        $info['mime'] = mimedetect_mime($source_config['source']);
-      }
-    }
+    $form = array();
     $form['fid'] = array(
       '#type' => 'value',
       '#value' => empty($source_config['fid']) ? 0 : $source_config['fid'],
@@ -81,7 +70,7 @@ class FeedsFileFetcher extends FeedsFetcher {
       '#title' => empty($this->config['direct']) ? t('File') : NULL,
       '#description' => empty($source_config['source']) ? t('Select the file to be imported from your local system.') : t('Select a different file to be imported from your local system.'),
       '#theme' => 'feeds_upload',
-      '#file_info' => $info,
+      '#file_info' => empty($source_config['fid']) ? NULL : file_load($source_config['fid']),
       '#size' => 10,
     );
     return $form;
