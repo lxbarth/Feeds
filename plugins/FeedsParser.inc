@@ -195,6 +195,7 @@ class FeedsGeoTermElement extends FeedsTermElement {
 class FeedsEnclosure extends FeedsElement {
   protected $mime_type;
   protected $file;
+  protected $destination;
 
   /**
    * Constructor, requires MIME type.
@@ -202,15 +203,11 @@ class FeedsEnclosure extends FeedsElement {
   public function __construct($value, $mime_type) {
     parent::__construct($value);
     $this->mime_type = $mime_type;
+    $this->destination = file_directory_temp();
   }
 
-  /**
-   * Destructor, clean up any temporary files.
-   */
-  public function __destruct() {
-    if (!empty($this->file)) {
-      file_delete($this->file);
-    }
+  public function setFileDestination($destination) {
+    $this->destination = $destination;
   }
 
   /**
@@ -240,36 +237,32 @@ class FeedsEnclosure extends FeedsElement {
    *   enclosure. Downloads resource if not downloaded yet. The file path is
    *   valid for the time of the page load.
    *
-   * @todo Get file extension from mime_type.
-   * @todo This is not concurrency safe.
+   * @todo file_destination(*, FILE_EXISTS_RENAME) is not concurrency safe.
    */
-  public function getFile() {
-    if(empty($this->file) && $this->getValue()) {
-      // Check if this enclosure contains a local file.
-      if (!parse_url($this->getValue(), PHP_URL_SCHEME)) {
-        if (strpos($this->getValue(), 'public://') === 0) {
-          if (file_exists($this->getValue())) {
-            $this->file = $this->getValue();
-            return $this->file;
-          }
-        }
-        throw new Exception(t('Invalid enclosure %enclosure', array('%enclosure' => $this->getValue())));
+  public function getFilePath() {
+
+    if (empty($this->file) && $this->getValue()) {
+
+      // File is in the right place, nothing to do.
+      if (strpos($this->getValue(), $this->destination) === 0) {
+        $this->file = $this->getValue();
+        return $this->file;
       }
+
+      // Generate a file name and a destination.
       $filename = basename($this->getValue());
       if (module_exists('transliteration')) {
         require_once (drupal_get_path('module', 'transliteration') . '/transliteration.inc');
         $filename = transliteration_clean_filename($filename);
       }
-      $dest = file_destination(file_directory_temp() .'/'. $filename, FILE_EXISTS_RENAME);
-      if (ini_get('allow_url_fopen')) {
-        $this->file = copy($this->getValue(), $dest) ? $dest : 0;
-      }
-      else {
-        $file = file_save_data($this->getContent(), $dest);
-        $this->file = $file ? $file->uri : 0;
-      }
-      if ($this->file === 0) {
-        throw new Exception(t('Cannot write content to %dest', array('%dest' => $dest)));
+      $dest = file_destination($this->destination .'/'. $filename, FILE_EXISTS_RENAME);
+
+      // Copy (download) the file to its destination.
+      $this->file = copy($this->getValue(), $dest) ? $dest : 0;
+
+      // We couldn't make sense of this enclosure, throw an exception.
+      if (!$this->file) {
+        throw new Exception(t('Invalid enclosure %enclosure', array('%enclosure' => $this->getValue())));
       }
     }
     return $this->file;

@@ -17,7 +17,7 @@ function feeds_news_node_info() {
   $items = array(
     'feed' => array(
       'name' => t('Feed'),
-      'base' => 'features',
+      'base' => 'node_content',
       'description' => t('Subscribe to RSS or Atom feeds. Creates nodes of the content type "Feed item" from feed content.'),
       'has_title' => '1',
       'title_label' => t('Title'),
@@ -25,7 +25,7 @@ function feeds_news_node_info() {
     ),
     'feed_item' => array(
       'name' => t('Feed item'),
-      'base' => 'features',
+      'base' => 'node_content',
       'description' => t('This content type is being used for automatically aggregated content from feeds.'),
       'has_title' => '1',
       'title_label' => t('Title'),

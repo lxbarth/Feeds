@@ -211,7 +211,7 @@ class FeedsSimplePieParser extends FeedsParser {
    * Returns cache directory. Creates it if it doesn't exist.
    */
   protected function cacheDirectory() {
-    $directory = file_directory_path() .'/simplepie';
+    $directory = 'public://simplepie';
     file_prepare_directory($dir, FILE_CREATE_DIRECTORY | FILE_MODIFY_PERMISSIONS);
     return $directory;
   }
