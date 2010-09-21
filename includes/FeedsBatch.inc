@@ -183,6 +183,11 @@ class FeedsImportBatch extends FeedsBatch {
   }
 
   /**
+   * Get a path to a file containing the resource provided by the fetcher.
+   *
+   * @todo Clean up file after import. Every new download will create a new
+   * file.
+   *
    * @return
    *   A path to a file containing the raw content as a source.
    *
@@ -191,17 +196,16 @@ class FeedsImportBatch extends FeedsBatch {
    */
   public function getFilePath() {
     if (!isset($this->file_path)) {
-      $dir = 'public://feeds';
-      if (!file_prepare_directory($dir, FILE_CREATE_DIRECTORY | FILE_MODIFY_PERMISSIONS)) {
+      $destination = 'public://feeds';
+      if (!file_prepare_directory($destination, FILE_CREATE_DIRECTORY | FILE_MODIFY_PERMISSIONS)) {
         throw new Exception(t('Feeds directory either cannot be created or is not writable.'));
       }
-      $dest = file_destination($dir . '/' . get_class($this) .'_'. drupal_get_token($this->url) .'_'. time(), FILE_EXISTS_RENAME);
       $this->file_path = FALSE;
-      $file = file_save_data($this->getRaw(), $dest);
+      $file = file_unmanaged_save_data($this->getRaw(), $destination . '/'. get_class($this) . REQUEST_TIME);
       if ($file === FALSE) {
-        throw new Exception(t('Cannot write content to %dest', array('%dest' => $dest)));
+        throw new Exception(t('Cannot write content to %dest', array('%dest' => $destination)));
       }
-      $this->file_path = $file->uri;
+      $this->file_path = $file;
     }
     return $this->file_path;
   }
