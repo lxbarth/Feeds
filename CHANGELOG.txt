@@ -3,7 +3,10 @@
 Feeds 7.x XXXXXXXXXXXXXXXXXXXXXX
 --------------------------------
 
-
+- Upgrade file and image mapper.
+- Upgrade taxonomy mapper.
+- Upgrade field mapper.
+- Base level upgrade.
 
 Feeds 6.x 1.0 Beta 6, 2010-09-16
 --------------------------------
