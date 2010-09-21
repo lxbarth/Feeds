@@ -188,7 +188,6 @@ class FeedsWebTestCase extends DrupalWebTestCase {
     $result = $query->execute()->fetchField();
     $this->assertEqual(1, $result);
 
-    //$source = db_query("SELECT * FROM {feeds_source} WHERE id = :id AND feed_nid = :feed_nid", array(':id'=> $id, ':feed_nid' => $nid))->fetch();
     $source = db_select('feeds_source', 's')
       ->condition('s.id', $id, '=')
       ->condition('s.feed_nid', $nid, '=')
@@ -219,7 +218,11 @@ class FeedsWebTestCase extends DrupalWebTestCase {
     $this->assertText('has been updated.');
 
     // Check that the URL was updated in the feeds_source table.
-    $source = db_query("SELECT * FROM {feeds_source} WHERE feed_nid = :nid", array(':nid' => $nid))->fetch();
+    //$source = db_query("SELECT * FROM {feeds_source} WHERE feed_nid = :nid", array(':nid' => $nid))->fetch();
+    $source = db_select('feeds_source', 's')
+      ->condition('s.feed_nid', $nid, '=')
+      ->fields('s', array('config'))
+      ->execute()->fetch();
     $config = unserialize($source->config);
     $this->assertEqual($config['FeedsHTTPFetcher']['source'], $feed_url, t('URL in DB correct.'));
   }
