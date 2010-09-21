@@ -106,12 +106,19 @@ class FeedsFileFetcher extends FeedsFetcher {
    */
   public function sourceSave(FeedsSource $source) {
     $source_config = $source->getConfigFor($this);
+
+    // If a new file is present, delete the old one and replace it with the new
+    // one.
     if (isset($source_config['file'])) {
+      $file = $source_config['file'];
       if (isset($source_config['fid'])) {
         $this->deleteFile($source_config['fid'], $source->feed_nid);
       }
-      file_usage_add($source_config['file'], 'feeds', get_class($this), $source->feed_nid);
-      $source_config['fid'] = $source_config['file']->fid;
+      $file->status = FILE_STATUS_PERMANENT;
+      file_save($file);
+      file_usage_add($file, 'feeds', get_class($this), $source->feed_nid);
+
+      $source_config['fid'] = $file->fid;
       unset($source_config['file']);
       $source->setConfigFor($this, $source_config);
     }
