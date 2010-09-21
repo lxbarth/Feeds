@@ -96,7 +96,7 @@ class FeedsNodeProcessor extends FeedsProcessor {
     $nids = array();
     $nodes = db_query_range("SELECT n.nid FROM {node} n JOIN {feeds_node_item} fn ON n.nid = fn.nid WHERE fn.id = :id AND fn.feed_nid = :nid", 0, $count, array(':id' => $source->id, ':nid' => $source->feed_nid));
     foreach ($nodes as $node) {
-      $nids[] = $node->nid;
+      $nids[$node->nid] = $node->nid;
       $batch->deleted++;
     }
     node_delete_multiple($nids);

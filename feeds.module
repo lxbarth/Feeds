@@ -151,7 +151,7 @@ function feeds_permission() {
 function feeds_forms() {
   $forms = array();
   $forms['FeedsImporter_feeds_form']['callback'] = 'feeds_form';
-  $plugins = feeds_get_plugins();
+  $plugins = FeedsPlugin::all();
   foreach ($plugins as $plugin) {
     $forms[$plugin['handler']['class'] .'_feeds_form']['callback'] = 'feeds_form';
   }
@@ -348,7 +348,9 @@ function feeds_node_validate($node, $form, &$form_state) {
   // $node->nid at this stage.
   $source = feeds_source($importer_id);
 
-  // Node module magically moved $form['feeds'] to $node->feeds :P
+  // Node module magically moved $form['feeds'] to $node->feeds :P.
+  // configFormValidate may modify $last_feed, smuggle it to update/insert stage
+  // through a static variable.
   $last_feeds = $node->feeds;
   $source->configFormValidate($last_feeds);
 
@@ -371,12 +373,17 @@ function feeds_node_validate($node, $form, &$form_state) {
  * Implements hook_node_presave().
  */
 function feeds_node_presave($node) {
-  // Populate title from result of validation phase.
+  // Populate $node->title and $node->feed from result of validation phase.
   $last_title = &drupal_static('feeds_node_last_title');
-  if (!empty($last_title)) {
+  $last_feeds = &drupal_static('feeds_node_last_feeds');
+  if (empty($node->title) && !empty($last_title)) {
     $node->title = $last_title;
   }
+  if (!empty($last_feeds)) {
+    $node->feeds = $last_feeds;
+  }
   $last_title = NULL;
+  $last_feeds = NULL;
 }
 
 /**
@@ -386,18 +393,13 @@ function feeds_node_insert($node) {
   _feeds_node_processor_node_insert($node);
   feeds_node_update($node);
   if ($importer_id = feeds_get_importer_id($node->type)) {
-    // A node may not have been validated, make sure $last_feeds is present.
-    $last_feeds = &drupal_static('feeds_node_last_feeds');
-    if (empty($last_feeds)) {
-      $last_feeds = $node->feeds;
-    }
-    if (feeds_importer($importer_id)->config['import_on_create'] && !isset($last_feeds['suppress_import'])) {
+    // Start import if requested.
+    if (feeds_importer($importer_id)->config['import_on_create'] && !isset($node->feeds['suppress_import'])) {
       feeds_batch_set(t('Importing'), 'import', $importer_id, $node->nid);
     }
-    $source = feeds_source($importer_id, $node->nid);
-    $source->schedule();
-    $source->importer->schedule();
-
+    // Schedule source and importer.
+    feeds_source($importer_id, $node->nid)->schedule();
+    feeds_importer($importer_id)->schedule();
   }
 }
 
@@ -409,14 +411,9 @@ function feeds_node_update($node) {
   if (!$importer_id = feeds_get_importer_id($node->type)) {
     return;
   }
-  // A node may not have been validated, make sure $last_feeds is present.
-  $last_feeds = &drupal_static('feeds_node_last_feeds');
-  if (empty($last_feeds)) {
-    $last_feeds = $node->feeds;
-  }
   // Add configuration to feed source and save.
   $source = feeds_source($importer_id, $node->nid);
-  $source->addConfig($last_feeds);
+  $source->addConfig($node->feeds);
   $source->save();
 }
 
@@ -436,7 +433,7 @@ function feeds_node_delete($node) {
 function _feeds_node_processor_node_load($nodes) {
   if ($items = db_query("SELECT nid, imported, guid, url, feed_nid FROM {feeds_node_item} WHERE nid IN (:nids)", array(':nids' => array_keys($nodes)))) {
     foreach ($items as $item) {
-      $node->{$item->nid} = $item;
+      $nodes[$item->nid]->feeds_node_item = $item;
     }
   }
 }
@@ -465,11 +462,9 @@ function _feeds_node_processor_node_update($node) {
  * FeedsNodeProcessor's hook_node_delete().
  */
 function _feeds_node_processor_node_delete($node) {
-  if (isset($node->feeds_node_item)) {
-    db_delete('feeds_node_item')
-      ->condition('nid', $node->nid)
-      ->execute();
-  }
+  db_delete('feeds_node_item')
+    ->condition('nid', $node->nid)
+    ->execute();
 }
 
 /**
@@ -745,70 +740,7 @@ function feeds_source($importer_id, $feed_nid = 0) {
 }
 
 /**
- * @}
- */
-
-/**
- * @defgroup plugins Plugin functions
- * @{
- *
- * @todo Encapsulate this in a FeedsPluginHandler class, move it to includes/
- * and only load it if we're manipulating plugins.
- */
-
-/**
- * Gets all available plugins. Does not list hidden plugins.
- *
- * @return
- *   An array where the keys are the plugin keys and the values
- *   are the plugin info arrays as defined in hook_feeds_plugins().
- */
-function feeds_get_plugins() {
-  ctools_include('plugins');
-  $plugins = ctools_get_plugins('feeds', 'plugins');
-
-  $result = array();
-  foreach ($plugins as $key => $info) {
-    if (!empty($info['hidden'])) {
-      continue;
-    }
-    $result[$key] = $info;
-  }
-
-  // Sort plugins by name and return.
-  uasort($result, 'feeds_plugin_compare');
-  return $result;
-}
-
-/**
- * Sort callback for feeds_get_plugins().
- */
-function feeds_plugin_compare($a, $b) {
-  return strcasecmp($a['name'], $b['name']);
-}
-
-/**
- * Gets all available plugins of a particular type.
- *
- * @param $type
- *   'fetcher', 'parser' or 'processor'
- */
-function feeds_get_plugins_by_type($type) {
-  $plugins = feeds_get_plugins();
-
-  $result = array();
-  foreach ($plugins as $key => $info) {
-    if ($type == feeds_plugin_type($key)) {
-      $result[$key] = $info;
-    }
-  }
-  return $result;
-}
-
-/**
  * Gets an instance of a class for a given plugin and id.
- *
- * @todo Collapse into FeedsPlugin::instance().
  *
  * @param $plugin
  *   A string that is the key of the plugin to load.
@@ -821,7 +753,7 @@ function feeds_get_plugins_by_type($type) {
  * @throws Exception
  *   If plugin can't be instantiated.
  */
-function feeds_plugin_instance($plugin, $id) {
+function feeds_plugin($plugin, $id) {
   ctools_include('plugins');
   if ($class = ctools_plugin_load_class('feeds', 'plugins', $plugin, 'handler')) {
     return FeedsConfigurable::instance($class, $id);
@@ -836,60 +768,6 @@ function feeds_plugin_instance($plugin, $id) {
   }
   $class = ctools_plugin_load_class('feeds', 'plugins', 'FeedsMissingPlugin', 'handler');
   return FeedsConfigurable::instance($class, $id);
-}
-
-/**
- * Determines whether given plugin is derived from given base plugin.
- *
- * @param $plugin_key
- *   String that identifies a Feeds plugin key.
- * @param $parent_plugin
- *   String that identifies a Feeds plugin key to be tested against.
- *
- * @return
- *   TRUE if $parent_plugin is directly *or indirectly* a parent of $plugin,
- *   FALSE otherwise.
- */
-function feeds_plugin_child($plugin_key, $parent_plugin) {
-  ctools_include('plugins');
-  $plugins = ctools_get_plugins('feeds', 'plugins');
-  $info = $plugins[$plugin_key];
-
-  if (empty($info['handler']['parent'])) {
-    return FALSE;
-  }
-  elseif ($info['handler']['parent'] == $parent_plugin) {
-    return TRUE;
-  }
-  else {
-    return feeds_plugin_child($info['handler']['parent'], $parent_plugin);
-  }
-}
-
-/**
- * Determines the type of a plugin.
- *
- * @param $plugin_key
- *   String that identifies a Feeds plugin key.
- *
- * @return
- *   One of the following values:
- *   'fetcher' if the plugin is a fetcher
- *   'parser' if the plugin is a parser
- *   'processor' if the plugin is a processor
- *   FALSE otherwise.
- */
-function feeds_plugin_type($plugin_key) {
-  if (feeds_plugin_child($plugin_key, 'FeedsFetcher')) {
-    return 'fetcher';
-  }
-  elseif (feeds_plugin_child($plugin_key, 'FeedsParser')) {
-    return 'parser';
-  }
-  elseif (feeds_plugin_child($plugin_key, 'FeedsProcessor')) {
-    return 'processor';
-  }
-  return FALSE;
 }
 
 /**

@@ -44,12 +44,16 @@ function field_feeds_processor_targets_alter(&$targets, $entity_type, $content_t
  * element the user has picked as a source.
  */
 function field_feeds_set_target($entity, $target, $value) {
-  $info = field_info_field($target);
+  if (empty($value)) {
+    return;
+  }
 
   // Handle non-multiple value fields.
   if (!is_array($value)) {
     $value = array($value);
   }
+
+  $info = field_info_field($target);
 
   // Iterate over all values.
   $i = 0;
@@ -63,5 +67,5 @@ function field_feeds_set_target($entity, $target, $value) {
     }
     $i++;
   }
-  $entity->$target = $field;
+  $entity->{$target} = $field;
 }

@@ -101,10 +101,6 @@ abstract class FeedsProcessor extends FeedsPlugin {
     // Many mappers add to existing fields rather than replacing them. Hence we
     // need to clear target elements of each item before mapping in case we are
     // mapping on a prepopulated item such as an existing node.
-    if (is_array($target_item)) {
-      $target_item = (object)$target_item;
-      $convert_to_array = TRUE;
-    }
     foreach ($this->config['mappings'] as $mapping) {
       if (isset($targets[$mapping['target']]['real_target'])) {
         unset($target_item->{$targets[$mapping['target']]['real_target']});
@@ -112,9 +108,6 @@ abstract class FeedsProcessor extends FeedsPlugin {
       elseif (isset($target_item->{$mapping['target']})) {
         unset($target_item->{$mapping['target']});
       }
-    }
-    if ($convert_to_array) {
-      $target_item = (array)$target_item;
     }
 
     /*
@@ -194,8 +187,8 @@ abstract class FeedsProcessor extends FeedsPlugin {
    *
    * @ingroup mappingapi
    */
-  public function setTargetElement(&$target_item, $target_element, $value) {
-    $target_item[$target_element] = $value;
+  public function setTargetElement($target_item, $target_element, $value) {
+    $target_item->$target_element = $value;
   }
 
   /**
