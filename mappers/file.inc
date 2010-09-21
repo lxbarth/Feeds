@@ -43,14 +43,6 @@ function file_feeds_set_target($entity, $target, $value) {
   }
   module_load_include('inc', 'file');
 
-  // Determine file destination.
-  // @todo This needs review and debugging.
-  $info = field_info_field($target);
-  $bundle_name = $entity->entity_type == 'node' ? $entity->type : $entity->entity_type;
-  $instance_info = field_info_instance($entity->entity_type, $target, $bundle_name);
-  $account = $entity->uid ? user_load($entity->uid) : NULL;
-  $directory = file_field_widget_uri($info, $instance_info, $account);
-
   // Make sure $value is an array of objects of type FeedsEnclosure.
   if (!is_array($value)) {
     $value = array($value);
@@ -65,16 +57,29 @@ function file_feeds_set_target($entity, $target, $value) {
       }
     }
   }
+  if (empty($value)) {
+    return;
+  }
+
+  // Determine file destination.
+  // @todo This needs review and debugging.
+  $info = field_info_field($target);
+  $bundle_name = $entity->entity_type == 'node' ? $entity->type : $entity->entity_type;
+  $instance_info = field_info_instance($entity->entity_type, $target, $bundle_name);
+  $account = $entity->uid ? user_load($entity->uid) : NULL;
+  $destination = file_field_widget_uri($info, $instance_info, $account);
 
   // Populate entity.
   $i = 0;
   $field = isset($entity->$target) ? $entity->$target : array();
   foreach ($value as $v) {
-    $field['und'][$i]['uri'] = $v->getFilePath($directory);
-    if ($info['cardinality'] == 1) {
-      break;
+    if ($file = $v->getFile($destination)) {
+      $field['und'][$i] = (array)$file;
+      if ($info['cardinality'] == 1) {
+        break;
+      }
+      $i++;
     }
-    $i++;
   }
   $entity->{$target} = $field;
 }
