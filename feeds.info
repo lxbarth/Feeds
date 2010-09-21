@@ -10,5 +10,7 @@ files[] = includes/FeedsBatch.inc
 files[] = includes/FeedsConfigurable.inc
 files[] = includes/FeedsImporter.inc
 files[] = includes/FeedsSource.inc
+files[] = tests/feeds.test.inc
+files[] = tests/feeds_processor_node.test
 core = 7.x
 php = 5.2

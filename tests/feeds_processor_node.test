@@ -30,13 +30,10 @@ class FeedsRSStoNodesTest extends FeedsWebTestCase {
    */
   public function setUp() {
     parent::setUp('feeds', 'feeds_ui', 'ctools', 'job_scheduler');
-    $this->drupalLogin(
-      $this->drupalCreateUser(
-        array(
-          'administer feeds', 'administer nodes', 'administer content types',
-        )
-      )
-    );
+    $user = $this->drupalCreateUser( array(
+      'administer feeds', 'administer nodes', 'administer content types', 'create page content', 'edit any page content',
+    ));
+    $this->drupalLogin($user);
   }
 
   /**
