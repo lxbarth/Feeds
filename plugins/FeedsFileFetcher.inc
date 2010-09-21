@@ -66,6 +66,10 @@ class FeedsFileFetcher extends FeedsFetcher {
         $info['mime'] = mimedetect_mime($source_config['source']);
       }
     }
+    $form['fid'] = array(
+      '#type' => 'value',
+      '#value' => empty($source_config['fid']) ? 0 : $source_config['fid'],
+    );
     $form['source'] = array(
       '#type' => empty($this->config['direct']) ? 'value' : 'textfield',
       '#title' => t('File'),
@@ -95,6 +99,7 @@ class FeedsFileFetcher extends FeedsFetcher {
     // @todo: Track usage of file, remove file when removing source.
     if ($file = file_save_upload('feeds', array('file_validate_extensions' => array(0 => $this->config['allowed_extensions'])), $feed_dir)) {
       $values['source'] = $file->uri;
+      $values['file'] = $file;
     }
     elseif (empty($values['source'])) {
       form_set_error('feeds][source', t('Upload a file first.'));
@@ -104,6 +109,32 @@ class FeedsFileFetcher extends FeedsFetcher {
     // potentially any file that the web server has access could be exposed.
     elseif (strpos($values['source'], 'public://') !== 0) {
       form_set_error('feeds][source', t('File needs to reside within the site\'s file directory, its path needs to start with public://.'));
+    }
+  }
+
+  /**
+   * Override parent::sourceSave().
+   */
+  public function sourceSave(FeedsSource $source) {
+    $source_config = $source->getConfigFor($this);
+    if (isset($source_config['file'])) {
+      if (isset($source_config['fid'])) {
+        $this->deleteFile($source_config['fid'], $source->feed_nid);
+      }
+      file_usage_add($source_config['file'], 'feeds', get_class($this), $source->feed_nid);
+      $source_config['fid'] = $source_config['file']->fid;
+      unset($source_config['file']);
+      $source->setConfigFor($this, $source_config);
+    }
+  }
+
+  /**
+   * Override parent::sourceDelete().
+   */
+  public function sourceDelete(FeedsSource $source) {
+    $source_config = $source->getConfigFor($this);
+    if (isset($source_config['fid'])) {
+      $this->deleteFile($source_config['fid'], $source->feed_nid);
     }
   }
 
@@ -135,5 +166,15 @@ class FeedsFileFetcher extends FeedsFetcher {
       '#default_value' => $this->config['direct'],
     );
     return $form;
+  }
+
+  /**
+   * Helper. Deletes a file.
+   */
+  protected function deleteFile($fid, $feed_nid) {
+    if ($file = file_load($fid)) {
+      file_usage_delete($file, 'feeds', get_class($this), $feed_nid);
+      file_delete($file);
+    }
   }
 }
