@@ -27,7 +27,7 @@ class FeedsImporter extends FeedsConfigurable {
 
   // Every feed has a fetcher, a parser and a processor.
   // These variable names match the possible return values of
-  // feeds_plugin_type().
+  // FeedsPlugin::typeOf().
   protected $fetcher, $parser, $processor;
 
   // This array defines the variable names of the plugins above.
@@ -46,7 +46,7 @@ class FeedsImporter extends FeedsConfigurable {
     // Instantiate fetcher, parser and processor, set their configuration if
     // stored info is available.
     foreach ($this->plugin_types as $type) {
-      $plugin = feeds_plugin_instance($this->config[$type]['plugin_key'], $this->id);
+      $plugin = feeds_plugin($this->config[$type]['plugin_key'], $this->id);
 
       if (isset($this->config[$type]['config'])) {
         $plugin->setConfig($this->config[$type]['config']);
@@ -155,8 +155,8 @@ class FeedsImporter extends FeedsConfigurable {
    */
   public function setPlugin($plugin_key) {
     // $plugin_type can be either 'fetcher', 'parser' or 'processor'
-    if ($plugin_type = feeds_plugin_type($plugin_key)) {
-      if ($plugin = feeds_plugin_instance($plugin_key, $this->id)) {
+    if ($plugin_type = FeedsPlugin::typeOf($plugin_key)) {
+      if ($plugin = feeds_plugin($plugin_key, $this->id)) {
         // Unset existing plugin, switch to new plugin.
         unset($this->$plugin_type);
         $this->$plugin_type = $plugin;

@@ -151,7 +151,7 @@ function feeds_permission() {
 function feeds_forms() {
   $forms = array();
   $forms['FeedsImporter_feeds_form']['callback'] = 'feeds_form';
-  $plugins = feeds_get_plugins();
+  $plugins = FeedsPlugin::all();
   foreach ($plugins as $plugin) {
     $forms[$plugin['handler']['class'] .'_feeds_form']['callback'] = 'feeds_form';
   }
@@ -740,70 +740,7 @@ function feeds_source($importer_id, $feed_nid = 0) {
 }
 
 /**
- * @}
- */
-
-/**
- * @defgroup plugins Plugin functions
- * @{
- *
- * @todo Encapsulate this in a FeedsPluginHandler class, move it to includes/
- * and only load it if we're manipulating plugins.
- */
-
-/**
- * Gets all available plugins. Does not list hidden plugins.
- *
- * @return
- *   An array where the keys are the plugin keys and the values
- *   are the plugin info arrays as defined in hook_feeds_plugins().
- */
-function feeds_get_plugins() {
-  ctools_include('plugins');
-  $plugins = ctools_get_plugins('feeds', 'plugins');
-
-  $result = array();
-  foreach ($plugins as $key => $info) {
-    if (!empty($info['hidden'])) {
-      continue;
-    }
-    $result[$key] = $info;
-  }
-
-  // Sort plugins by name and return.
-  uasort($result, 'feeds_plugin_compare');
-  return $result;
-}
-
-/**
- * Sort callback for feeds_get_plugins().
- */
-function feeds_plugin_compare($a, $b) {
-  return strcasecmp($a['name'], $b['name']);
-}
-
-/**
- * Gets all available plugins of a particular type.
- *
- * @param $type
- *   'fetcher', 'parser' or 'processor'
- */
-function feeds_get_plugins_by_type($type) {
-  $plugins = feeds_get_plugins();
-
-  $result = array();
-  foreach ($plugins as $key => $info) {
-    if ($type == feeds_plugin_type($key)) {
-      $result[$key] = $info;
-    }
-  }
-  return $result;
-}
-
-/**
  * Gets an instance of a class for a given plugin and id.
- *
- * @todo Collapse into FeedsPlugin::instance().
  *
  * @param $plugin
  *   A string that is the key of the plugin to load.
@@ -816,7 +753,7 @@ function feeds_get_plugins_by_type($type) {
  * @throws Exception
  *   If plugin can't be instantiated.
  */
-function feeds_plugin_instance($plugin, $id) {
+function feeds_plugin($plugin, $id) {
   ctools_include('plugins');
   if ($class = ctools_plugin_load_class('feeds', 'plugins', $plugin, 'handler')) {
     return FeedsConfigurable::instance($class, $id);
@@ -831,60 +768,6 @@ function feeds_plugin_instance($plugin, $id) {
   }
   $class = ctools_plugin_load_class('feeds', 'plugins', 'FeedsMissingPlugin', 'handler');
   return FeedsConfigurable::instance($class, $id);
-}
-
-/**
- * Determines whether given plugin is derived from given base plugin.
- *
- * @param $plugin_key
- *   String that identifies a Feeds plugin key.
- * @param $parent_plugin
- *   String that identifies a Feeds plugin key to be tested against.
- *
- * @return
- *   TRUE if $parent_plugin is directly *or indirectly* a parent of $plugin,
- *   FALSE otherwise.
- */
-function feeds_plugin_child($plugin_key, $parent_plugin) {
-  ctools_include('plugins');
-  $plugins = ctools_get_plugins('feeds', 'plugins');
-  $info = $plugins[$plugin_key];
-
-  if (empty($info['handler']['parent'])) {
-    return FALSE;
-  }
-  elseif ($info['handler']['parent'] == $parent_plugin) {
-    return TRUE;
-  }
-  else {
-    return feeds_plugin_child($info['handler']['parent'], $parent_plugin);
-  }
-}
-
-/**
- * Determines the type of a plugin.
- *
- * @param $plugin_key
- *   String that identifies a Feeds plugin key.
- *
- * @return
- *   One of the following values:
- *   'fetcher' if the plugin is a fetcher
- *   'parser' if the plugin is a parser
- *   'processor' if the plugin is a processor
- *   FALSE otherwise.
- */
-function feeds_plugin_type($plugin_key) {
-  if (feeds_plugin_child($plugin_key, 'FeedsFetcher')) {
-    return 'fetcher';
-  }
-  elseif (feeds_plugin_child($plugin_key, 'FeedsParser')) {
-    return 'parser';
-  }
-  elseif (feeds_plugin_child($plugin_key, 'FeedsProcessor')) {
-    return 'processor';
-  }
-  return FALSE;
 }
 
 /**
