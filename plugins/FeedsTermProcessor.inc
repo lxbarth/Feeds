@@ -197,8 +197,9 @@ class FeedsTermProcessor extends FeedsProcessor {
        ),
     );
     // Let implementers of hook_feeds_term_processor_targets() add their targets.
-    $vocabulary = $this->vocabulary();
-    feeds_alter('feeds_processor_targets', $targets, 'taxonomy_term', $vocabulary->vid);
+    if ($vocabulary = $this->vocabulary()) {
+      feeds_alter('feeds_processor_targets', $targets, 'taxonomy_term', $vocabulary->vid);
+    }
     return $targets;
   }
 
@@ -226,7 +227,7 @@ class FeedsTermProcessor extends FeedsProcessor {
     // Legacy handling for old feeds importers.
     if (is_numeric($this->config['vocabulary'])) {
       $vocabularies = taxonomy_get_vocabularies();
-      return $vocabularies[$this->config['vocabulary']];
+      return isset($vocabularies[$this->config['vocabulary']]) ? $vocabularies[$this->config['vocabulary']] : NULL;
     }
     else {
       if ($vocabulary = taxonomy_vocabulary_machine_name_load($this->config['vocabulary'])) {
