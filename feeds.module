@@ -486,6 +486,7 @@ function feeds_taxonomy_term_insert($term) {
     $record = array(
       'id' => $term->feeds_importer_id,
       'tid' => $term->tid,
+      'feed_nid' => isset($term->feed_nid) ? $term->feed_nid : 0,
     );
     drupal_write_record('feeds_term_item', $record);
   }
