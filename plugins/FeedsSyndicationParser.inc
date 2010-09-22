@@ -11,7 +11,7 @@ class FeedsSyndicationParser extends FeedsParser {
   /**
    * Implements FeedsParser::parse().
    */
-  public function parse(FeedsImportBatch $batch, FeedsSource $source) {
+  public function parse(FeedsSource $source, FeedsFetcherResult $fetcher_result) {
     feeds_include_library('common_syndication_parser.inc', 'common_syndication_parser');
     $result = common_syndication_parser_parse($batch->getRaw());
     $batch->setTitle($result['title']);

@@ -4,6 +4,7 @@ Feeds 7.x XXXXXXXXXXXXXXXXXXXXXX
 --------------------------------
 
 - Expand batch support to fetchers and parsers.
+ - Signature of FeedsParser::parse() changed.
  - Signature of hook_feeds_after_parse() changed.
  - Signature of hook_feeds_after_import() changed.
  - Signature of hook_feeds_after_clear() changed.

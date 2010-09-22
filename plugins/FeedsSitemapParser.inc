@@ -8,7 +8,7 @@ class FeedsSitemapParser extends FeedsParser {
   /**
    * Implements FeedsParser::parse().
    */
-  public function parse(FeedsImportBatch $batch, FeedsSource $source) {
+  public function parse(FeedsSource $source, FeedsFetcherResult $fetcher_result) {
     // Set time zone to GMT for parsing dates with strtotime().
     $tz = date_default_timezone_get();
     date_default_timezone_set('GMT');

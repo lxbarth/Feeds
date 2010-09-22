@@ -11,12 +11,12 @@ abstract class FeedsParser extends FeedsPlugin {
    *
    * Extending classes must implement this method.
    *
-   * @param $batch
-   *   FeedsImportBatch returned by fetcher.
    * @param FeedsSource $source
    *   Source information.
+   * @param $fetcher_result
+   *   FeedsFetcherResult returned by fetcher.
    */
-  public abstract function parse(FeedsImportBatch $batch, FeedsSource $source);
+  public abstract function parse(FeedsSource $source, FeedsFetcherResult $fetcher_result);
 
   /**
    * Clear all caches for results for given source.

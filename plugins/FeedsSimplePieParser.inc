@@ -60,7 +60,7 @@ class FeedsSimplePieParser extends FeedsParser {
   /**
    * Implements FeedsParser::parse().
    */
-  public function parse(FeedsImportBatch $batch, FeedsSource $source) {
+  public function parse(FeedsSource $source, FeedsFetcherResult $fetcher_result) {
     feeds_include_library('simplepie.inc', 'simplepie');
 
     // Initialize SimplePie.
