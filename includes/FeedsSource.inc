@@ -207,18 +207,15 @@ class FeedsSource extends FeedsConfigurable {
     try {
       $this->importer->fetcher->clear($this);
       $this->importer->parser->clear($this);
-      if (!$this->batch || !($this->batch instanceof FeedsClearBatch)) {
-        $this->batch = new FeedsClearBatch();
-      }
-      $this->importer->processor->clear($this->batch, $this);
-      $result = $this->batch->getProgress();
+      $this->importer->processor->clear($this);
+      $result = $this->progressClearing();
       if ($result == FEEDS_BATCH_COMPLETE) {
-        unset($this->batch);
-        module_invoke_all('feeds_after_clear', $this->importer, $this);
+        unset($this->state);
+        module_invoke_all('feeds_after_clear', $this);
       }
     }
     catch (Exception $e) {
-      unset($this->batch);
+      unset($this->state);
       $this->save();
       throw $e;
     }

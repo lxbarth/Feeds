@@ -112,12 +112,10 @@ function hook_feeds_after_import(FeedsSource $source) {
 /**
  * Invoked after a feed source has been cleared of its items.
  *
- * @param $importer
- *   FeedsImporter object that has been used for clearing the feed.
  * @param $source
  *  FeedsSource object that describes the source that has been cleared.
  */
-function hook_feeds_after_clear(FeedsImporter $importer, FeedsSource $source) {
+function hook_feeds_after_clear(FeedsSource $source) {
 }
 
 /**

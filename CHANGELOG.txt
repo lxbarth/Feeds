@@ -6,6 +6,7 @@ Feeds 7.x XXXXXXXXXXXXXXXXXXXXXX
 - Expand batch support to fetchers and parsers.
  - Signature of hook_feeds_after_parse() changed.
  - Signature of hook_feeds_after_import() changed.
+ - Signature of hook_feeds_after_clear() changed.
 - Expire files returned by FeedsImportBatch after DRUPAL_MAXIMUM_TEMP_FILE_AGE
   seconds.
 - FeedsFileFetcher: track uploaded files, delete unused files.
