@@ -338,8 +338,7 @@ class FeedsRSStoNodesTest extends FeedsWebTestCase {
     $edit = array(
       'files[feeds]' => $this->absolutePath() .'/tests/feeds/drupalplanet.rss2',
     );
-    $this->drupalPost('node/add/page', $edit, 'Save');
-    $this->assertText('has been created.');
+    $this->drupalPost('import/syndication_standalone', $edit, 'Import');
     $this->assertText('Created 25 Article nodes.');
   }
 
