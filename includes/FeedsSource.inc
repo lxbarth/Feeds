@@ -52,6 +52,27 @@ interface FeedsSourceInterface {
 }
 
 /**
+ * Status of an import or clearing operation on a source.
+ */
+class FeedsState {
+  public $total;
+  public $progress;
+
+  public $pointer;
+  public $created;
+  public $updated;
+  public $deleted;
+
+  /**
+   * Helper; set progress/total for a stage.
+   */
+  public function setProgress($total, $progress) {
+    $this->total = $total;
+    $this->progress = $progress;
+  }
+}
+
+/**
  * This class encapsulates a source of a feed. It stores where the feed can be
  * found and how to import it.
  *
@@ -84,8 +105,12 @@ class FeedsSource extends FeedsConfigurable {
   // The FeedsImporter object that this source is expected to be used with.
   protected $importer;
 
-  // A FeedsBatch object. NULL if there is no active batch.
-  protected $batch;
+  // A FeedsSourceState object holding the current import/clearing state of this
+  // source.
+  protected $state;
+
+  // Fetcher result, used to cache fetcher result when batching.
+  protected $fetcher_result;
 
   /**
    * Instantiate a unique object per class/id/feed_nid. Don't use
@@ -114,18 +139,16 @@ class FeedsSource extends FeedsConfigurable {
    * Preview = fetch and parse a feed.
    *
    * @return
-   *   FeedsImportBatch object, fetched and parsed.
+   *   FeedsParserResult object.
    *
    * @throws
    *   Throws Exception if an error occurs when fetching or parsing.
    */
   public function preview() {
-    $this->batch = $this->importer->fetcher->fetch($this);
-    $this->importer->parser->parse($this->batch, $this);
-    module_invoke_all('feeds_after_parse', $this->importer, $this);
-    $batch = $this->batch;
-    unset($this->batch);
-    return $batch;
+    $result = $this->importer->fetcher->fetch($this);
+    $this->importer->parser->parse($this, $result);
+    module_invoke_all('feeds_after_parse', $this, $result);
+    return $result;
   }
 
   /**
@@ -140,20 +163,29 @@ class FeedsSource extends FeedsConfigurable {
    */
   public function import() {
     try {
-      if (!$this->batch || !($this->batch instanceof FeedsImportBatch)) {
-        $this->batch = $this->importer->fetcher->fetch($this);
-        $this->importer->parser->parse($this->batch, $this);
-        module_invoke_all('feeds_after_parse', $this->importer, $this);
+      // Fetch.
+      if (empty($this->fetcher_result) || FEEDS_BATCH_COMPLETE == $this->progressParsing()) {
+        $this->fetcher_result = $this->importer->fetcher->fetch($this);
       }
-      $this->importer->processor->process($this->batch, $this);
-      $result = $this->batch->getProgress();
+
+      // Parse.
+      $parser_result = $this->importer->parser->parse($this, $this->fetcher_result);
+      module_invoke_all('feeds_after_parse', $this, $parser_result);
+
+      // Process.
+      $this->importer->processor->process($this, $parser_result);
+
+      // Find out whether we are done.
+      $result = $this->progressImporting();
       if ($result == FEEDS_BATCH_COMPLETE) {
-        unset($this->batch);
-        module_invoke_all('feeds_after_import', $this->importer, $this);
+        module_invoke_all('feeds_after_import', $this);
+        unset($this->fetcher_result);
+        unset($this->state);
       }
     }
     catch (Exception $e) {
-      unset($this->batch);
+      unset($this->fetcher_result);
+      unset($this->state);
       $this->save();
       throw $e;
     }

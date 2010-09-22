@@ -93,6 +93,25 @@ class FeedsImporter extends FeedsConfigurable {
   }
 
   /**
+   * Report how many items *should* be created on one page load by this
+   * importer.
+   *
+   * Note:
+   *
+   * It depends on whether parser implements batching if this limit is actually
+   * respected. Further, if no limit is reported it doesn't mean that the
+   * number of items that can be created on one page load is actually without
+   * limit.
+   *
+   * @return
+   *   A positive number defining the number of items that can be created on
+   *   one page load. 0 if this number is unlimited.
+   */
+  public function getLimit() {
+    return $this->importer->processor->getLimit();
+  }
+
+  /**
    * Save configuration.
    */
   public function save() {

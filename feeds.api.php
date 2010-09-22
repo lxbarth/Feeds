@@ -89,25 +89,23 @@ function hook_feeds_plugins() {
 /**
  * Invoked after a feed source has been parsed, before it will be processed.
  *
- * @param $importer
- *   FeedsImporter object that has been used for importing the feed.
  * @param $source
  *  FeedsSource object that describes the source that has been imported.
+ * @param $result
+ *   FeedsParserResult object that has been parsed from the source.
  */
-function hook_feeds_after_parse(FeedsImporter $importer, FeedsSource $source) {
+function hook_feeds_after_parse(FeedsSource $source, FeedsParserResult $result) {
   // For example, set title of imported content:
-  $source->batch->setTitle('Import number '. my_module_import_id());
+  $result->setTitle('Import number ' . my_module_import_id());
 }
 
 /**
  * Invoked after a feed source has been imported.
  *
- * @param $importer
- *   FeedsImporter object that has been used for importing the feed.
  * @param $source
  *  FeedsSource object that describes the source that has been imported.
  */
-function hook_feeds_after_import(FeedsImporter $importer, FeedsSource $source) {
+function hook_feeds_after_import(FeedsSource $source) {
   // See geotaxonomy module's implementation for an example.
 }
 
