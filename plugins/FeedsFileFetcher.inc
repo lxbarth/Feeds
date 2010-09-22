@@ -10,24 +10,24 @@
  * Definition of the import batch object created on the fetching stage by
  * FeedsFileFetcher.
  */
-class FeedsFileBatch extends FeedsImportBatch {
+class FeedsFileFetcherResult extends FeedsFetcherResult {
   /**
    * Constructor.
    */
-  public function __construct($file_path, $feed_nid = 0) {
-    parent::__construct('', $feed_nid);
+  public function __construct($file_path) {
+    parent::__construct('');
     $this->file_path = $file_path;
   }
 
   /**
-   * Implements FeedsImportBatch::getRaw();
+   * Overrides parent::getRaw();
    */
   public function getRaw() {
     return file_get_contents($this->file_path);
   }
 
   /**
-   * Implements FeedsImportBatch::getFilePath().
+   * Overrides parent::getFilePath().
    */
   public function getFilePath() {
     if (!file_exists($this->file_path)) {
@@ -47,7 +47,7 @@ class FeedsFileFetcher extends FeedsFetcher {
    */
   public function fetch(FeedsSource $source) {
     $source_config = $source->getConfigFor($this);
-    return new FeedsFileBatch($source_config['source'], $source->feed_nid);
+    return new FeedsFileFetcherResult($source_config['source']);
   }
 
   /**
