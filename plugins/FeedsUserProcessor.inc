@@ -19,7 +19,7 @@ class FeedsUserProcessor extends FeedsProcessor {
     // Count number of created and updated nodes.
     $created  = $updated = $failed = 0;
 
-    while ($item = $batch->shiftItem()) {
+    while ($item = $parser_result->shiftItem()) {
 
       if (!($uid = $this->existingItemId($source, $parser_result)) || $this->config['update_existing']) {
 
