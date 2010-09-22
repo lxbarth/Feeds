@@ -9,23 +9,22 @@
 feeds_include_library('PuSHSubscriber.inc', 'PuSHSubscriber');
 
 /**
- * Definition of the import batch object created on the fetching stage by
- * FeedsHTTPFetcher.
+ * Result of FeedsHTTPFetcher::fetch().
  */
-class FeedsHTTPBatch extends FeedsImportBatch {
+class FeedsHTTPFetcherResult extends FeedsFetcherResult {
   protected $url;
   protected $file_path;
 
   /**
    * Constructor.
    */
-  public function __construct($url = NULL, $feed_nid) {
+  public function __construct($url = NULL) {
     $this->url = $url;
-    parent::__construct('', $feed_nid);
+    parent::__construct('');
   }
 
   /**
-   * Implements FeedsImportBatch::getRaw();
+   * Overrides FeedsFetcherResult::getRaw();
    */
   public function getRaw() {
     feeds_include_library('http_request.inc', 'http_request');
@@ -48,9 +47,9 @@ class FeedsHTTPFetcher extends FeedsFetcher {
   public function fetch(FeedsSource $source) {
     $source_config = $source->getConfigFor($this);
     if ($this->config['use_pubsubhubbub'] && ($raw = $this->subscriber($source->feed_nid)->receive())) {
-      return new FeedsImportBatch($raw, $source->feed_nid);
+      return new FeedsFetcherResult($raw);
     }
-    return new FeedsHTTPBatch($source_config['source'], $source->feed_nid);
+    return new FeedsHTTPFetcherResult($source_config['source']);
   }
 
   /**
