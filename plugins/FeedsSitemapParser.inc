@@ -13,7 +13,8 @@ class FeedsSitemapParser extends FeedsParser {
     $tz = date_default_timezone_get();
     date_default_timezone_set('GMT');
     // Yes, using a DOM parser is a bit inefficient, but will do for now
-    $xml = new SimpleXMLElement($batch->getRaw());
+    $xml = new SimpleXMLElement($fetcher_result->getRaw());
+    $result = new FeedsParserResult();
     foreach ($xml->url as $url) {
       $item = array('url' => (string) $url->loc);
       if ($url->lastmod) {
@@ -25,9 +26,10 @@ class FeedsSitemapParser extends FeedsParser {
       if ($url->priority) {
         $item['priority'] = $url->priority;
       }
-      $batch->addItem($item);
+      $result->addItem($item);
     }
     date_default_timezone_set($tz);
+    return $result;
   }
 
   /**

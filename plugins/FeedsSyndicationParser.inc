@@ -13,9 +13,10 @@ class FeedsSyndicationParser extends FeedsParser {
    */
   public function parse(FeedsSource $source, FeedsFetcherResult $fetcher_result) {
     feeds_include_library('common_syndication_parser.inc', 'common_syndication_parser');
-    $result = common_syndication_parser_parse($batch->getRaw());
-    $batch->setTitle($result['title']);
-    $batch->setDescription($result['description']);
+    $result = common_syndication_parser_parse($fetcher_result->getRaw());
+    $result = new FeedsParserResult();
+    $result->setTitle($result['title']);
+    $result->setDescription($result['description']);
     $batch->setLink($result['link']);
     if (is_array($result['items'])) {
       foreach ($result['items'] as $item) {
@@ -24,9 +25,10 @@ class FeedsSyndicationParser extends FeedsParser {
             $item['geolocations'][$k] = new FeedsGeoTermElement($v);
           }
         }
-        $batch->addItem($item);
+        $result->addItem($item);
       }
     }
+    return $result;
   }
 
   /**
