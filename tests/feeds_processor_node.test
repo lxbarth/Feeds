@@ -325,12 +325,14 @@ class FeedsRSStoNodesTest extends FeedsWebTestCase {
       'create page content',
     )));
 
+    $edit = array('plugin_key' => 'FeedsFileFetcher');
+    $this->drupalPost('admin/structure/feeds/edit/syndication_standalone/fetcher', $edit, 'Save');
+
     $edit = array(
       'allowed_extensions' => 'rss2',
       'direct' => 1,
     );
     $this->drupalPost('admin/structure/feeds/edit/syndication_standalone/settings/FeedsFileFetcher', $edit, 'Save');
-    $this->fail($this->content);
 
     // Create a feed node.
     $edit = array(
