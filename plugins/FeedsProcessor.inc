@@ -36,6 +36,22 @@ abstract class FeedsProcessor extends FeedsPlugin {
    */
   public abstract function clear(FeedsSource $source);
 
+  /*
+   * Report number of items that can be processed per call.
+   *
+   * 0 means 'unlimited'.
+   *
+   * If a number other than 0 is given, Feeds parsers that support batching
+   * will only deliver this limit to the processor.
+   *
+   * @see FeedsSource::getLimit()
+   * @see FeedsCSVParser::parse()
+   * @see FeedsNodeProcessor::getLimit()
+   */
+  public function getLimit() {
+    return 0;
+  }
+
   /**
    * Delete feed items younger than now - $time. Do not invoke expire on a
    * processor directly, but use FeedsImporter::expire() instead.

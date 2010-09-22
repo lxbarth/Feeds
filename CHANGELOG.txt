@@ -8,7 +8,8 @@ Feeds 7.x XXXXXXXXXXXXXXXXXXXXXX
  - Signature of FeedsProcessor::existingItemId() changed.
  - Sigature for callbacks registered by hook_feeds_parser_sources_alter()
    changed.
- - Signature of FeedsParser::parse() changed.
+ - Return value of FeedsFetcher::fetch() changed.
+ - Signature and return value of FeedsParser::parse() changed.
  - Signature of FeedsProcessor::process() changed.
  - Signature of hook_feeds_after_parse() changed.
  - Signature of hook_feeds_after_import() changed.
