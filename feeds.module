@@ -129,15 +129,11 @@ function feeds_permission() {
     ),
   );
   foreach (feeds_importer_load_all() as $importer) {
-    $perms[] = array(
-      "import $importer->id feeds" => array(
-        'title' => t('Import @name feeds', array('@name' => $importer->config['name'])),
-      ),
+    $perms["import $importer->id feeds"] = array(
+      'title' => t('Import @name feeds', array('@name' => $importer->config['name'])),
     );
-    $perms[] = array(
-      "clear $importer->id feeds" => array(
-        'title' => t('Delete items from @name feeds', array('@name' => $importer->config['name'])),
-      ),
+    $perms["clear $importer->id feeds"] = array(
+      'title' => t('Delete items from @name feeds', array('@name' => $importer->config['name'])),
     );
   }
   return $perms;
