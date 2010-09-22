@@ -227,6 +227,68 @@ class FeedsSource extends FeedsConfigurable {
   }
 
   /**
+   * Report progress as float between 0 and 1. 1 = FEEDS_BATCH_COMPLETE.
+   */
+  public function progressParsing() {
+    return $this->progress(array(FEEDS_PARSING));
+  }
+
+  /**
+   * Report progress as float between 0 and 1. 1 = FEEDS_BATCH_COMPLETE.
+   */
+  public function progressImporting() {
+    return $this->progress(array(FEEDS_FETCHING, FEEDS_PARSING));
+  }
+
+  /**
+   * Report progress on clearing.
+   */
+  public function progressClearing() {
+    return $this->progress(array(FEEDS_CLEARING));
+  }
+
+  /**
+   * Report progress as float between 0 and 1. 1 = FEEDS_BATCH_COMPLETE.
+   */
+  protected function progress($stages = array()) {
+    if (empty($this->state)) {
+      return FEEDS_BATCH_COMPLETE;
+    }
+    $complete = TRUE;
+    $progress = $total = 0;
+    foreach ($this->state as $stage => $state) {
+      if (in_array($stage, $stages)) {
+        $total += $state->total;
+        $progress += $state->progress;
+        $complete &= $state->progress == FEEDS_BATCH_COMPLETE; // @todo: This breaks when progress is legit. 1.
+      }
+    }
+    if ($complete) {
+      return FEEDS_BATCH_COMPLETE;
+    }
+    $progress = (1.0 / $total) * $progress;
+    return $progress == FEEDS_BATCH_COMPLETE ? 0.999 : $progress;
+  }
+
+  /**
+   * Return a state object for a given object. Lazy instantiates new states.
+   *
+   * @param FeedsSourceInterface $client
+   *   An object that implements the FeedsSourceInterface, usually a fetcher,
+   *   parser or processor plugin.
+   *
+   * @return
+   *   The FeedsState object for the given client.
+   */
+  public function state(FeedsSourceInterface $client) {
+    $class = get_class($client);
+    if (!isset($this->state[$class])) {
+      $this->state[$class] = new FeedsState();
+    }
+    return $this->state[$class];
+  }
+
+  /**
    * Schedule this source.
    */
   public function schedule() {
