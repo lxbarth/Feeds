@@ -554,8 +554,7 @@ function feeds_update_6012() {
  * Rename feeds_source.batch to feeds_source.state, add slot for caching fetcher
  * result.
  */
-function feeds_update_7100() {
-  $ret = array();
+function feeds_update_7100(&$sandbox) {
   $spec = array(
     'type' => 'text',
     'size' => 'big',
@@ -563,7 +562,7 @@ function feeds_update_7100() {
     'description' => 'State of import or clearing batches.',
     'serialize' => TRUE,
   );
-  db_change_field($ret, 'feeds_source', 'batch', 'state', $spec);
+  db_change_field('feeds_source', 'batch', 'state', $spec);
 
   $spec = array(
     'type' => 'text',
@@ -572,6 +571,5 @@ function feeds_update_7100() {
     'description' => 'Cache for fetcher result.',
     'serialize' => TRUE,
   );
-  db_add_field($ret, 'feeds_source', 'fetcher_result', $spec);
-  return $ret;
+  db_add_field('feeds_source', 'fetcher_result', $spec);
 }
