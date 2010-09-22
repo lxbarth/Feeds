@@ -15,6 +15,9 @@ abstract class FeedsFetcher extends FeedsPlugin {
    *
    * @param $source
    *   Source value as entered by user through sourceForm().
+   *
+   * @return
+   *   A FeedsFetcherResult object.
    */
   public abstract function fetch(FeedsSource $source);
 
