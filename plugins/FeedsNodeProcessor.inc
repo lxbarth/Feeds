@@ -32,7 +32,7 @@ class FeedsNodeProcessor extends FeedsProcessor {
     while ($item = $parser_result->shiftItem()) {
 
       // Create/update if item does not exist or update existing is enabled.
-      if (!($nid = $this->existingItemId($batch, $source)) || ($this->config['update_existing'] != FEEDS_SKIP_EXISTING)) {
+      if (!($nid = $this->existingItemId($source, $parser_result)) || ($this->config['update_existing'] != FEEDS_SKIP_EXISTING)) {
         // Only proceed if item has actually changed.
         $hash = $this->hash($item);
         if (!empty($nid) && $hash == $this->getHash($nid)) {
@@ -44,7 +44,7 @@ class FeedsNodeProcessor extends FeedsProcessor {
 
         // Map and save node. If errors occur don't stop but report them.
         try {
-          $this->map($batch, $node);
+          $this->map($source, $parser_result, $node);
           node_save($node);
           if (!empty($nid)) {
             $state->updated++;
@@ -301,11 +301,11 @@ class FeedsNodeProcessor extends FeedsProcessor {
   /**
    * Get nid of an existing feed item node if available.
    */
-  protected function existingItemId(FeedsImportBatch $batch, FeedsSource $source) {
+  protected function existingItemId(FeedsSource $source, FeedsParserResult $result) {
 
     // Iterate through all unique targets and test whether they do already
     // exist in the database.
-    foreach ($this->uniqueTargets($batch) as $target => $value) {
+    foreach ($this->uniqueTargets($source, $result) as $target => $value) {
       switch ($target) {
         case 'nid':
           $nid = db_query("SELECT nid FROM {node} WHERE nid = :nid", array(':nid' => $value))->fetchField();

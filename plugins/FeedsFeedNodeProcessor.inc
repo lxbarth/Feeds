@@ -21,10 +21,10 @@ class FeedsFeedNodeProcessor extends FeedsProcessor {
 
       // If the target item does not exist OR if update_existing is enabled,
       // map and save.
-      if (!$nid = $this->existingItemId($batch, $source) || $this->config['update_existing']) {
+      if (!$nid = $this->existingItemId($source, $parser_result) || $this->config['update_existing']) {
 
         // Map item to a node.
-        $node = $this->map($batch);
+        $node = $this->map($source, $parser_result);
 
         // If updating populate nid and vid avoiding an expensive node_load().
         if (!empty($nid)) {
@@ -72,7 +72,7 @@ class FeedsFeedNodeProcessor extends FeedsProcessor {
   /**
    * Execute mapping on an item.
    */
-  protected function map(FeedsImportBatch $batch) {
+  protected function map(FeedsSource $source, FeedsParserResult $result) {
 
     // Prepare node object.
     static $included;
@@ -98,7 +98,7 @@ class FeedsFeedNodeProcessor extends FeedsProcessor {
     $target_node->uid = $user->uid;
 
     // Have parent class do the iterating.
-    return parent::map($batch, $target_node);
+    return parent::map($source, $result, $target_node);
   }
 
   /**
@@ -201,10 +201,10 @@ class FeedsFeedNodeProcessor extends FeedsProcessor {
   /**
    * Get nid of an existing feed item node if available.
    */
-  protected function existingItemId(FeedsImportBatch $batch, FeedsSource $source) {
+  protected function existingItemId(FeedsSource $source, FeedsParserResult $result) {
 
     // We only support one unique target: source
-    foreach ($this->uniqueTargets($batch) as $target => $value) {
+    foreach ($this->uniqueTargets($source, $result) as $target => $value) {
       if ($target == 'source') {
         return db_query("SELECT fs.feed_nid FROM {node} n JOIN {feeds_source} fs ON n.nid = fs.feed_nid WHERE fs.id = :id AND fs.source = :source", array(':id' => $this->feedNodeImporter()->id, ':source' => $value))->fetchField();
       }

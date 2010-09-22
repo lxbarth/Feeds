@@ -24,8 +24,8 @@ function taxonomy_feeds_parser_sources_alter(&$sources, $content_type) {
 /**
  * Callback, returns taxonomy from feed node.
  */
-function taxonomy_feeds_get_source(FeedsImportBatch $batch, $key) {
-  if ($node = $batch->feedNode()) {
+function taxonomy_feeds_get_source(FeedsSource $source, FeedsParserResult $result, $key) {
+  if ($node = node_load($source->feed_nid)) {
     $terms = taxonomy_node_get_terms($node);
     $vocabularies = taxonomy_vocabulary_load_multiple(array(), array('machine_name' => str_replace('parent:taxonomy:', '', $key)));
     $vocabulary = array_shift($vocabularies);

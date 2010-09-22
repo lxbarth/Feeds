@@ -4,6 +4,10 @@ Feeds 7.x XXXXXXXXXXXXXXXXXXXXXX
 --------------------------------
 
 - Expand batch support to fetchers and parsers.
+ - Signature of FeedsProcessor::uniqueTargets() changed.
+ - Signature of FeedsProcessor::existingItemId() changed.
+ - Sigature for callbacks registered by hook_feeds_parser_sources_alter()
+   changed.
  - Signature of FeedsParser::parse() changed.
  - Signature of FeedsProcessor::process() changed.
  - Signature of hook_feeds_after_parse() changed.

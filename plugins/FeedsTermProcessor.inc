@@ -25,7 +25,7 @@ class FeedsTermProcessor extends FeedsProcessor {
 
     while ($item = $batch->shiftItem()) {
 
-      if (!($tid = $this->existingItemId($batch, $source)) || $this->config['update_existing'] != FEEDS_SKIP_EXISTING) {
+      if (!($tid = $this->existingItemId($source, $parser_result)) || $this->config['update_existing'] != FEEDS_SKIP_EXISTING) {
 
         // Map item to a term.
         $term = new stdClass();
@@ -34,7 +34,7 @@ class FeedsTermProcessor extends FeedsProcessor {
           $term = module_invoke_all('feeds_taxonomy_load', $term);
         }
         $term->entity_type = 'taxonomy_term';
-        $term = $this->map($batch, $term, $source->feed_nid);
+        $term = $this->map($source, $parser_result, $term);
 
         // Check if term name is set, otherwise continue.
         if (empty($term->name)) {
@@ -118,7 +118,7 @@ class FeedsTermProcessor extends FeedsProcessor {
   /**
    * Execute mapping on an item.
    */
-  protected function map(FeedsImportBatch $batch, $target_term = NULL) {
+  protected function map(FeedsSource $source, FeedsParserResult $result, $target_term = NULL) {
     // Prepare term object, have parent class do the iterating.
     if (!$target_term) {
       $target_term = new stdClass();
@@ -127,7 +127,7 @@ class FeedsTermProcessor extends FeedsProcessor {
       throw new Exception(t('No vocabulary specified for term processor'));
     }
     $target_term->vid = $vocabulary->vid;
-    $target_term = parent::map($batch, $target_term);
+    $target_term = parent::map($source, $result, $target_term);
     return $target_term;
   }
 
@@ -207,10 +207,10 @@ class FeedsTermProcessor extends FeedsProcessor {
   /**
    * Get id of an existing feed item term if available.
    */
-  protected function existingItemId(FeedsImportBatch $batch, FeedsSource $source) {
+  protected function existingItemId(FeedsSource $source, FeedsParserResult $result) {
 
     // The only possible unique target is name.
-    foreach ($this->uniqueTargets($batch) as $target => $value) {
+    foreach ($this->uniqueTargets($source, $result) as $target => $value) {
       if ($target == 'name') {
         $vocabulary = $this->vocabulary();
         if ($tid = db_query("SELECT tid FROM {taxonomy_term_data} WHERE name = :name AND vid = :vid", array(':name' => $value, ':vid' => $vocabulary->vid))->fetchField()) {
