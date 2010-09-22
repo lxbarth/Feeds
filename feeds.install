@@ -70,11 +70,19 @@ function feeds_schema() {
         'not null' => TRUE,
         'description' => 'Main source resource identifier. E. g. a path or a URL.',
       ),
-      'batch' => array(
+      'state' => array(
         'type' => 'text',
         'size' => 'big',
         'not null' => FALSE,
         'description' => 'Cache for batching.',
+        'description' => 'State of import or clearing batches.',
+        'serialize' => TRUE,
+      ),
+      'fetcher_result' => array(
+        'type' => 'text',
+        'size' => 'big',
+        'not null' => FALSE,
+        'description' => 'Cache for fetcher result.',
         'serialize' => TRUE,
       ),
     ),
@@ -539,5 +547,31 @@ function feeds_update_6012() {
   }
   db_drop_table($ret, 'feeds_schedule');
   feeds_reschedule(TRUE);
+  return $ret;
+}
+
+/**
+ * Rename feeds_source.batch to feeds_source.state, add slot for caching fetcher
+ * result.
+ */
+function feeds_update_7100() {
+  $ret = array();
+  $spec = array(
+    'type' => 'text',
+    'size' => 'big',
+    'not null' => FALSE,
+    'description' => 'State of import or clearing batches.',
+    'serialize' => TRUE,
+  );
+  db_change_field($ret, 'feeds_source', 'batch', 'state', $spec);
+
+  $spec = array(
+    'type' => 'text',
+    'size' => 'big',
+    'not null' => FALSE,
+    'description' => 'Cache for fetcher result.',
+    'serialize' => TRUE,
+  );
+  db_add_field($ret, 'feeds_source', 'fetcher_result', $spec);
   return $ret;
 }
