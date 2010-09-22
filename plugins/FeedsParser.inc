@@ -9,8 +9,7 @@ class FeedsParserResult extends FeedsResult {
   protected $description;
   protected $link;
   protected $items;
-  public $created;
-  public $updated;
+  protected $current_item;
 
   /**
    * Constructor.
@@ -20,8 +19,6 @@ class FeedsParserResult extends FeedsResult {
     $this->description = '';
     $this->link = '';
     $this->items = $items;
-    $this->created = 0;
-    $this->updated = 0;
   }
 
   /**
@@ -50,12 +47,25 @@ class FeedsParserResult extends FeedsResult {
   }
 
   /**
+   * @todo Move to a nextItem() based approach, not consuming the item array.
+   *   Can only be done once we don't cache the entire batch object between page
+   *   loads for batching anymore.
+   *
    * @return
    *   Next available item or NULL if there is none. Every returned item is
    *   removed from the internal array.
    */
   public function shiftItem() {
-    return array_shift($this->items);
+    $this->current_item = array_shift($this->items);
+    return $this->current_item;
+  }
+
+  /**
+   * @return
+   *   Current result item.
+   */
+  public function currentItem() {
+    return empty($this->current_item) ? NULL : $this->current_item;
   }
 
   /**
