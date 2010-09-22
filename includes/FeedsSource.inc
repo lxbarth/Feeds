@@ -63,12 +63,20 @@ class FeedsState {
   public $updated;
   public $deleted;
 
+  public function __construct() {
+    $this->total =
+    $this->progress = 1;
+  }
+
   /**
-   * Helper; set progress/total for a stage.
+   * Report progress as a float between 0 and 1, 1 = FEEDS_BATCH_COMPLETE.
    */
-  public function setProgress($total, $progress) {
-    $this->total = $total;
-    $this->progress = $progress;
+  public function progress() {
+    $progress = $this->total / $this->progress;
+    if ($progress == FEEDS_BATCH_COMPLETE && $this->total != $this->progress) {
+      return 0.999;
+    }
+    return $progress;
   }
 }
 
@@ -227,44 +235,28 @@ class FeedsSource extends FeedsConfigurable {
    * Report progress as float between 0 and 1. 1 = FEEDS_BATCH_COMPLETE.
    */
   public function progressParsing() {
-    return $this->progress(array(FEEDS_PARSING));
+    return $this->state($this->importer->parser)->progress();
   }
 
   /**
    * Report progress as float between 0 and 1. 1 = FEEDS_BATCH_COMPLETE.
    */
   public function progressImporting() {
-    return $this->progress(array(FEEDS_FETCHING, FEEDS_PARSING));
+    $fetcher = $this->state($this->importer->fetcher);
+    $parser = $this->state($this->importer->parser);
+    if ($fetcher->progress() == FEEDS_BATCH_COMPLETE && $parser->progress() = FEEDS_BATCH_COMPLETE) {
+      return FEEDS_BATCH_COMPLETE;
+    }
+    // Fetching envelops parsing.
+    $parser_progress = $parser->progress() / $fetcher->total;
+    return $fetcher->progress() + $parser_progress;
   }
 
   /**
    * Report progress on clearing.
    */
   public function progressClearing() {
-    return $this->progress(array(FEEDS_CLEARING));
-  }
-
-  /**
-   * Report progress as float between 0 and 1. 1 = FEEDS_BATCH_COMPLETE.
-   */
-  protected function progress($stages = array()) {
-    if (empty($this->state)) {
-      return FEEDS_BATCH_COMPLETE;
-    }
-    $complete = TRUE;
-    $progress = $total = 0;
-    foreach ($this->state as $stage => $state) {
-      if (in_array($stage, $stages)) {
-        $total += $state->total;
-        $progress += $state->progress;
-        $complete &= $state->progress == FEEDS_BATCH_COMPLETE; // @todo: This breaks when progress is legit. 1.
-      }
-    }
-    if ($complete) {
-      return FEEDS_BATCH_COMPLETE;
-    }
-    $progress = (1.0 / $total) * $progress;
-    return $progress == FEEDS_BATCH_COMPLETE ? 0.999 : $progress;
+    return $this->state($this->importer->processor)->progress();
   }
 
   /**
