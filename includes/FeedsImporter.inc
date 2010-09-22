@@ -108,7 +108,7 @@ class FeedsImporter extends FeedsConfigurable {
    *   one page load. 0 if this number is unlimited.
    */
   public function getLimit() {
-    return $this->importer->processor->getLimit();
+    return $this->processor->getLimit();
   }
 
   /**

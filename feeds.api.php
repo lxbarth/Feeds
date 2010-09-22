@@ -133,8 +133,6 @@ function hook_feeds_after_clear(FeedsSource $source) {
  * Use this hook to add additional mapping sources for any parser. Allows for
  * registering a callback to be invoked at mapping time.
  *
- * my_callback(FeedsImportBatch $batch, $key)
- *
  * @see my_source_get_source().
  * @see locale_feeds_parser_sources_alter().
  */

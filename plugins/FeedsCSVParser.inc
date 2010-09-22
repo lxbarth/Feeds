@@ -88,8 +88,8 @@ class FeedsCSVParser extends FeedsParser {
   /**
    * Override parent::getSourceElement() to use only lower keys.
    */
-  public function getSourceElement(FeedsImportBatch $batch, $element_key) {
-    return parent::getSourceElement($batch, drupal_strtolower($element_key));
+  public function getSourceElement(FeedsSource $source, FeedsParserResult $result, $element_key) {
+    return parent::getSourceElement($source, $result, drupal_strtolower($element_key));
   }
 
   /**
