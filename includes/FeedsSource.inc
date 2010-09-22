@@ -55,20 +55,32 @@ interface FeedsSourceInterface {
  * Status of an import or clearing operation on a source.
  */
 class FeedsState {
+  /**
+   * Natural numbers denoting the total and the progress of that total made.
+   */
   public $total;
   public $progress;
 
+  /**
+   * Used as a pointer to store where left off. Must be serializable.
+   */
   public $pointer;
+
+  /**
+   * Natural numbers denoting more details about the progress being made.
+   */
   public $created;
   public $updated;
   public $deleted;
   public $skipped;
   public $failed;
 
+  /**
+   * Constructor, initialize variables.
+   */
   public function __construct() {
     $this->total =
     $this->progress = 1;
-    $this->pointer =
     $this->created =
     $this->updated =
     $this->deleted =
@@ -77,10 +89,13 @@ class FeedsState {
   }
 
   /**
-   * Report progress as a float between 0 and 1, 1 = FEEDS_BATCH_COMPLETE.
+   * Report normalized progress.
+   *
+   * @return
+   *   A float between 0 and 1, 1 = FEEDS_BATCH_COMPLETE.
    */
   public function progress() {
-    $progress = $this->total / $this->progress;
+    $progress = $this->progress / $this->total;
     if ($progress == FEEDS_BATCH_COMPLETE && $this->total != $this->progress) {
       return 0.999;
     }
@@ -193,7 +208,7 @@ class FeedsSource extends FeedsConfigurable {
 
       // Find out whether we are done.
       $result = $this->progressImporting();
-      if ($result == FEEDS_BATCH_COMPLETE) {
+      if ($result === FEEDS_BATCH_COMPLETE) {
         module_invoke_all('feeds_after_import', $this);
         unset($this->fetcher_result);
         unset($this->state);
@@ -257,7 +272,7 @@ class FeedsSource extends FeedsConfigurable {
     }
     // Fetching envelops parsing.
     $parser_progress = $parser->progress() / $fetcher->total;
-    return $fetcher->progress() + $parser_progress;
+    return $fetcher->progress - 1.0 + $parser_progress;
   }
 
   /**
@@ -302,7 +317,7 @@ class FeedsSource extends FeedsConfigurable {
       'type' => $this->id,
       'id' => $this->feed_nid,
       // Schedule as soon as possible if a batch is active.
-      'period' => $this->progressImporting() == FEEDS_BATCH_COMPLETE ? $period : 0,
+      'period' => $this->progressImporting() === FEEDS_BATCH_COMPLETE ? $period : 0,
       'periodic' => TRUE,
     );
     if ($job['period'] != FEEDS_SCHEDULE_NEVER) {
