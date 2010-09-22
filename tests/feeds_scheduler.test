@@ -237,7 +237,7 @@ class FeedsSchedulerTestCase extends FeedsWebTestCase {
     // Hit cron 3 times, assert correct number of article nodes.
     for ($i = 0; $i < 3; $i++) {
       $this->runCron(1);
-      // 50 == FEEDS_NODE_BATCH_SIZE
+      // 50 == FEEDS_PROCESS_LIMIT
       $this->assertEqual(50 * ($i + 1), db_query("SELECT COUNT(*) FROM {node} WHERE type = 'article'")->fetchField());
       $this->assertEqual(0, db_query("SELECT period FROM {job_schedule} WHERE type = 'syndication' AND id = :nid", array(':nid' => $nid))->fetchField());
     }

@@ -6,8 +6,8 @@
  * Class definition of FeedsNodeProcessor.
  */
 
-// Create or delete FEEDS_NODE_BATCH_SIZE at a time.
-define('FEEDS_NODE_BATCH_SIZE', 50);
+// Create or delete FEEDS_PROCESS_LIMIT at a time.
+define('FEEDS_PROCESS_LIMIT', 10);
 
 // Deprecated. Use FEEDS_SKIPE_EXISTING, FEEDS_REPLACE_EXISTNG,
 // FEEDS_UPDATE_EXISTING instead.
@@ -83,7 +83,7 @@ class FeedsNodeProcessor extends FeedsProcessor {
     if (empty($state->total)) {
       $state->total = db_query("SELECT COUNT(n.nid) FROM {node} n JOIN {feeds_node_item} fn ON n.nid = fn.nid WHERE fn.id = :id AND fn.feed_nid = :nid", array(':id' => $source->id, ':nid' => $source->feed_nid))->fetchField();
     }
-    $count = variable_get('feeds_node_batch_size', FEEDS_NODE_BATCH_SIZE);
+    $count = variable_get('feeds_process_limit', FEEDS_PROCESS_LIMIT);
     $nids = array();
     $nodes = db_query_range("SELECT n.nid FROM {node} n JOIN {feeds_node_item} fn ON n.nid = fn.nid WHERE fn.id = :id AND fn.feed_nid = :nid", 0, $count, array(':id' => $source->id, ':nid' => $source->feed_nid));
     foreach ($nodes as $node) {
@@ -111,7 +111,7 @@ class FeedsNodeProcessor extends FeedsProcessor {
    * Report processing and clearing limit.
    */
   public function getLimit() {
-    return variable_get('feeds_node_process_limit', FEEDS_NODE_PROCESS_LIMIT);
+    return variable_get('feeds_process_limit', FEEDS_PROCESS_LIMIT);
   }
 
   /**
@@ -124,7 +124,7 @@ class FeedsNodeProcessor extends FeedsProcessor {
     if ($time == FEEDS_EXPIRE_NEVER) {
       return;
     }
-    $count = variable_get('feeds_node_batch_size', FEEDS_NODE_BATCH_SIZE);
+    $count = variable_get('feeds_process_limit', FEEDS_PROCESS_LIMIT);
     $nodes = db_query_range("SELECT n.nid FROM {node} n JOIN {feeds_node_item} fni ON n.nid = fni.nid WHERE fni.id = :id AND n.created < :created", 0, $count, array(':id' => $this->id, ':created' => REQUEST_TIME - $time));
     foreach ($nodes as $node) {
       _feeds_node_delete($node->nid);
