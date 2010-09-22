@@ -16,15 +16,212 @@ class FeedsWebTestCase extends DrupalWebTestCase {
   protected $profile = 'feeds_test';
 
   /**
-   * Debug utility. Shows current screen.
+   * This override of setUp requires that modules are passed as an array, also
+   * please don't pass duplicates of what is defined below!
    */
-  public function show($path = NULL) {
-    if ($path !== NULL) {
-      $this->drupalGet($path);
+  function setUp($add_modules = array()) {
+    parent::setUp();
+    $modules = array(
+      'image',
+      'file',
+      'field',
+      'field_ui',
+      'taxonomy',
+      'ctools',
+      'job_scheduler',
+      'feeds',
+      'feeds_ui',
+      // 'feeds_news',
+    );
+    foreach ($add_modules as $m) {
+      $modules[] =  $m;
     }
-    // Use error, this will make sure we don't forget accidental calls to show()
-    // in our tests.
-    $this->error($this->content);
+    module_enable($modules, TRUE);
+    $this->resetAll();
+
+    // Add text formats Directly.
+    $filtered_html_format = array(
+      'name' => 'Filtered HTML',
+      'weight' => 0,
+      'filters' => array(
+        // URL filter.
+        'filter_url' => array(
+          'weight' => 0,
+          'status' => 1,
+        ),
+        // HTML filter.
+        'filter_html' => array(
+          'weight' => 1,
+          'status' => 1,
+        ),
+        // Line break filter.
+        'filter_autop' => array(
+          'weight' => 2,
+          'status' => 1,
+        ),
+        // HTML corrector filter.
+        'filter_htmlcorrector' => array(
+          'weight' => 10,
+          'status' => 1,
+        ),
+      ),
+    );
+    $filtered_html_format = (object) $filtered_html_format;
+    filter_format_save($filtered_html_format);
+
+    // Create a user and log her in for node type config.
+    $this->admin_user = $this->drupalCreateUser(array(
+      'access content',
+      'administer site configuration',
+      'administer feeds',
+      'administer nodes',
+      'administer content types',
+      'bypass node access',
+    ));
+    $this->drupalLogin($this->admin_user);
+
+    $types = array(
+      array(
+        'type' => 'page',
+        'name' => 'Basic page',
+        'description' => st("Use <em>basic pages</em> for your static content, such as an 'About us' page."),
+        'node_options[status]' => 1,
+        'node_options[promote]' => 0,
+      ),
+      array(
+        'type' => 'article',
+        'name' => 'Article',
+        'description' => st('Use <em>articles</em> for time-sensitive content like news, press releases or blog posts.'),
+        'node_options[status]' => 1,
+        'node_options[promote]' => 1,
+      ),
+    );
+
+    foreach ($types as $type) {
+      $this->drupalPost('admin/structure/types/add', $type);
+      $this->assertText("The content type " . $type[name] . " has been added.");
+    }
+/*
+    // Create a default vocabulary named "Tags", enabled for the 'article' content type.
+    $description = st('Use tags to group articles on similar topics into categories.');
+    $help = st('Enter a comma-separated list of words to describe your content.');
+    $vocabulary = (object) array(
+      'name' => 'Tags',
+      'description' => $description,
+      'machine_name' => 'tags',
+      'help' => $help,
+
+    );
+    taxonomy_vocabulary_save($vocabulary);
+
+    $field = array(
+      'field_name' => 'field_' . $vocabulary->machine_name,
+      'type' => 'taxonomy_term_reference',
+      // Set cardinality to unlimited for tagging.
+      'cardinality' => FIELD_CARDINALITY_UNLIMITED,
+      'settings' => array(
+        'allowed_values' => array(
+          array(
+            'vid' => $vocabulary->vid,
+            'parent' => 0,
+          ),
+        ),
+      ),
+    );
+    field_create_field($field);
+
+    $instance = array(
+      'field_name' => 'field_' . $vocabulary->machine_name,
+      'entity_type' => 'node',
+      'label' => $vocabulary->name,
+      'bundle' => 'article',
+      'description' => $vocabulary->help,
+      'widget' => array(
+        'type' => 'taxonomy_autocomplete',
+        'weight' => 4,
+      ),
+      'display' => array(
+        'default' => array(
+          'type' => 'taxonomy_term_reference_link',
+          'weight' => 10,
+        ),
+        'teaser' => array(
+          'type' => 'taxonomy_term_reference_link',
+          'weight' => 10,
+        ),
+      ),
+    );
+    field_create_instance($instance);
+
+    // Create an image field named "Image", enabled for the 'article' content type.
+    // Many of the following values will be defaulted, they're included here as an illustrative examples.
+    // See http://api.drupal.org/api/function/field_create_field/7
+
+    $field = array(
+      'field_name' => 'field_image',
+      'type' => 'image',
+      'cardinality' => 1,
+      'translatable' => TRUE,
+      'locked' => FALSE,
+      'indexes' => array('fid' => array('fid')),
+      'settings' => array(
+        'uri_scheme' => 'public',
+        'default_image' => FALSE,
+      ),
+      'storage' => array(
+        'type' => 'field_sql_storage',
+        'settings' => array(),
+      ),
+    );
+    field_create_field($field);
+
+
+    // Many of the following values will be defaulted, they're included here as an illustrative examples.
+    // See http://api.drupal.org/api/function/field_create_instance/7
+    $instance = array(
+      'field_name' => 'field_image',
+      'entity_type' => 'node',
+      'label' => 'Image',
+      'bundle' => 'article',
+      'description' => st('Upload an image to go with this article.'),
+      'required' => FALSE,
+
+      'settings' => array(
+        'file_directory' => 'field/image',
+        'file_extensions' => 'png gif jpg jpeg',
+        'max_filesize' => '',
+        'max_resolution' => '',
+        'min_resolution' => '',
+        'alt_field' => TRUE,
+        'title_field' => '',
+      ),
+
+      'widget' => array(
+        'type' => 'image_image',
+        'settings' => array(
+          'progress_indicator' => 'throbber',
+          'preview_image_style' => 'thumbnail',
+        ),
+        'weight' => -1,
+      ),
+
+      'display' => array(
+        'default' => array(
+          'label' => 'hidden',
+          'type' => 'image',
+          'settings' => array('image_style' => 'large', 'image_link' => ''),
+          'weight' => -1,
+        ),
+        'teaser' => array(
+          'label' => 'hidden',
+          'type' => 'image',
+          'settings' => array('image_style' => 'medium', 'image_link' => 'content'),
+          'weight' => -1,
+        ),
+      ),
+    );
+    field_create_instance($instance);
+*/
   }
 
   /**

@@ -6,9 +6,6 @@
  * Tests for plugins/FeedsNodeProcessor.inc.
  */
 
-// Require FeedsWebTestCase class definition.
-require_once(dirname(__FILE__) .'/feeds.test.inc');
-
 /**
  * Test aggregating a feed as node items.
  */
@@ -29,16 +26,9 @@ class FeedsRSStoNodesTest extends FeedsWebTestCase {
    * Set up test.
    */
   public function setUp() {
-    parent::setUp('feeds', 'feeds_ui', 'ctools', 'job_scheduler');
-    $user = $this->drupalCreateUser(array(
-      'administer site configuration',
-      'administer feeds',
-      'administer nodes',
-      'administer content types',
-      'create page content',
-      'edit any page content',
-    ));
-    $this->drupalLogin($user);
+    parent::setUp();
+    $edit = array('default_nodes_main' => 20);
+    $this->drupalPost('admin/config/system/site-information', $edit, 'Save configuration');
   }
 
   /**
@@ -166,11 +156,11 @@ class FeedsRSStoNodesTest extends FeedsWebTestCase {
     $this->assertFeedItemCount(0);
 
     // Change author.
-    $author = $this->drupalCreateUser();
-    $this->setSettings('syndication', 'FeedsNodeProcessor', array('author' => $author->name));
+    $this->auth_user = $this->drupalCreateUser(array('access content'));
+    $this->setSettings('syndication', 'FeedsNodeProcessor', array('author' => $this->auth_user->name));
 
     // Change input format.
-    $this->setSettings('syndication', 'FeedsNodeProcessor', array('input_format' => filter_fallback_format() + 1));
+    $this->setSettings('syndication', 'FeedsNodeProcessor', array('input_format' => -1));
 
     // Import again.
     $this->drupalPost('node/'. $nid .'/import', array(), 'Import');
@@ -178,8 +168,8 @@ class FeedsRSStoNodesTest extends FeedsWebTestCase {
 
     // Assert author.
     $this->drupalGet('node');
-    $this->assertPattern('/<span class="username">' . check_plain($author->name) . '<\/span>/');
-    $count = db_query("SELECT COUNT(*) FROM {feeds_node_item} fi JOIN {node} n ON fi.nid = n.nid WHERE n.uid = :uid", array(':uid' => $author->uid))->fetchField();
+    $this->assertPattern('/<span class="username">' . check_plain($this->auth_user->name) . '<\/span>/');
+    $count = db_query("SELECT COUNT(*) FROM {feeds_node_item} fi JOIN {node} n ON fi.nid = n.nid WHERE n.uid = :uid", array(':uid' => $this->auth_user->uid))->fetchField();
     $this->assertEqual($count, 10, 'Accurate number of items in database.');
 
     // Assert input format.
@@ -194,8 +184,8 @@ class FeedsRSStoNodesTest extends FeedsWebTestCase {
     db_query("UPDATE {node} n JOIN {feeds_node_item} fi ON n.nid = fi.nid SET n.uid = 0, fi.hash=''");
     $this->drupalPost('node/'. $nid .'/import', array(), 'Import');
     $this->drupalGet('node');
-    $this->assertNoPattern('/<span class="username">' . check_plain($author->name) . '<\/span>/');
-    $count = db_query("SELECT COUNT(*) FROM {feeds_node_item} fi JOIN {node} n ON fi.nid = n.nid WHERE n.uid = :uid", array(':uid' => $author->uid))->fetchField();
+    $this->assertNoPattern('/<span class="username">' . check_plain($this->auth_user->name) . '<\/span>/');
+    $count = db_query("SELECT COUNT(*) FROM {feeds_node_item} fi JOIN {node} n ON fi.nid = n.nid WHERE n.uid = :uid", array(':uid' => $this->auth_user->uid))->fetchField();
     $this->assertEqual($count, 0, 'Accurate number of items in database.');
 
     // Map feed node's author to feed item author, update - feed node's items
@@ -210,15 +200,14 @@ class FeedsRSStoNodesTest extends FeedsWebTestCase {
     );
     $this->drupalPost('node/'. $nid .'/import', array(), 'Import');
     $this->drupalGet('node');
-    $this->assertNoPattern('/<span class="username">' . check_plain($author->name) . '<\/span>/');
+    $this->assertNoPattern('/<span class="username">' . check_plain($this->auth_user->name) . '<\/span>/');
     $uid = db_query("SELECT uid FROM {node} WHERE nid = :nid", array(':nid' => $nid))->fetchField();
     $count = db_query("SELECT COUNT(*) FROM {node} WHERE uid = :uid", array(':uid' =>$uid))->fetchField();
     $this->assertEqual($count, 11, 'All feed item nodes are assigned to feed node author.');
 
     // Login with new user with only access content permissions.
-    $this->drupalLogin(
-      $this->drupalCreateUser()
-    );
+    $this->drupalLogin($this->auth_user);
+
     // Navigate to feed node, there should be no Feeds tabs visible.
     $this->drupalGet('node/'. $nid);
     $this->assertNoRaw('node/'. $nid .'/import');
@@ -228,9 +217,7 @@ class FeedsRSStoNodesTest extends FeedsWebTestCase {
     // type and run tests on importing/purging.
 
     // Login with sufficient permissions.
-    $this->drupalLogin(
-      $this->drupalCreateUser(array('administer feeds', 'administer nodes'))
-    );
+    $this->drupalLogin($this->admin_user);
     // Remove all items again so that next test can check for them.
     $this->drupalPost('node/'. $nid .'/delete-items', array(), 'Delete');
 
@@ -312,18 +299,14 @@ class FeedsRSStoNodesTest extends FeedsWebTestCase {
     $this->assertFeedItemCount(10);
 
     // Login with new user with only access content permissions.
-    $this->drupalLogin($this->drupalCreateUser());
+    $this->drupalLogin($this->auth_user);
 
     // Navigate to feed import form, access should be denied.
     $this->drupalGet('import/syndication_standalone');
     $this->assertResponse(403);
 
     // Use File Fetcher.
-    $this->drupalLogin($this->drupalCreateUser(array(
-      'administer feeds',
-      'administer nodes',
-      'create page content',
-    )));
+    $this->drupalLogin($this->admin_user);
 
     $edit = array('plugin_key' => 'FeedsFileFetcher');
     $this->drupalPost('admin/structure/feeds/edit/syndication_standalone/fetcher', $edit, 'Save');
