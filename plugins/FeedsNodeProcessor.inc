@@ -27,14 +27,9 @@ class FeedsNodeProcessor extends FeedsProcessor {
    * Implements FeedsProcessor::process().
    */
   public function process(FeedsSource $source, FeedsParserResult $parser_result) {
+    $state = $source->state($this);
 
-    // Keep track of processed items in this pass, set total number of items.
-    $processed = 0;
-    if (!$batch->getTotal(FEEDS_PROCESSING)) {
-      $batch->setTotal(FEEDS_PROCESSING, $batch->getItemCount());
-    }
-
-    while ($item = $batch->shiftItem()) {
+    while ($item = $parser_result->shiftItem()) {
 
       // Create/update if item does not exist or update existing is enabled.
       if (!($nid = $this->existingItemId($batch, $source)) || ($this->config['update_existing'] != FEEDS_SKIP_EXISTING)) {
@@ -52,10 +47,10 @@ class FeedsNodeProcessor extends FeedsProcessor {
           $this->map($batch, $node);
           node_save($node);
           if (!empty($nid)) {
-            $batch->updated++;
+            $state->updated++;
           }
           else {
-            $batch->created++;
+            $state->created++;
           }
         }
         catch (Exception $e) {
@@ -63,57 +58,60 @@ class FeedsNodeProcessor extends FeedsProcessor {
           watchdog('feeds', $e->getMessage(), array(), WATCHDOG_WARNING);
         }
       }
-
-      $processed++;
-      if ($processed >= variable_get('feeds_node_batch_size', FEEDS_NODE_BATCH_SIZE)) {
-        $batch->setProgress(FEEDS_PROCESSING, $batch->created + $batch->updated);
-        return;
-      }
+    }
+    if ($source->progressImporting() != FEEDS_BATCH_COMPLETE) {
+      return;
     }
 
     // Set messages.
-    if ($batch->created) {
-      drupal_set_message(format_plural($batch->created, 'Created @number @type node.', 'Created @number @type nodes.', array('@number' => $batch->created, '@type' => node_type_get_name($this->config['content_type']))));
+    if ($state->created) {
+      drupal_set_message(format_plural($state->created, 'Created @number @type node.', 'Created @number @type nodes.', array('@number' => $state->created, '@type' => node_type_get_name($this->config['content_type']))));
     }
-    elseif ($batch->updated) {
-      drupal_set_message(format_plural($batch->updated, 'Updated @number @type node.', 'Updated @number @type nodes.', array('@number' => $batch->updated, '@type' => node_type_get_name($this->config['content_type']))));
+    elseif ($state->updated) {
+      drupal_set_message(format_plural($state->updated, 'Updated @number @type node.', 'Updated @number @type nodes.', array('@number' => $state->updated, '@type' => node_type_get_name($this->config['content_type']))));
     }
     else {
       drupal_set_message(t('There is no new content.'));
     }
-    $batch->setProgress(FEEDS_PROCESSING, FEEDS_BATCH_COMPLETE);
   }
 
   /**
    * Implements FeedsProcessor::clear().
    */
-  public function clear(FeedsBatch $batch, FeedsSource $source) {
-    if (!$batch->getTotal(FEEDS_CLEARING)) {
-      $total = db_query("SELECT COUNT(n.nid) FROM {node} n JOIN {feeds_node_item} fn ON n.nid = fn.nid WHERE fn.id = :id AND fn.feed_nid = :nid", array(':id' => $source->id, ':nid' => $source->feed_nid))->fetchField();
-      $batch->setTotal(FEEDS_CLEARING, $total);
+  public function clear(FeedsSource $source) {
+    $state = $source->state($this);
+    if (empty($state->total)) {
+      $state->total = db_query("SELECT COUNT(n.nid) FROM {node} n JOIN {feeds_node_item} fn ON n.nid = fn.nid WHERE fn.id = :id AND fn.feed_nid = :nid", array(':id' => $source->id, ':nid' => $source->feed_nid))->fetchField();
     }
     $count = variable_get('feeds_node_batch_size', FEEDS_NODE_BATCH_SIZE);
     $nids = array();
     $nodes = db_query_range("SELECT n.nid FROM {node} n JOIN {feeds_node_item} fn ON n.nid = fn.nid WHERE fn.id = :id AND fn.feed_nid = :nid", 0, $count, array(':id' => $source->id, ':nid' => $source->feed_nid));
     foreach ($nodes as $node) {
       $nids[$node->nid] = $node->nid;
-      $batch->deleted++;
+      $state->deleted++;
     }
     node_delete_multiple($nids);
     if (db_query_range("SELECT 1 FROM {node} n JOIN {feeds_node_item} fn ON n.nid = fn.nid WHERE fn.id = :id AND fn.feed_nid = :nid", 0, 1, array(':id' => $source->id, ':nid' => $source->feed_nid))->fetchField()) {
-      $batch->setProgress(FEEDS_CLEARING, $batch->deleted);
+      $state->progress = $state->deleted;
       return;
     }
 
     // Set message.
     drupal_get_messages('status');
-    if ($batch->deleted) {
-      drupal_set_message(format_plural($batch->deleted, 'Deleted @number node.', 'Deleted @number nodes.', array('@number' => $batch->deleted)));
+    if ($state->deleted) {
+      drupal_set_message(format_plural($state->deleted, 'Deleted @number node.', 'Deleted @number nodes.', array('@number' => $state->deleted)));
     }
     else {
       drupal_set_message(t('There is no content to be deleted.'));
     }
-    $batch->setProgress(FEEDS_CLEARING, FEEDS_BATCH_COMPLETE);
+    $state->progress = FEEDS_BATCH_COMPLETE;
+  }
+
+  /**
+   * Report processing and clearing limit.
+   */
+  public function getLimit() {
+    return variable_get('feeds_node_process_limit', FEEDS_NODE_PROCESS_LIMIT);
   }
 
   /**
