@@ -273,6 +273,8 @@ class FeedsSource extends FeedsConfigurable {
   /**
    * Return a state object for a given object. Lazy instantiates new states.
    *
+   * @todo Rename getConfigFor() accordingly to config().
+   *
    * @param FeedsSourceInterface $client
    *   An object that implements the FeedsSourceInterface, usually a fetcher,
    *   parser or processor plugin.
