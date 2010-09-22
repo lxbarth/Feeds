@@ -13,13 +13,13 @@ class FeedsSyndicationParser extends FeedsParser {
    */
   public function parse(FeedsSource $source, FeedsFetcherResult $fetcher_result) {
     feeds_include_library('common_syndication_parser.inc', 'common_syndication_parser');
-    $result = common_syndication_parser_parse($fetcher_result->getRaw());
+    $feed = common_syndication_parser_parse($fetcher_result->getRaw());
     $result = new FeedsParserResult();
-    $result->setTitle($result['title']);
-    $result->setDescription($result['description']);
-    $batch->setLink($result['link']);
-    if (is_array($result['items'])) {
-      foreach ($result['items'] as $item) {
+    $result->setTitle($feed['title']);
+    $result->setDescription($feed['description']);
+    $result->setLink($feed['link']);
+    if (is_array($feed['items'])) {
+      foreach ($feed['items'] as $item) {
         if (isset($item['geolocations'])) {
           foreach ($item['geolocations'] as $k => $v) {
             $item['geolocations'][$k] = new FeedsGeoTermElement($v);
