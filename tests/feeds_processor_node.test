@@ -158,18 +158,12 @@ class FeedsRSStoNodesTest extends FeedsWebTestCase {
     // Import again.
     $this->drupalPost('node/'. $nid .'/import', array(), 'Import');
     $this->assertText('There is no new content.');
-
-    // Assert DB status, there still shouldn't be more than 10 items.
-    $count = db_query("SELECT COUNT(*) FROM {feeds_node_item}")->fetchField();
-    $this->assertEqual($count, 10, 'Accurate number of items in database.');
+    $this->assertFeedItemCount(10);
 
     // Now delete all items.
     $this->drupalPost('node/'. $nid .'/delete-items', array(), 'Delete');
     $this->assertText('Deleted 10 nodes.');
-
-    // Assert DB status, now there should be no items.
-    $count = db_query("SELECT COUNT(*) FROM {feeds_node_item}")->fetchField();
-    $this->assertEqual($count, 0, 'Accurate number of items in database.');
+    $this->assertFeedItemCount(0);
 
     // Change author.
     $author = $this->drupalCreateUser();
@@ -311,26 +305,17 @@ class FeedsRSStoNodesTest extends FeedsWebTestCase {
     // Import again.
     $this->drupalPost('import/syndication_standalone', array(), 'Import');
     $this->assertText('There is no new content.');
-
-    // Assert DB status, there still shouldn't be more than 10 items.
-    $count = db_query("SELECT COUNT(*) FROM {feeds_node_item}")->fetchField();
-    $this->assertEqual($count, 10, 'Accurate number of items in database.');
+    $this->assertFeedItemCount(10);
 
     // Now delete all items.
     $this->drupalPost('import/syndication_standalone/delete-items', array(), 'Delete');
     $this->assertText('Deleted 10 nodes.');
-
-    // Assert DB status, now there should be no items.
-    $count = db_query("SELECT COUNT(*) FROM {feeds_node_item}")->fetchField();
-    $this->assertEqual($count, 0, 'Accurate number of items in database.');
+    $this->assertFeedItemCount(0);
 
     // Import again, we should find new content.
     $this->drupalPost('import/syndication_standalone', array(), 'Import');
     $this->assertText('Created 10 Article nodes.');
-
-    // Assert DB status, there should be 10 again.
-    $count = db_query("SELECT COUNT(*) FROM {feeds_node_item}")->fetchField();
-    $this->assertEqual($count, 10, 'Accurate number of items in database.');
+    $this->assertFeedItemCount(10);
 
     // Login with new user with only access content permissions.
     $this->drupalLogin($this->drupalCreateUser());
@@ -346,7 +331,13 @@ class FeedsRSStoNodesTest extends FeedsWebTestCase {
       'create page content',
     )));
 
-    $this->setPlugin('syndication', 'FeedsFileFetcher');
+    $edit = array(
+      'allowed_extensions' => 'rss2',
+      'direct' => 1,
+    );
+    $this->drupalPost('admin/structure/feeds/edit/syndication_standalone/settings/FeedsFileFetcher', $edit, 'Save');
+    $this->fail($this->content);
+
     // Create a feed node.
     $edit = array(
       'files[feeds]' => $this->absolutePath() .'/tests/feeds/drupalplanet.rss2',
@@ -354,6 +345,15 @@ class FeedsRSStoNodesTest extends FeedsWebTestCase {
     $this->drupalPost('node/add/page', $edit, 'Save');
     $this->assertText('has been created.');
     $this->assertText('Created 25 Article nodes.');
+  }
+
+  /**
+   * Check that the total number of entries in the feeds_node_item table is correct.
+   */
+  function assertFeedItemCount($num) {
+    // Assert DB status, there should be 10 again.
+    $count = db_query("SELECT COUNT(*) FROM {feeds_node_item}")->fetchField();
+    $this->assertEqual($count, $num, 'Accurate number of items in database.');
   }
 
   /**
