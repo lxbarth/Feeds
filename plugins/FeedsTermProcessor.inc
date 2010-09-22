@@ -23,7 +23,7 @@ class FeedsTermProcessor extends FeedsProcessor {
     // Count number of created and updated nodes.
     $created  = $updated = $no_name = 0;
 
-    while ($item = $batch->shiftItem()) {
+    while ($item = $parser_result->shiftItem()) {
 
       if (!($tid = $this->existingItemId($source, $parser_result)) || $this->config['update_existing'] != FEEDS_SKIP_EXISTING) {
 
