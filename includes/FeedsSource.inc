@@ -294,7 +294,7 @@ class FeedsSource extends FeedsConfigurable {
       'type' => $this->id,
       'id' => $this->feed_nid,
       // Schedule as soon as possible if a batch is active.
-      'period' => $this->batch ? 0 : $period,
+      'period' => $this->progressImporting() == FEEDS_BATCH_COMPLETE ? $period : 0,
       'periodic' => TRUE,
     );
     if ($job['period'] != FEEDS_SCHEDULE_NEVER) {
