@@ -62,10 +62,18 @@ class FeedsState {
   public $created;
   public $updated;
   public $deleted;
+  public $skipped;
+  public $failed;
 
   public function __construct() {
     $this->total =
     $this->progress = 1;
+    $this->pointer =
+    $this->created =
+    $this->updated =
+    $this->deleted =
+    $this->skipped =
+    $this->failed = 0;
   }
 
   /**
