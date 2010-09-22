@@ -244,7 +244,7 @@ class FeedsSource extends FeedsConfigurable {
   public function progressImporting() {
     $fetcher = $this->state($this->importer->fetcher);
     $parser = $this->state($this->importer->parser);
-    if ($fetcher->progress() == FEEDS_BATCH_COMPLETE && $parser->progress() = FEEDS_BATCH_COMPLETE) {
+    if ($fetcher->progress() == FEEDS_BATCH_COMPLETE && $parser->progress() == FEEDS_BATCH_COMPLETE) {
       return FEEDS_BATCH_COMPLETE;
     }
     // Fetching envelops parsing.
