@@ -87,7 +87,7 @@ class FeedsTermProcessor extends FeedsProcessor {
   /**
    * Implements FeedsProcessor::clear().
    */
-  public function clear(FeedsBatch $batch, FeedsSource $source) {
+  public function clear(FeedsSource $source) {
     $deleted = 0;
     $vocabulary = $this->vocabulary();
     $terms = db_query("SELECT td.tid

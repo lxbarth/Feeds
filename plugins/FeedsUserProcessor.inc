@@ -85,7 +85,7 @@ class FeedsUserProcessor extends FeedsProcessor {
   /**
    * Implements FeedsProcessor::clear().
    */
-  public function clear(FeedsBatch $batch, FeedsSource $source) {
+  public function clear(FeedsSource $source) {
     // Do not support deleting users as we have no way of knowing which ones we
     // imported.
     throw new Exception(t('User processor does not support deleting users.'));

@@ -27,9 +27,6 @@ abstract class FeedsProcessor extends FeedsPlugin {
    * Remove all stored results or stored results up to a certain time for this
    * configuration/this source.
    *
-   * @param FeedsBatch $batch
-   *   A FeedsBatch object for tracking information such as how many
-   *   items have been deleted total between page loads.
    * @param FeedsSource $source
    *   Source information for this expiry. Implementers should only delete items
    *   pertaining to this source. The preferred way of determining whether an
@@ -37,7 +34,7 @@ abstract class FeedsProcessor extends FeedsPlugin {
    *   processor's responsibility to store the feed_nid of an imported item in
    *   the processing stage.
    */
-  public abstract function clear(FeedsBatch $batch, FeedsSource $source);
+  public abstract function clear(FeedsSource $source);
 
   /**
    * Delete feed items younger than now - $time. Do not invoke expire on a
