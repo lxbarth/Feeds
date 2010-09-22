@@ -177,7 +177,7 @@ class FeedsSource extends FeedsConfigurable {
    */
   public function preview() {
     $result = $this->importer->fetcher->fetch($this);
-    $this->importer->parser->parse($this, $result);
+    $result = $this->importer->parser->parse($this, $result);
     module_invoke_all('feeds_after_parse', $this, $result);
     return $result;
   }

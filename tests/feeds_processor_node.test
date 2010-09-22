@@ -277,18 +277,12 @@ class FeedsRSStoNodesTest extends FeedsWebTestCase {
     // Assert accuracy of aggregated information.
     $this->drupalGet('node');
     $this->assertDevseedFeedContent();
-
-    // Assert DB status.
-    $count = db_query("SELECT COUNT(*) FROM {feeds_node_item}")->fetchField();
-    $this->assertEqual($count, 10, 'Accurate number of items in database.');
+    $this->assertFeedItemCount(10);
 
     // Import again.
     $this->drupalPost('import/syndication_standalone', array(), 'Import');
     $this->assertText('There is no new content.');
-
-    // Assert DB status, there still shouldn't be more than 10 items.
-    $count = db_query("SELECT COUNT(*) FROM {feeds_node_item}")->fetchField();
-    $this->assertEqual($count, 10, 'Accurate number of items in database.');
+    $this->assertFeedItemCount(10);
 
     // Enable replace existing and import updated feed file.
     $this->setSettings('syndication_standalone', 'FeedsNodeProcessor', array('update_existing' => 1));
@@ -331,19 +325,20 @@ class FeedsRSStoNodesTest extends FeedsWebTestCase {
       'create page content',
     )));
 
+    $edit = array('plugin_key' => 'FeedsFileFetcher');
+    $this->drupalPost('admin/structure/feeds/edit/syndication_standalone/fetcher', $edit, 'Save');
+
     $edit = array(
       'allowed_extensions' => 'rss2',
       'direct' => 1,
     );
     $this->drupalPost('admin/structure/feeds/edit/syndication_standalone/settings/FeedsFileFetcher', $edit, 'Save');
-    $this->fail($this->content);
 
     // Create a feed node.
     $edit = array(
       'files[feeds]' => $this->absolutePath() .'/tests/feeds/drupalplanet.rss2',
     );
-    $this->drupalPost('node/add/page', $edit, 'Save');
-    $this->assertText('has been created.');
+    $this->drupalPost('import/syndication_standalone', $edit, 'Import');
     $this->assertText('Created 25 Article nodes.');
   }
 
