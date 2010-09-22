@@ -10,15 +10,16 @@ class FeedsCSVParser extends FeedsParser {
    * Implements FeedsParser::parse().
    */
   public function parse(FeedsSource $source, FeedsFetcherResult $fetcher_result) {
+    $source_config = $source->getConfigFor($this);
+    $state = $source->state($this);
 
     // Load and configure parser.
     feeds_include_library('ParserCSV.inc', 'ParserCSV');
-    $iterator = new ParserCSVIterator($fetcher_result->getFilePath());
-    $source_config = $source->getConfigFor($this);
     $parser = new ParserCSV();
     $delimiter = $source_config['delimiter'] == 'TAB' ? "\t" : $source_config['delimiter'];
     $parser->setDelimiter($delimiter);
 
+    $iterator = new ParserCSVIterator($fetcher_result->getFilePath());
     $header = $this->parseHeader($parser, $iterator);
     if (!header) {
       return;
@@ -26,15 +27,15 @@ class FeedsCSVParser extends FeedsParser {
     $parser->setColumnNames($header);
 
     // Determine section to parse, parse.
-    $start = $source->state($this)->pointer ? $source->state($this)->pointer : $parser->lastLinePos();
+    $start = $state->pointer ? $state->pointer : $parser->lastLinePos();
     $limit = $source->importer->getLimit();
     $rows = $this->parseItems($parser, $iterator, $start, $limit);
 
      // Report progress.
-     $source->state($this)->pointer = $parser->lastLinePos();
+     $state->pointer = $parser->lastLinePos();
      $total = filesize($fetcher_result->getFilePath());
      $progress = $parser->lastLinePos() ? $parser->lastLinePos() : $total;
-     $source->state($this)->setProgress($total, $progress);
+     $state->setProgress($total, $progress);
 
      // Create a result object and return it.
      return new FeedsParserResult($rows);
