@@ -32,8 +32,8 @@ class FeedsCSVParser extends FeedsParser {
     $rows = $this->parseItems($parser, $iterator, $start, $limit);
 
      // Report progress.
-     $state->pointer = $parser->lastLinePos();
      $state->total = filesize($fetcher_result->getFilePath());
+     $state->pointer =
      $state->progress = $parser->lastLinePos() ? $parser->lastLinePos() : $state->total;
 
      // Create a result object and return it.
