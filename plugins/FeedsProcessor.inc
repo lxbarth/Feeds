@@ -7,6 +7,10 @@ define('FEEDS_SKIP_EXISTING', 0);
 define('FEEDS_REPLACE_EXISTING', 1);
 define('FEEDS_UPDATE_EXISTING', 2);
 
+// Default limit for creating items on a page load, not respected by all
+// processors.
+define('FEEDS_PROCESS_LIMIT', 50);
+
 /**
  * Abstract class, defines interface for processors.
  */
