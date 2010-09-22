@@ -38,7 +38,7 @@ class FeedsCSVParser extends FeedsParser {
      $state->setProgress($total, $progress);
 
      // Create a result object and return it.
-     return new FeedsParserResult($rows);
+     return new FeedsParserResult($rows, $source->feed_nid);
   }
 
   /**

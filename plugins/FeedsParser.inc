@@ -15,11 +15,11 @@ class FeedsParserResult extends FeedsResult {
   /**
    * Constructor.
    */
-  public function __construct() {
+  public function __construct($items = array()) {
     $this->title = '';
     $this->description = '';
     $this->link = '';
-    $this->items = array();
+    $this->items = $items;
     $this->created = 0;
     $this->updated = 0;
   }
