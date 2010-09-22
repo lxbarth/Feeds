@@ -357,10 +357,10 @@ class FeedsSource extends FeedsConfigurable {
       ctools_include('export');
       $this->export_type = EXPORT_IN_DATABASE;
       $this->config = unserialize($record->config);
-      if (isset($record->state)) {
+      if (!empty($record->state)) {
         $this->state = unserialize($record->state);
       }
-      if (isset($record->fetcher_result)) {
+      if (!empty($record->fetcher_result)) {
         $this->fetcher_result = unserialize($record->fetcher_result);
       }
     }
