@@ -19,7 +19,6 @@ define('FEEDS_NODE_DEFAULT_FORMAT', -1);
  * Creates nodes from feed items.
  */
 class FeedsNodeProcessor extends FeedsProcessor {
-
   /**
    * Implements FeedsProcessor::process().
    */
@@ -27,20 +26,19 @@ class FeedsNodeProcessor extends FeedsProcessor {
     $state = $source->state($this);
 
     while ($item = $parser_result->shiftItem()) {
+      if (!($nid = $this->existingItemId($source, $parser_result)) ||
+           ($this->config['update_existing'] != FEEDS_SKIP_EXISTING)) {
 
-      // Create/update if item does not exist or update existing is enabled.
-      if (!($nid = $this->existingItemId($source, $parser_result)) || ($this->config['update_existing'] != FEEDS_SKIP_EXISTING)) {
         // Only proceed if item has actually changed.
         $hash = $this->hash($item);
         if (!empty($nid) && $hash == $this->getHash($nid)) {
           continue;
         }
 
-        $node = $this->buildNode($nid, $source->feed_nid);
-        $node->feeds_node_item->hash = $hash;
-
-        // Map and save node. If errors occur don't stop but report them.
+        // Assemble node, map item to it, save.
         try {
+          $node = $this->buildNode($nid, $source->feed_nid);
+          $node->feeds_node_item->hash = $hash;
           $this->map($source, $parser_result, $node);
           node_save($node);
           if (!empty($nid)) {
@@ -56,11 +54,11 @@ class FeedsNodeProcessor extends FeedsProcessor {
         }
       }
     }
+
+    // Set messages if we're done.
     if ($source->progressImporting() != FEEDS_BATCH_COMPLETE) {
       return;
     }
-
-    // Set messages.
     if ($state->created) {
       drupal_set_message(format_plural($state->created, 'Created @number @type node.', 'Created @number @type nodes.', array('@number' => $state->created, '@type' => node_type_get_name($this->config['content_type']))));
     }
