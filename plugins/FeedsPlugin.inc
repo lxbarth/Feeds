@@ -7,6 +7,11 @@
  */
 
 /**
+ * Base class for a fetcher, parser or processor result.
+ */
+class FeedsResult {}
+
+/**
  * Implement source interface for all plugins.
  *
  * Note how this class does not attempt to store source information locally.

@@ -2,6 +2,109 @@
 // $Id: FeedsParser.inc,v 1.24 2010/09/20 15:41:03 alexb Exp $
 
 /**
+ * A result of a parsing stage.
+ */
+class FeedsParserResult extends FeedsResult {
+  protected $title;
+  protected $description;
+  protected $link;
+  protected $items;
+  public $created;
+  public $updated;
+
+  /**
+   * Constructor.
+   */
+  public function __construct() {
+    $this->title = '';
+    $this->description = '';
+    $this->link = '';
+    $this->items = array();
+    $this->created = 0;
+    $this->updated = 0;
+  }
+
+  /**
+   * @return
+   *   A string that is the feed's title.
+   */
+  public function getTitle() {
+    return $this->title;
+  }
+
+  /**
+   * @return
+   *   A string that is the feed's description.
+   */
+  public function getDescription() {
+    return $this->description;
+  }
+
+  /**
+   * @return
+   *   A string that is the link to the feed's site (not the actual URL of the
+   *   feed). Falls back to URL if not available.
+   */
+  public function getLink() {
+    return $this->link;
+  }
+
+  /**
+   * @return
+   *   Next available item or NULL if there is none. Every returned item is
+   *   removed from the internal array.
+   */
+  public function shiftItem() {
+    return array_shift($this->items);
+  }
+
+  /**
+   * Set title.
+   */
+  public function setTitle($title) {
+    $this->title = $title;
+  }
+
+  /**
+   * Set description.
+   */
+  public function setDescription($description) {
+    $this->description = $description;
+  }
+
+  /**
+   * Set link.
+   */
+  public function setLink($link) {
+    $this->link = $link;
+  }
+
+  /**
+   * Set items.
+   *
+   * @param $items
+   *   An array of the items in the feed. Cannot be NULL.
+   */
+  public function setItems($items) {
+    $this->items = $items;
+  }
+
+  /**
+   * Add an item.
+   */
+  public function addItem($item) {
+    $this->items[] = $item;
+  }
+
+  /**
+   * Get number of items.
+   */
+  public function getItemCount() {
+    return count($this->items);
+  }
+}
+
+/**
  * Abstract class, defines interface for parsers.
  */
 abstract class FeedsParser extends FeedsPlugin {

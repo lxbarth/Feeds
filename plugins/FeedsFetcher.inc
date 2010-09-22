@@ -2,6 +2,54 @@
 // $Id: FeedsFetcher.inc,v 1.7 2010/09/15 19:40:57 alexb Exp $
 
 /**
+ * Base class for all fetcher results.
+ */
+class FeedsFetcherResult extends FeedsResult {
+  protected $raw;
+  protected $file_path;
+
+  /**
+   * Constructor.
+   */
+  public function __construct($raw) {
+    $this->raw = $raw;
+  }
+
+  /**
+   * @return
+   *   The raw content from the source as a string.
+   *
+   * @throws Exception
+   *   Extending classes MAY throw an exception if a problem occurred.
+   */
+  public function getRaw() {
+    return $this->raw;
+  }
+
+  /**
+   * @return
+   *   A path to a file containing the raw content as a source.
+   *
+   * @throws Exception
+   *   If an unexpected problem occurred.
+   */
+  public function getFilePath() {
+    if (!isset($this->file_path)) {
+      $dir = file_directory_path() .'/feeds';
+      if (!file_check_directory($dir, TRUE)) {
+        throw new Exception(t('Feeds directory either cannot be created or is not writable.'));
+      }
+      $dest = file_destination($dir . '/' . get_class($this) .'_'. drupal_get_token($this->url) .'_'. time(), FILE_EXISTS_RENAME);
+      $this->file_path = file_save_data($this->getRaw(), $dest);
+      if($this->file_path === 0) {
+        throw new Exception(t('Cannot write content to %dest', array('%dest' => $dest)));
+      }
+    }
+    return $this->file_path;
+  }
+}
+
+/**
  * Abstract class, defines shared functionality between fetchers.
  *
  * Implements FeedsSourceInfoInterface to expose source forms to Feeds.

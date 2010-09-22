@@ -13,7 +13,7 @@ class FeedsCSVParser extends FeedsParser {
 
     // Load and configure parser.
     feeds_include_library('ParserCSV.inc', 'ParserCSV');
-    $iterator = new ParserCSVIterator($batch->getFilePath());
+    $iterator = new ParserCSVIterator($fetcher_result->getFilePath());
     $source_config = $source->getConfigFor($this);
     $parser = new ParserCSV();
     $delimiter = $source_config['delimiter'] == 'TAB' ? "\t" : $source_config['delimiter'];
@@ -25,8 +25,19 @@ class FeedsCSVParser extends FeedsParser {
     }
     $parser->setColumnNames($header);
 
-    // Populate batch.
-    $batch->setItems($this->parseItems($parser, $iterator));
+    // Determine section to parse, parse.
+    $start = $source->state($this)->pointer ? $source->state($this)->pointer : $parser->lastLinePos();
+    $limit = $source->importer->getLimit();
+    $rows = $this->parseItems($parser, $iterator, $start, $limit);
+
+     // Report progress.
+     $source->state($this)->pointer = $parser->lastLinePos();
+     $total = filesize($fetcher_result->getFilePath());
+     $progress = $parser->lastLinePos() ? $parser->lastLinePos() : $total;
+     $source->state($this)->setProgress($total, $progress);
+
+     // Create a result object and return it.
+     return new FeedsParserResult($rows);
   }
 
   /**
@@ -60,10 +71,9 @@ class FeedsCSVParser extends FeedsParser {
    * @return
    *   An array of rows of the CSV keyed by the column names previously set
    */
-  protected function parseItems(ParserCSV $parser, ParserCSVIterator $iterator) {
-    // Set line limit to 0 and start byte to last position and parse rest.
-    $parser->setLineLimit(0);
-    $parser->setStartByte($parser->lastLinePos());
+  protected function parseItems(ParserCSV $parser, ParserCSVIterator $iterator, $start = 0, $limit = 0) {
+    $parser->setLineLimit($limit);
+    $parser->setStartByte($start);
     $rows = $parser->parse($iterator);
     return $rows;
   }
