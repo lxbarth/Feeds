@@ -14,7 +14,7 @@ class FeedsUserProcessor extends FeedsProcessor {
   /**
    * Implements FeedsProcessor::process().
    */
-  public function process(FeedsImportBatch $batch, FeedsSource $source) {
+  public function process(FeedsSource $source, FeedsParserResult $parser_result) {
 
     // Count number of created and updated nodes.
     $created  = $updated = $failed = 0;

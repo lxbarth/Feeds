@@ -16,12 +16,12 @@ abstract class FeedsProcessor extends FeedsPlugin {
    * Process the result of the parser or previous processors.
    * Extending classes must implement this method.
    *
-   * @param FeedsImportBatch $batch
-   *   The current feed import data passed in from the parsing stage.
    * @param FeedsSource $source
    *   Source information about this import.
+   * @param FeedsParserResult $parser_result
+   *   The result of the parsing stage.
    */
-  public abstract function process(FeedsImportBatch $batch, FeedsSource $source);
+  public abstract function process(FeedsSource $source, FeedsParserResult $parser_result);
 
   /**
    * Remove all stored results or stored results up to a certain time for this

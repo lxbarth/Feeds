@@ -15,7 +15,7 @@ class FeedsFeedNodeProcessor extends FeedsProcessor {
   /**
    * Implements FeedsProcessor::process().
    */
-  public function process(FeedsImportBatch $batch, FeedsSource $source) {
+  public function process(FeedsSource $source, FeedsParserResult $parser_result) {
     while ($item = $batch->shiftItem()) {
 
       // If the target item does not exist OR if update_existing is enabled,

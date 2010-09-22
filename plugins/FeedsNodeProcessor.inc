@@ -26,7 +26,7 @@ class FeedsNodeProcessor extends FeedsProcessor {
   /**
    * Implements FeedsProcessor::process().
    */
-  public function process(FeedsImportBatch $batch, FeedsSource $source) {
+  public function process(FeedsSource $source, FeedsParserResult $parser_result) {
 
     // Keep track of processed items in this pass, set total number of items.
     $processed = 0;

@@ -14,7 +14,7 @@ class FeedsTermProcessor extends FeedsProcessor {
   /**
    * Implements FeedsProcessor::process().
    */
-  public function process(FeedsImportBatch $batch, FeedsSource $source) {
+  public function process(FeedsSource $source, FeedsParserResult $parser_result) {
 
     if (empty($this->config['vocabulary'])) {
       throw new Exception(t('You must define a vocabulary for Taxonomy term processor before importing.'));
