@@ -6,7 +6,6 @@ dependencies[] = ctools
 dependencies[] = job_scheduler
 files[] = feeds.module
 files[] = feeds.install
-files[] = includes/FeedsBatch.inc
 files[] = includes/FeedsConfigurable.inc
 files[] = includes/FeedsImporter.inc
 files[] = includes/FeedsSource.inc
