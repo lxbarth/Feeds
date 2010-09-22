@@ -14,6 +14,7 @@ files[] = tests/feeds_mapper_test.inc
 files[] = tests/feeds_mapper_field.test
 files[] = tests/feeds_processor_node.test
 files[] = tests/feeds_processor_term.test
+files[] = tests/feeds_processor_user.test
 files[] = tests/parser_csv.test
 core = 7.x
 php = 5.2

@@ -6,9 +6,6 @@
  * Tests for plugins/FeedsUserProcessor.inc
  */
 
-// Require FeedsWebTestCase class definition.
-require_once(dirname(__FILE__) .'/feeds.test.inc');
-
 /**
  * Test aggregating a feed as data records.
  */
@@ -96,7 +93,7 @@ class FeedsCSVtoUsersTest extends FeedsWebTestCase {
     // 1 user has an invalid email address, all users should be assigned
     // the manager role.
     $this->assertText('There was 1 user that could not be imported because either their name or their email was empty or not valid. Check import data and mapping settings on User processor.');
-    $this->drupalGet('admin/user/user');
+    $this->drupalGet('admin/people');
     $this->assertText('Morticia');
     $this->assertText('Fester');
     $this->assertText('Gomez');
