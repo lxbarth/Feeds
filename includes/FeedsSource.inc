@@ -334,7 +334,8 @@ class FeedsSource extends FeedsConfigurable {
       'feed_nid' => $this->feed_nid,
       'config' => $config,
       'source' => $source,
-      'batch' => isset($this->batch) ? $this->batch : FALSE,
+      'state' => isset($this->state) ? $this->state : FALSE,
+      'fetcher_result' => isset($this->fetcher_result) ? $this->fetcher_result : FALSE,
     );
     if (db_query_range("SELECT 1 FROM {feeds_source} WHERE id = :id AND feed_nid = :nid", 0, 1, array(':id' => $this->id, ':nid' => $this->feed_nid))->fetchField()) {
       drupal_write_record('feeds_source', $object, array('id', 'feed_nid'));
@@ -350,13 +351,18 @@ class FeedsSource extends FeedsConfigurable {
    * @todo Patch CTools to move constants from export.inc to ctools.module.
    */
   public function load() {
-    if ($record = db_query("SELECT config, batch FROM {feeds_source} WHERE id = :id AND feed_nid = :nid", array(':id' => $this->id, ':nid' => $this->feed_nid))->fetch()) {
+    if ($record = db_query("SELECT config, state, fetcher_result FROM {feeds_source} WHERE id = :id AND feed_nid = :nid", array(':id' => $this->id, ':nid' => $this->feed_nid))->fetch()) {
       // While FeedsSource cannot be exported, we still use CTool's export.inc
       // export definitions.
       ctools_include('export');
       $this->export_type = EXPORT_IN_DATABASE;
       $this->config = unserialize($record->config);
-      $this->batch = unserialize($record->batch);
+      if (isset($record->state)) {
+        $this->state = unserialize($record->state);
+      }
+      if (isset($record->fetcher_result)) {
+        $this->fetcher_result = unserialize($record->fetcher_result);
+      }
     }
   }
 
