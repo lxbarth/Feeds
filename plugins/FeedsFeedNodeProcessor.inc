@@ -16,7 +16,8 @@ class FeedsFeedNodeProcessor extends FeedsProcessor {
    * Implements FeedsProcessor::process().
    */
   public function process(FeedsSource $source, FeedsParserResult $parser_result) {
-    while ($item = $batch->shiftItem()) {
+    $state = $source->state($this);
+    while ($item = $parser_result->shiftItem()) {
 
       // If the target item does not exist OR if update_existing is enabled,
       // map and save.
@@ -35,20 +36,23 @@ class FeedsFeedNodeProcessor extends FeedsProcessor {
         node_save($node);
 
         if ($nid) {
-          $batch->updated++;
+          $state->updated++;
         }
         else {
-          $batch->created++;
+          $state->created++;
         }
       }
     }
+    if ($source->progressImporting() != FEEDS_BATCH_COMPLETE) {
+      return;
+    }
 
     // Set messages.
-    if ($batch->created) {
-      drupal_set_message(format_plural($batch->created, 'Created @number @type node.', 'Created @number @type nodes.', array('@number' => $batch->created, '@type' => $this->config['content_type'])));
+    if ($state->created) {
+      drupal_set_message(format_plural($state->created, 'Created @number @type node.', 'Created @number @type nodes.', array('@number' => $state->created, '@type' => $this->config['content_type'])));
     }
-    elseif ($batch->updated) {
-      drupal_set_message(format_plural($batch->updated, 'Updated @number @type node.', 'Updated @number @type nodes.', array('@number' => $batch->updated, '@type' => $this->config['content_type'])));
+    elseif ($state->updated) {
+      drupal_set_message(format_plural($state->updated, 'Updated @number @type node.', 'Updated @number @type nodes.', array('@number' => $state->updated, '@type' => $this->config['content_type'])));
     }
     else {
       drupal_set_message(t('There is no new content.'));
@@ -58,7 +62,7 @@ class FeedsFeedNodeProcessor extends FeedsProcessor {
   /**
    * Implements FeedsProcessor::clear().
    */
-  public function clear(FeedsBatch $batch, FeedsSource $source) {
+  public function clear(FeedsSource $source) {
     // Do not support deleting imported items as we would have to delete all
     // items of the content type we imported which may contain nodes that a
     // user created by hand.
