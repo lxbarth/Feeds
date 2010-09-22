@@ -132,10 +132,10 @@ class FeedsMapperLinkTestCase extends FeedsMapperTestCase {
 
     $url = 'http://developmentseed.org/blog/2009/oct/06/open-atrium-translation-workflow-two-way-updating';
     $title = 'Open Atrium Translation Workflow: Two Way Translation Updates';
-    $this->assertCCKFieldValue('alpha', array('url' => $url, 'static' => $title));
-    $this->assertCCKFieldValue('beta', array('url' =>  $url));
-    $this->assertCCKFieldValue('gamma', array('url' => $url, 'static' => $title));
-    $this->assertCCKFieldValue('omega', array('url' => $url, 'static' => $static_title));
+    $this->assertNodeFieldValue('alpha', array('url' => $url, 'static' => $title));
+    $this->assertNodeFieldValue('beta', array('url' =>  $url));
+    $this->assertNodeFieldValue('gamma', array('url' => $url, 'static' => $title));
+    $this->assertNodeFieldValue('omega', array('url' => $url, 'static' => $static_title));
 
     // Test the static title.
     $this->drupalGet('node/2');

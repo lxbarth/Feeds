@@ -93,8 +93,8 @@ class FeedsMapperDateTestCase extends FeedsMapperTestCase {
       );
     for ($i = 1; $i <= 6; $i++) {
       $this->drupalGet("node/$i/edit");
-      $this->assertCCKFieldValue('date', $values[$i-1]);
-      $this->assertCCKFieldValue('datestamp', $values[$i-1]);
+      $this->assertNodeFieldValue('date', $values[$i-1]);
+      $this->assertNodeFieldValue('datestamp', $values[$i-1]);
     }
   }
 

@@ -34,26 +34,26 @@ class FeedsMapperTestCase extends FeedsWebTestCase {
    );
 
   /**
-   * Assert that a form field for the given CCK field with the given value
+   * Assert that a form field for the given field with the given value
    * exists in the current form.
    *
    * @param $field_name
-   *   The name of the CCK field.
+   *   The name of the field.
    * @param $value
-   *   The (raw) value expected for the CCK field.
+   *   The (raw) value expected for the field.
    * @param $index
    *   The index of the field (for q multi-valued field).
    *
    * @see FeedsMapperTestCase::getFormFieldsNames()
    * @see FeedsMapperTestCase::getFormFieldsValues()
    */
-  protected function assertCCKFieldValue($field_name, $value, $index = 0) {
-  	$names = $this->getFormFieldsNames($field_name, $index);
-  	$values = $this->getFormFieldsValues($field_name, $value);
-  	foreach($names as $k => $name){
-  		$value = $values[$k];
-  		$this->assertFieldByName($name, $value, t('Found form field %name for %field_name with the expected value.', array('%name' => $name, '%field_name' => $field_name)));
-  	}
+  protected function assertNodeFieldValue($field_name, $value, $index = 0) {
+    $names = $this->getFormFieldsNames($field_name, $index);
+    $values = $this->getFormFieldsValues($field_name, $value);
+    foreach($names as $k => $name){
+      $value = $values[$k];
+      $this->assertFieldByName($name, $value, t('Found form field %name for %field_name with the expected value.', array('%name' => $name, '%field_name' => $field_name)));
+    }
   }
 
   /**
@@ -70,7 +70,7 @@ class FeedsMapperTestCase extends FeedsWebTestCase {
    *   An array of form field names.
    */
   protected function getFormFieldsNames($field_name, $index) {
-  	return array("field_{$field_name}[{$index}][value]");
+    return array("field_{$field_name}[und][{$index}][value]");
   }
 
   /**
@@ -84,7 +84,7 @@ class FeedsMapperTestCase extends FeedsWebTestCase {
    * @return An array of form field values.
    */
   protected function getFormFieldsValues($field_name, $value) {
-  	return array((string)$value);
+    return array((string)$value);
   }
 
   /**
@@ -102,7 +102,7 @@ class FeedsMapperTestCase extends FeedsWebTestCase {
    */
   final protected function createContentType($typename = NULL, $fields = array()) {
     if ($typename == NULL) {
-      $typename = 'content_type_'. mt_rand();
+      $typename = strtolower($this->randomName());
     }
 
     // Create the content type.
@@ -110,32 +110,32 @@ class FeedsMapperTestCase extends FeedsWebTestCase {
       'type' => $typename,
       'name' => $typename,
     );
-    $this->drupalPost('admin/content/types/add', $edit, 'Save content type');
+    $this->drupalPost('admin/structure/types/add', $edit, 'Save content type');
     $this->assertText('The content type ' . $typename . ' has been added', 'Content type created');
 
-    $admin_type_url = 'admin/content/node-type/'. str_replace('_', '-', $typename);
+    $admin_type_url = 'admin/structure/types/manage/'. str_replace('_', '-', $typename);
 
     // Create the fields
     foreach ($fields as $field_name => $options) {
-    	if(is_string($options)) {
-    		$options = array('type' => $options);
-    	}
-    	$field_type = isset($options['type']) ? $options['type'] : 'text';
-    	$field_widget = isset($options['widget']) ? $options['widget'] : $this->selectFieldWidget($field_name, $field_type);
+      if(is_string($options)) {
+        $options = array('type' => $options);
+      }
+      $field_type = isset($options['type']) ? $options['type'] : 'text';
+      $field_widget = isset($options['widget']) ? $options['widget'] : $this->selectFieldWidget($field_name, $field_type);
       $this->assertTrue($field_widget !== NULL, "Field type $field_type supported");
       $label = $field_name . '_' . $field_type . '_label';
       $edit = array(
-        '_add_new_field[label]' => $label,
-        '_add_new_field[field_name]' => $field_name,
-        '_add_new_field[type]' => $field_type,
-        '_add_new_field[widget_type]' => $field_widget,
+        'fields[_add_new_field][label]' => $label,
+        'fields[_add_new_field][field_name]' => $field_name,
+        'fields[_add_new_field][type]' => $field_type,
+        'fields[_add_new_field][widget_type]' => $field_widget,
       );
       $this->drupalPost($admin_type_url . '/fields', $edit, 'Save');
 
       // (Default) Configure the field.
       $edit = isset($options['settings']) ? $options['settings'] : array();
       $this->drupalPost(NULL, $edit, 'Save field settings');
-      $this->assertText('Added field ' . $label);
+      $this->assertText('Updated field ' . $label);
     }
 
     return $typename;

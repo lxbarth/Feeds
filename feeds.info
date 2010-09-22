@@ -10,6 +10,7 @@ files[] = includes/FeedsConfigurable.inc
 files[] = includes/FeedsImporter.inc
 files[] = includes/FeedsSource.inc
 files[] = tests/feeds.test.inc
+files[] = tests/feeds_mapper_content.test
 files[] = tests/feeds_processor_node.test
 files[] = tests/feeds_processor_term.test
 files[] = tests/parser_csv.test
