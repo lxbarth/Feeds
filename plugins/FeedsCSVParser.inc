@@ -21,7 +21,7 @@ class FeedsCSVParser extends FeedsParser {
 
     $iterator = new ParserCSVIterator($fetcher_result->getFilePath());
     $header = $this->parseHeader($parser, $iterator);
-    if (!header) {
+    if (!$header) {
       return;
     }
     $parser->setColumnNames($header);
