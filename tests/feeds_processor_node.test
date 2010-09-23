@@ -27,19 +27,21 @@ class FeedsRSStoNodesTest extends FeedsWebTestCase {
    */
   public function setUp() {
     parent::setUp();
+
+    // Set the front page to show 20 nodes so we can easily see what is aggregated.
     $edit = array('default_nodes_main' => 20);
     $this->drupalPost('admin/config/system/site-information', $edit, 'Save configuration');
+
+    // Set the teaser length display to unlimited otherwise tests looking for
+    // text on nodes will fail.
+    $edit = array('fields[body][type]' => 'text_default');
+    $this->drupalPost('admin/structure/types/manage/article/display/teaser', $edit, 'Save');
   }
 
   /**
    * Test node creation, refreshing/deleting feeds and feed items.
    */
   public function test() {
-    // Set the teaser length display to unlimited otherwise tests looking for
-    // text on nodes will fail.
-    $edit['fields[body][type]'] = 'text_default';
-    $this->drupalPost('admin/structure/types/manage/article/display/teaser', $edit, 'Save');
-
     // Create an importer configuration.
     $this->createImporterConfiguration('Syndication', 'syndication');
     $this->addMappings('syndication',
