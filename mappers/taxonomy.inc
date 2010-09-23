@@ -8,6 +8,8 @@
 
 /**
  * Implements hook_feeds_parser_sources_alter().
+ *
+ * @todo: Upgrade to 7.
  */
 function taxonomy_feeds_parser_sources_alter(&$sources, $content_type) {
   if (!empty($content_type)) {
@@ -42,8 +44,8 @@ function taxonomy_feeds_get_source(FeedsSource $source, FeedsParserResult $resul
 /**
  * Implements hook_feeds_processor_targets_alter().
  */
-function taxonomy_feeds_processor_targets_alter(&$targets, $entity_type, $content_type) {
-  foreach (field_info_instances($entity_type, $content_type) as $name => $instance) {
+function taxonomy_feeds_processor_targets_alter(&$targets, $entity_type, $bundle_name = NULL) {
+  foreach (field_info_instances($entity_type, $bundle_name) as $name => $instance) {
     $info = field_info_field($name);
     if ($info['type'] == 'taxonomy_term_reference') {
       $targets[$name] = array(

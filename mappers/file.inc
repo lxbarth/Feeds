@@ -16,8 +16,8 @@
  *
  * @see FeedsNodeProcessor::getMappingTargets().
  */
-function file_feeds_processor_targets_alter(&$targets, $entity_type, $content_type = '') {
-  foreach (field_info_instances($entity_type, $content_type) as $name => $instance) {
+function file_feeds_processor_targets_alter(&$targets, $entity_type, $bundle_name = NULL) {
+  foreach (field_info_instances($entity_type, $bundle_name) as $name => $instance) {
     $info = field_info_field($name);
 
     if (in_array($info['type'], array('file', 'image'))) {
