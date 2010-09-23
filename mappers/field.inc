@@ -15,7 +15,7 @@
  *
  * @see FeedsNodeProcessor::getMappingTargets().
  */
-function field_feeds_processor_targets_alter(&$targets, $entity_type, $bundle_name = NULL) {
+function field_feeds_processor_targets_alter(&$targets, $entity_type, $bundle_name) {
   foreach (field_info_instances($entity_type, $bundle_name) as $name => $instance) {
     $info = field_info_field($name);
     $allowed_types = array(
