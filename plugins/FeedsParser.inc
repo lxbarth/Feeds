@@ -589,19 +589,27 @@ class FeedsDateTime extends DateTime {
    *   PHP DateTimeZone object, NULL allowed
    */
   public function __construct($time = '', $tz = NULL) {
+    // Assume UNIX timestamp if numeric.
     if (is_numeric($time)) {
-      // Assume timestamp.
       $time = "@". $time;
     }
     // PHP < 5.3 doesn't like the GMT- notation for parsing timezones.
     $time = str_replace("GMT-", "-", $time);
     $time = str_replace("GMT+", "+", $time);
-    parent::__construct($time, $tz ? $tz : new DateTimeZone("UTC"));
-    $this->setGranularityFromTime($time, $tz);
+
+    // Create and set time zone separately, PHP 5.2.6 does not respect time zone
+    // argument in __construct().
+    parent::__construct($time);
+    $tz = $tz ? $tz : new DateTimeZone("UTC");
+    $this->setTimeZone($tz);
+
+    // Verify that timezone has not been specified as an offset.
     if (!preg_match('/[a-zA-Z]/', $this->getTimezone()->getName())) {
-      // This tz was given as just an offset, which causes problems
       $this->setTimezone(new DateTimeZone("UTC"));
     }
+
+    // Finally set granularity.
+    $this->setGranularityFromTime($time, $tz);
   }
 
   /**
