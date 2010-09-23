@@ -225,13 +225,16 @@ class FeedsElement {
    * @todo Make value public and deprecate use of getValue().
    *
    * @return
-   *   Standard value of this FeedsElement.
+   *   Value of this FeedsElement represented as a scalar.
    */
   public function getValue() {
     return $this->value;
   }
 
   /**
+   * Magic method __toString() for printing and string conversion of this
+   * object.
+   *
    * @return
    *   A string representation of this element.
    */
@@ -416,20 +419,16 @@ class FeedsDateTimeElement extends FeedsElement {
 
   /**
    * Override FeedsElement::getValue().
+   *
+   * @return
+   *   The UNIX timestamp of this object's start date. Return value is
+   *   technically a string but will only contain numeric values.
    */
   public function getValue() {
-    return $this->start;
-  }
-
-  /**
-   * Implements toString magic php method.
-   */
-  public function __toString() {
-    $val = $this->getValue();
-    if ($val) {
-      return $val->format('U');
+    if ($this->start) {
+      return $this->start->format('U');
     }
-    return '';
+    return '0';
   }
 
   /**
