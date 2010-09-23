@@ -236,11 +236,30 @@ class FeedsNodeProcessor extends FeedsProcessor {
    * Override setTargetElement to operate on a target item that is a node.
    */
   public function setTargetElement($target_node, $target_element, $value) {
-    if (in_array($target_element, array('url', 'guid'))) {
-      $target_node->feeds_node_item->$target_element = $value;
-    }
-    elseif (in_array($target_element, array('title', 'status', 'created', 'nid', 'uid'))) {
-      $target_node->$target_element = $value;
+    switch ($target_element) {
+      case 'url':
+      case 'guid':
+        $target_node->feeds_node_item->$target_element = $value;
+        break;
+      case 'title':
+      case 'status':
+      case 'nid':
+      case 'uid':
+        $target_node->$target_element = $value;
+        break;
+      case 'created':
+        $target_node->created = REQUEST_TIME;
+        if (is_numeric($target_element)) {
+          $target_node->created = $target_element;
+        }
+        elseif (is_string($target_element)) {
+          $target_element = new FeedsDateTimeElement($target_element);
+          $target_node->created = $target_element->getValue();
+        }
+        elseif ($target_element instanceof FeedsDateTimeElement) {
+          $target_node->created = $target_element->getValue();
+        }
+        break;
     }
   }
 
