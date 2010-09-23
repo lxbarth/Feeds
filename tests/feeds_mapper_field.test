@@ -24,10 +24,11 @@ class FeedsMapperFieldTestCase extends FeedsMapperTestCase {
    */
   function setUp() {
     // Call parent setup with required modules.
-    parent::setUp('feeds', 'feeds_ui', 'ctools', 'job_scheduler', 'field_sql_storage', 'field', 'number', 'text');
+    parent::setUp();
 
     // Create user and login.
     $this->drupalLogin($this->drupalCreateUser(array(
+      'access content',
       'administer content types',
       'administer feeds',
       'administer nodes',

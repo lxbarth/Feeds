@@ -26,15 +26,11 @@ class FeedsCSVtoUsersTest extends FeedsWebTestCase {
    * Set up test.
    */
   public function setUp() {
-    parent::setUp('feeds', 'feeds_ui', 'ctools', 'job_scheduler');
-
-    $this->drupalLogin(
-      $this->drupalCreateUser(
-        array(
-          'administer feeds', 'administer users',
-        )
-      )
-    );
+    parent::setUp();
+    $this->drupalLogin($this->drupalCreateUser(array(
+      'administer feeds',
+      'administer users',
+    )));
   }
 
   /**

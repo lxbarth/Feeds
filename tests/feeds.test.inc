@@ -10,10 +10,7 @@
  * Test basic Data API functionality.
  */
 class FeedsWebTestCase extends DrupalWebTestCase {
-  // Force the feeds test profile. This unfortunately an either-or decision:
-  // either Feeds tests run in feeds_test profile or they run in another
-  // profile. Both is not possible. See http://drupal.org/node/911354
-  protected $profile = 'feeds_test';
+  protected $profile = 'testing';
 
   /**
    * This override of setUp requires that modules are passed as an array, also
@@ -31,7 +28,6 @@ class FeedsWebTestCase extends DrupalWebTestCase {
       'job_scheduler',
       'feeds',
       'feeds_ui',
-      // 'feeds_news',
     );
     foreach ($add_modules as $m) {
       $modules[] =  $m;
@@ -84,24 +80,22 @@ class FeedsWebTestCase extends DrupalWebTestCase {
       array(
         'type' => 'page',
         'name' => 'Basic page',
-        'description' => st("Use <em>basic pages</em> for your static content, such as an 'About us' page."),
         'node_options[status]' => 1,
         'node_options[promote]' => 0,
       ),
       array(
         'type' => 'article',
         'name' => 'Article',
-        'description' => st('Use <em>articles</em> for time-sensitive content like news, press releases or blog posts.'),
         'node_options[status]' => 1,
         'node_options[promote]' => 1,
       ),
     );
-
     foreach ($types as $type) {
-      $this->drupalPost('admin/structure/types/add', $type);
-      $this->assertText("The content type " . $type[name] . " has been added.");
+      $this->drupalPost('admin/structure/types/add', $type, 'Save content type');
+      $this->assertText("The content type " . $type['name'] . " has been added.");
     }
-/*
+
+    /*
     // Create a default vocabulary named "Tags", enabled for the 'article' content type.
     $description = st('Use tags to group articles on similar topics into categories.');
     $help = st('Enter a comma-separated list of words to describe your content.');
@@ -221,7 +215,7 @@ class FeedsWebTestCase extends DrupalWebTestCase {
       ),
     );
     field_create_instance($instance);
-*/
+    */
   }
 
   /**

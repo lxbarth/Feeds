@@ -6,9 +6,6 @@
  * Tests for plugins/FeedsTermProcessor.inc
  */
 
-// Require FeedsWebTestCase class definition.
-require_once(dirname(__FILE__) .'/feeds.test.inc');
-
 /**
  * Test aggregating a feed as data records.
  */
@@ -29,15 +26,13 @@ class FeedsCSVtoTermsTest extends FeedsWebTestCase {
    * Set up test.
    */
   public function setUp() {
-    parent::setUp('taxonomy', 'ctools', 'feeds', 'feeds_ui', 'job_scheduler');
+    parent::setUp(array('taxonomy'));
 
-    $this->drupalLogin(
-      $this->drupalCreateUser(
-        array(
-          'administer feeds', 'administer taxonomy',
-        )
-      )
-    );
+    $this->drupalLogin($this->drupalCreateUser(array(
+      'access content',
+      'administer feeds', 
+      'administer taxonomy',
+    )));
   }
 
   /**
