@@ -186,7 +186,7 @@ function my_source_get_source(FeedsSource $source, FeedsParserResult $result, $k
  * @param $bundle_name
  *   The bundle name for which to alter targets.
  */
-function hook_feeds_processor_targets_alter(&$targets, $entity_type, $bundle_name = NULL) {
+function hook_feeds_processor_targets_alter(&$targets, $entity_type, $bundle_name) {
   if ($entity_type == 'node') {
     $targets['my_node_field'] = array(
       'name' => t('My custom node field'),

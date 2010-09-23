@@ -44,7 +44,7 @@ function taxonomy_feeds_get_source(FeedsSource $source, FeedsParserResult $resul
 /**
  * Implements hook_feeds_processor_targets_alter().
  */
-function taxonomy_feeds_processor_targets_alter(&$targets, $entity_type, $bundle_name = NULL) {
+function taxonomy_feeds_processor_targets_alter(&$targets, $entity_type, $bundle_name) {
   foreach (field_info_instances($entity_type, $bundle_name) as $name => $instance) {
     $info = field_info_field($name);
     if ($info['type'] == 'taxonomy_term_reference') {
