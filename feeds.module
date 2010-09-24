@@ -208,6 +208,14 @@ function feeds_menu() {
       );
     }
     $items += $importer->fetcher->menuItem();
+    $items['import/' . $importer->id .'/template'] = array(
+      'page callback' => 'feeds_importer_template',
+      'page arguments' => array(1),
+      'access callback' => 'feeds_access',
+      'access arguments' => array('import', $importer->id),
+      'file' => 'feeds.pages.inc',
+      'type' => MENU_CALLBACK,
+    );
   }
   if (count($items)) {
     $items['import'] = array(
