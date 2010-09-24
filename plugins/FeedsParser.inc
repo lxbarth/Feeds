@@ -584,7 +584,8 @@ class FeedsDateTime extends DateTime {
    * Overridden constructor.
    *
    * @param $time
-   *   time string, flexible format including timestamp.
+   *   time string, flexible format including timestamp. Invalid formats will
+   *   fall back to 'now'.
    * @param $tz
    *   PHP DateTimeZone object, NULL allowed
    */
@@ -593,9 +594,15 @@ class FeedsDateTime extends DateTime {
     if (is_numeric($time)) {
       $time = "@". $time;
     }
+
     // PHP < 5.3 doesn't like the GMT- notation for parsing timezones.
     $time = str_replace("GMT-", "-", $time);
     $time = str_replace("GMT+", "+", $time);
+
+    // Some PHP 5.2 version's DateTime class chokes on invalid dates.
+    if (!strtotime($time)) {
+      $time = 'now';
+    }
 
     // Create and set time zone separately, PHP 5.2.6 does not respect time zone
     // argument in __construct().
