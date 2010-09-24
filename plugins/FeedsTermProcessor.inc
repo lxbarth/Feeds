@@ -31,7 +31,6 @@ class FeedsTermProcessor extends FeedsProcessor {
         $term = new stdClass();
         if ($tid && $this->config['update_existing'] == FEEDS_UPDATE_EXISTING) {
           $term = taxonomy_term_load($tid);
-          $term = module_invoke_all('feeds_taxonomy_load', $term);
         }
         $term->entity_type = 'taxonomy_term';
         $term = $this->map($source, $parser_result, $term);
