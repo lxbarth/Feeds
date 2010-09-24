@@ -32,6 +32,7 @@ function field_feeds_processor_targets_alter(&$targets, $entity_type, $bundle_na
         'name' => $instance['label'],
         'callback' => 'field_feeds_set_target',
         'description' => t('The @label field of the node.', array('@label' => $instance['label'])),
+        'optional_unique' => TRUE,
       );
     }
   }
