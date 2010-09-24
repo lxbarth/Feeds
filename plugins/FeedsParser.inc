@@ -359,7 +359,7 @@ class FeedsEnclosure extends FeedsElement {
     if (empty($this->file) && $this->getValue()) {
 
       // File is in the right place, nothing to do.
-      if (strpos($this->getValue(), $directory) === 0) {
+      if (strpos($this->getValue(), $destination) === 0) {
         $this->file = $this->getValue();
         return $this->file;
       }

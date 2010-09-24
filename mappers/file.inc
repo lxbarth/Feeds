@@ -66,7 +66,7 @@ function file_feeds_set_target($entity, $target, $value) {
   $info = field_info_field($target);
   $bundle_name = $entity->entity_type == 'node' ? $entity->type : $entity->entity_type;
   $instance_info = field_info_instance($entity->entity_type, $target, $bundle_name);
-  $account = $entity->uid ? user_load($entity->uid) : NULL;
+  $account = !empty($entity->uid) ? user_load($entity->uid) : NULL;
   $destination = file_field_widget_uri($info, $instance_info, $account);
 
   // Populate entity.
