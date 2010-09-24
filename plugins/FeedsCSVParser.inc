@@ -31,13 +31,13 @@ class FeedsCSVParser extends FeedsParser {
     $limit = $source->importer->getLimit();
     $rows = $this->parseItems($parser, $iterator, $start, $limit);
 
-     // Report progress.
-     $state->total = filesize($fetcher_result->getFilePath());
-     $state->pointer =
-     $state->progress = $parser->lastLinePos() ? $parser->lastLinePos() : $state->total;
+    // Report progress.
+    $state->total = filesize($fetcher_result->getFilePath());
+    $state->pointer =
+    $state->progress = $parser->lastLinePos() ? $parser->lastLinePos() : $state->total;
 
-     // Create a result object and return it.
-     return new FeedsParserResult($rows, $source->feed_nid);
+    // Create a result object and return it.
+    return new FeedsParserResult($rows, $source->feed_nid);
   }
 
   /**
