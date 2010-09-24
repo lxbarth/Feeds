@@ -249,15 +249,15 @@ class FeedsNodeProcessor extends FeedsProcessor {
         break;
       case 'created':
         $target_node->created = REQUEST_TIME;
-        if (is_numeric($target_element)) {
-          $target_node->created = $target_element;
+        if (is_numeric($value)) {
+          $target_node->created = $value;
         }
-        elseif (is_string($target_element)) {
-          $target_element = new FeedsDateTimeElement($target_element);
-          $target_node->created = $target_element->getValue();
+        elseif (is_string($value)) {
+          $value = new FeedsDateTimeElement($value);
+          $value->created = $value->getValue();
         }
-        elseif ($target_element instanceof FeedsDateTimeElement) {
-          $target_node->created = $target_element->getValue();
+        elseif ($value instanceof FeedsDateTimeElement) {
+          $target_node->created = $value->getValue();
         }
         break;
     }
