@@ -19,6 +19,7 @@ function field_feeds_processor_targets_alter(&$targets, $entity_type, $bundle_na
   foreach (field_info_instances($entity_type, $bundle_name) as $name => $instance) {
     $info = field_info_field($name);
     $allowed_types = array(
+      'list_boolean',
       'number_integer',
       'number_decimal',
       'number_float',
