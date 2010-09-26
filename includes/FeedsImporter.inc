@@ -78,17 +78,16 @@ class FeedsImporter extends FeedsConfigurable {
    */
   public function schedule() {
     $job = array(
-      'callback' => 'feeds_importer_expire',
       'type' => $this->id,
       'period' => 0,
       'periodic' => TRUE,
     );
     if (FEEDS_EXPIRE_NEVER != $this->processor->expiryTime()) {
       $job['period'] = 3600;
-      job_scheduler()->set($job);
+      JobScheduler::get('feeds_importer_expire')->set($job);
     }
     else {
-      job_scheduler()->remove($job);
+      JobScheduler::get('feeds_importer_expire')->remove($job);
     }
   }
 
@@ -152,7 +151,6 @@ class FeedsImporter extends FeedsConfigurable {
       ->condition('id', $this->id)
       ->execute();
     $job = array(
-      'callback' => 'feeds_importer_expire',
       'type' => $this->id,
       'id' => 0,
     );
@@ -160,7 +158,7 @@ class FeedsImporter extends FeedsConfigurable {
       feeds_reschedule($this->id);
     }
     else {
-      job_scheduler()->remove($job);
+      JobScheduler::get('feeds_importer_expire')->remove($job);
     }
   }
 

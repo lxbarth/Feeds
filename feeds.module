@@ -41,9 +41,23 @@ function feeds_cron() {
 }
 
 /**
- * Implements hook_cron_queue_info().
+ * Implements hook_cron_job_scheduler_info().
  *
- * Invoked by drupal_queue module if present.
+ * Compare queue names with key names in feeds_cron_queue_info().
+ */
+function feeds_cron_job_scheduler_info() {
+  $info = array();
+  $info['feeds_source_import'] = array(
+    'queue name' => 'feeds_source_import',
+  );
+  $info['feeds_importer_expire'] = array(
+    'queue name' => 'feeds_importer_expire',
+  );
+  return $info;
+}
+
+/**
+ * Implements hook_cron_queue_info().
  */
 function feeds_cron_queue_info() {
   $queues = array();

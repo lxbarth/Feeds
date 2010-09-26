@@ -316,7 +316,6 @@ class FeedsSource extends FeedsConfigurable {
       $period = $fetcher_period;
     }
     $job = array(
-      'callback' => 'feeds_source_import',
       'type' => $this->id,
       'id' => $this->feed_nid,
       // Schedule as soon as possible if a batch is active.
@@ -324,10 +323,10 @@ class FeedsSource extends FeedsConfigurable {
       'periodic' => TRUE,
     );
     if ($job['period'] != FEEDS_SCHEDULE_NEVER) {
-      job_scheduler()->set($job);
+      JobScheduler::get('feeds_source_import')->set($job);
     }
     else {
-      job_scheduler()->remove($job);
+      JobScheduler::get('feeds_source_import')->remove($job);
     }
   }
 
@@ -400,11 +399,10 @@ class FeedsSource extends FeedsConfigurable {
       ->execute();
     // Remove from schedule.
     $job = array(
-      'callback' => 'feeds_source_import',
       'type' => $this->id,
       'id' => $this->feed_nid,
     );
-    job_scheduler()->remove($job);
+    JobScheduler::get('feeds_source_import')->remove($job);
   }
 
   /**
