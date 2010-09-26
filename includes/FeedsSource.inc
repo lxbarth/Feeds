@@ -296,6 +296,9 @@ class FeedsSource extends FeedsConfigurable {
    */
   public function state(FeedsSourceInterface $client) {
     $class = get_class($client);
+    if (!is_array($this->state)) {
+      $this->state = array();
+    }
     if (!isset($this->state[$class])) {
       $this->state[$class] = new FeedsState();
     }
