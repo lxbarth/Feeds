@@ -27,7 +27,6 @@ class FeedsSchedulerTestCase extends FeedsWebTestCase {
    */
   public function setUp() {
     parent::setUp();
-    $this->loginAdmin();
     $this->createImporterConfiguration();
     $this->addMappings('syndication',
       array(
@@ -140,7 +139,7 @@ class FeedsSchedulerTestCase extends FeedsWebTestCase {
     $this->assertTrue($equal, 'Schedule did not change.');
 
     // Log back in and set refreshing to as often as possible.
-    $this->loginAdmin();
+    $this->drupalLogin($this->admin_user);
     $edit = array(
       'import_period' => 0,
     );
@@ -177,7 +176,7 @@ class FeedsSchedulerTestCase extends FeedsWebTestCase {
     $max_last = db_query("SELECT MAX(last) FROM {job_schedule} WHERE type = 'syndication' AND callback = 'feeds_source_import' AND period = 0")->fetchField();
     $min_last = db_query("SELECT MIN(last) FROM {job_schedule} WHERE type = 'syndication' AND callback = 'feeds_source_import' AND period = 0")->fetchField();
     $this->assertEqual(0, db_query("SELECT COUNT(*) FROM {job_schedule} WHERE type = 'syndication' AND callback = 'feeds_importer_expire' AND last <> 0 AND scheduled = 0")->fetchField());
-    $this->loginAdmin();
+    $this->drupalLogin($this->admin_user);
     $this->setSettings('syndication', 'FeedsNodeProcessor', array('expire' => 86400));
     $this->drupalLogout();
     sleep(1);
@@ -193,7 +192,7 @@ class FeedsSchedulerTestCase extends FeedsWebTestCase {
     $min_last = $new_min_last;
 
     // Set import settings, check rescheduling.
-    $this->loginAdmin();
+    $this->drupalLogin($this->admin_user);
     $this->setSettings('syndication', '', array('import_period' => 3600));
     $this->drupalLogout();
     sleep(1);
@@ -207,7 +206,7 @@ class FeedsSchedulerTestCase extends FeedsWebTestCase {
     $this->assertEqual(1, db_query("SELECT COUNT(*) FROM {job_schedule} WHERE type = 'syndication' AND callback = 'feeds_importer_expire' AND period = 3600 AND last = :last", array(':last' => $new_min_last))->fetchField());
 
     // Delete source, delete importer, check schedule.
-    $this->loginAdmin();
+    $this->drupalLogin($this->admin_user);
     $nid = array_shift($nids);
     $this->drupalPost("node/$nid/delete", array(), t('Delete'));
     $this->assertEqual(0, db_query("SELECT COUNT(*) FROM {job_schedule} WHERE type = 'syndication' AND callback = 'feeds_source_import' AND id = :nid", array(':nid' => $nid))->fetchField());
@@ -257,13 +256,7 @@ class FeedsSchedulerTestCase extends FeedsWebTestCase {
    * Helper, log in as an admin user.
    */
   protected function loginAdmin() {
-    $this->drupalLogin(
-      $this->drupalCreateUser(
-        array(
-          'administer feeds', 'administer nodes',
-        )
-      )
-    );
+    $this->drupalLogin($this->admin_user);
   }
 
   /**
