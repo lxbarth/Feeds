@@ -176,11 +176,6 @@ Name:        feeds_source_class
 Default:     'FeedsSource'
 Description: The class to use for handling feed sources.
 
-Name:        feeds_worker_time
-Default:     15
-Description: Execution time for a queue worker, only effective if used with
-             drupal_queue.
-
 Name:        feeds_data_$importer_id
 Default:     feeds_data_$importer_id
 Description: The table used by FeedsDataProcessor to store feed items. Usually a
