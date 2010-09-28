@@ -122,7 +122,7 @@ class FeedsExamplesUserTestCase extends FeedsWebTestCase {
    * Set up test.
    */
   public function setUp() {
-    parent::setUp('feeds', 'feeds_ui', 'ctools', 'job_scheduler', 'feeds_import');
+    parent::setUp(array('feeds_import'));
 
     $this->drupalLogin(
       $this->drupalCreateUser(
@@ -155,7 +155,7 @@ class FeedsExamplesUserTestCase extends FeedsWebTestCase {
     $this->assertText('Created 4 users.');
     // 1 user has an invalid email address.
     $this->assertText('There was 1 user that could not be imported because either their name or their email was empty or not valid. Check import data and mapping settings on User processor.');
-    $this->drupalGet('admin/user/user');
+    $this->drupalGet('admin/people');
     $this->assertText('Morticia');
     $this->assertText('Fester');
     $this->assertText('Gomez');
