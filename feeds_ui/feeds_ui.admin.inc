@@ -223,7 +223,6 @@ function feeds_ui_create_form_submit($form, &$form_state) {
  * Delete configuration form.
  */
 function feeds_ui_delete_form($form, &$form_state, $importer) {
-  $form['#redirect'] = 'admin/structure/feeds';
   $form['#importer'] = $importer;
   if ($importer->export_type & EXPORT_IN_CODE) {
     $title = t('Would you really like to revert the importer @importer?', array('@importer' => $importer->config['name']));
@@ -233,23 +232,21 @@ function feeds_ui_delete_form($form, &$form_state, $importer) {
     $title = t('Would you really like to delete the importer @importer?', array('@importer' => $importer->config['name']));
     $button_label = t('Delete');
   }
-  return confirm_form($form,
-    $title,
-    $form['#redirect'],
-    t('This action cannot be undone.'),
-    $button_label
-  );
+  return confirm_form($form, $title, 'admin/structure/feeds', t('This action cannot be undone.'), $button_label);
 }
 
 /**
  * Submit handler for feeds_ui_delete_form().
  */
 function feeds_ui_delete_form_submit($form, &$form_state) {
+  $form_state['redirect'] = 'admin/structure/feeds';
+
   // Remove importer.
   $form['#importer']->delete();
 
   // Clear cache, deleting a configuration may have an affect on menu tree.
   feeds_cache_clear();
+
 }
 
 /**
