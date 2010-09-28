@@ -62,11 +62,11 @@ function feeds_cron_queue_info() {
   $queues = array();
   $queues['feeds_source_import'] = array(
     'worker callback' => 'feeds_source_import',
-    'time' => variable_get('feeds_worker_time', 15),
+    'time' => 15,
   );
   $queues['feeds_importer_expire'] = array(
     'worker callback' => 'feeds_importer_expire',
-    'time' => variable_get('feeds_worker_time', 15),
+    'time' => 15,
   );
   return $queues;
 }
