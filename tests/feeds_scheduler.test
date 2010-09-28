@@ -97,7 +97,7 @@ class FeedsSchedulerTestCase extends FeedsWebTestCase {
 
     $schedule = array();
     $count = db_query("SELECT COUNT(*) FROM {job_schedule} WHERE last > :time", array(':time' => $time))->fetchField();
-    $this->assertEqual($count, 10, '10 feeds refreshed on cron.');
+    $this->assertEqual($count, 10, '10 feeds refreshed on cron.'. $count);
     $result = db_query("SELECT * FROM {job_schedule}");
 
     // There should be 100 article nodes in the database.
@@ -263,7 +263,17 @@ class FeedsSchedulerTestCase extends FeedsWebTestCase {
    * Helper, run cron.
    */
   protected function runCron($sleep = 0) {
-    $this->drupalGet($GLOBALS['base_url'] .'/cron.php');
+    $this->cronRun();
     sleep($sleep);
+  }
+
+  /**
+   * Print schedule as notice.
+   */
+  protected function showSchedule() {
+    $jobs = db_query("SELECT * FROM {job_schedule}");
+    foreach ($jobs as $job) {
+      $this->error('<pre>' . print_r($job, true) . '</pre>');
+    }
   }
 }
