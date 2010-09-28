@@ -1,5 +1,4 @@
 core = "7.x"
-dependencies[] = "features"
 dependencies[] = "feeds"
 dependencies[] = "views"
 description = "A news aggregator built with feeds, creates nodes from imported feed items. With OPML import."
