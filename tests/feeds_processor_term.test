@@ -30,7 +30,7 @@ class FeedsCSVtoTermsTest extends FeedsWebTestCase {
 
     $this->drupalLogin($this->drupalCreateUser(array(
       'access content',
-      'administer feeds', 
+      'administer feeds',
       'administer taxonomy',
     )));
   }
