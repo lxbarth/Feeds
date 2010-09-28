@@ -95,19 +95,6 @@ class FeedsSchedulerTestCase extends FeedsWebTestCase {
     $this->runCron();
     $this->runCron();
 
-    $schedule = array();
-    $count = db_query("SELECT COUNT(*) FROM {job_schedule} WHERE last > :time", array(':time' => $time))->fetchField();
-    $this->assertEqual($count, 10, '10 feeds refreshed on cron.'. $count);
-    $result = db_query("SELECT * FROM {job_schedule}");
-
-    // There should be 100 article nodes in the database.
-    $count = db_query("SELECT COUNT(*) FROM {node} WHERE type = 'article'")->fetchField();
-    $this->assertEqual($count, 100, 'There are 100 article nodes aggregated.');
-
-    // Hit twice cron again.
-    $this->runCron();
-    $this->runCron();
-
     // There should be feeds_schedule_num X 2 (= 20) feeds updated now.
     $schedule = array();
     $rows = db_query("SELECT id, last, scheduled FROM {job_schedule} WHERE last > :time", array(':time' => $time));
