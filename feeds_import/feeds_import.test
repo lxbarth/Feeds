@@ -6,9 +6,6 @@
  * Tests for feeds_import feature.
  */
 
-// Require FeedsWebTestCase class definition.
-require_once(dirname(__FILE__) .'/../tests/feeds.test.inc');
-
 /**
  * Test Node import configuration.
  */
