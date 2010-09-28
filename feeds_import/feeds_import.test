@@ -15,15 +15,7 @@ class FeedsExamplesNodeTestCase extends FeedsWebTestCase {
    * Set up test.
    */
   public function setUp() {
-    parent::setUp('feeds', 'feeds_ui', 'ctools', 'job_scheduler', 'feeds_import');
-
-    $this->drupalLogin(
-      $this->drupalCreateUser(
-        array(
-          'administer feeds', 'administer nodes',
-        )
-      )
-    );
+    parent::setUp(array('feeds_import'));
   }
 
   /**
