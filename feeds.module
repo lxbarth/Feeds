@@ -36,7 +36,6 @@ function feeds_cron() {
       }
     }
     feeds_reschedule(FALSE);
-    return;
   }
 }
 
