@@ -76,7 +76,7 @@ class FeedsSchedulerTestCase extends FeedsWebTestCase {
 
     // Check whether feed got properly added to scheduler.
     foreach ($nids as $nid) {
-      $this->assertEqual(1, db_query("SELECT COUNT(*) FROM {job_schedule} WHERE type = 'syndication' AND id = :nid AND callback = 'feeds_source_import' AND last <> 0 AND scheduled = 0 AND period = 1800 AND periodic = 1", array(':nid' => $nid))->fetchField());
+      $this->assertEqual(1, db_query("SELECT COUNT(*) FROM {job_schedule} WHERE type = 'syndication' AND id = :nid AND name = 'feeds_source_import' AND last <> 0 AND scheduled = 0 AND period = 1800 AND periodic = 1", array(':nid' => $nid))->fetchField());
     }
 
     // Take time for comparisons.
@@ -173,18 +173,18 @@ class FeedsSchedulerTestCase extends FeedsWebTestCase {
     $this->assertEqual($count, 200, 'The total of 200 article nodes has not changed.');
 
     // Set expire settings, check rescheduling.
-    $max_last = db_query("SELECT MAX(last) FROM {job_schedule} WHERE type = 'syndication' AND callback = 'feeds_source_import' AND period = 0")->fetchField();
-    $min_last = db_query("SELECT MIN(last) FROM {job_schedule} WHERE type = 'syndication' AND callback = 'feeds_source_import' AND period = 0")->fetchField();
-    $this->assertEqual(0, db_query("SELECT COUNT(*) FROM {job_schedule} WHERE type = 'syndication' AND callback = 'feeds_importer_expire' AND last <> 0 AND scheduled = 0")->fetchField());
+    $max_last = db_query("SELECT MAX(last) FROM {job_schedule} WHERE type = 'syndication' AND name = 'feeds_source_import' AND period = 0")->fetchField();
+    $min_last = db_query("SELECT MIN(last) FROM {job_schedule} WHERE type = 'syndication' AND name = 'feeds_source_import' AND period = 0")->fetchField();
+    $this->assertEqual(0, db_query("SELECT COUNT(*) FROM {job_schedule} WHERE type = 'syndication' AND name = 'feeds_importer_expire' AND last <> 0 AND scheduled = 0")->fetchField());
     $this->drupalLogin($this->admin_user);
     $this->setSettings('syndication', 'FeedsNodeProcessor', array('expire' => 86400));
     $this->drupalLogout();
     sleep(1);
     $this->runCron();
-    // There should be a feeds_importer_expire callback now, and all last fields should be reset.
-    $this->assertEqual(1, db_query("SELECT COUNT(*) FROM {job_schedule} WHERE type = 'syndication' AND callback = 'feeds_importer_expire' AND last <> 0 AND scheduled = 0 AND period = 3600")->fetchField());
-    $new_max_last = db_query("SELECT MAX(last) FROM {job_schedule} WHERE type = 'syndication' AND callback = 'feeds_source_import' AND period = 0")->fetchField();
-    $new_min_last = db_query("SELECT MIN(last) FROM {job_schedule} WHERE type = 'syndication' AND callback = 'feeds_source_import' AND period = 0")->fetchField();
+    // There should be a feeds_importer_expire job now, and all last fields should be reset.
+    $this->assertEqual(1, db_query("SELECT COUNT(*) FROM {job_schedule} WHERE type = 'syndication' AND name = 'feeds_importer_expire' AND last <> 0 AND scheduled = 0 AND period = 3600")->fetchField());
+    $new_max_last = db_query("SELECT MAX(last) FROM {job_schedule} WHERE type = 'syndication' AND name = 'feeds_source_import' AND period = 0")->fetchField();
+    $new_min_last = db_query("SELECT MIN(last) FROM {job_schedule} WHERE type = 'syndication' AND name = 'feeds_source_import' AND period = 0")->fetchField();
     $this->assertNotEqual($new_max_last, $max_last);
     $this->assertNotEqual($new_min_last, $min_last);
     $this->assertEqual($new_max_last, $new_min_last);
@@ -197,25 +197,25 @@ class FeedsSchedulerTestCase extends FeedsWebTestCase {
     $this->drupalLogout();
     sleep(1);
     $this->runCron();
-    $new_max_last = db_query("SELECT MAX(last) FROM {job_schedule} WHERE type = 'syndication' AND callback = 'feeds_source_import' AND period = 3600")->fetchField();
-    $new_min_last = db_query("SELECT MIN(last) FROM {job_schedule} WHERE type = 'syndication' AND callback = 'feeds_source_import' AND period = 3600")->fetchField();
+    $new_max_last = db_query("SELECT MAX(last) FROM {job_schedule} WHERE type = 'syndication' AND name = 'feeds_source_import' AND period = 3600")->fetchField();
+    $new_min_last = db_query("SELECT MIN(last) FROM {job_schedule} WHERE type = 'syndication' AND name = 'feeds_source_import' AND period = 3600")->fetchField();
     $this->assertNotEqual($new_max_last, $max_last);
     $this->assertNotEqual($new_min_last, $min_last);
     $this->assertEqual($new_max_last, $new_min_last);
-    $this->assertEqual(0, db_query("SELECT COUNT(*) FROM {job_schedule} WHERE type = 'syndication' AND callback = 'feeds_source_import' AND period <> 3600")->fetchField());
-    $this->assertEqual(1, db_query("SELECT COUNT(*) FROM {job_schedule} WHERE type = 'syndication' AND callback = 'feeds_importer_expire' AND period = 3600 AND last = :last", array(':last' => $new_min_last))->fetchField());
+    $this->assertEqual(0, db_query("SELECT COUNT(*) FROM {job_schedule} WHERE type = 'syndication' AND name = 'feeds_source_import' AND period <> 3600")->fetchField());
+    $this->assertEqual(1, db_query("SELECT COUNT(*) FROM {job_schedule} WHERE type = 'syndication' AND name = 'feeds_importer_expire' AND period = 3600 AND last = :last", array(':last' => $new_min_last))->fetchField());
 
     // Delete source, delete importer, check schedule.
     $this->drupalLogin($this->admin_user);
     $nid = array_shift($nids);
     $this->drupalPost("node/$nid/delete", array(), t('Delete'));
-    $this->assertEqual(0, db_query("SELECT COUNT(*) FROM {job_schedule} WHERE type = 'syndication' AND callback = 'feeds_source_import' AND id = :nid", array(':nid' => $nid))->fetchField());
-    $this->assertEqual(count($nids), db_query("SELECT COUNT(*) FROM {job_schedule} WHERE type = 'syndication' AND callback = 'feeds_source_import'")->fetchField());
-    $this->assertEqual(1, db_query("SELECT COUNT(*) FROM {job_schedule} WHERE type = 'syndication' AND callback = 'feeds_importer_expire' AND id = 0")->fetchField());
+    $this->assertEqual(0, db_query("SELECT COUNT(*) FROM {job_schedule} WHERE type = 'syndication' AND name = 'feeds_source_import' AND id = :nid", array(':nid' => $nid))->fetchField());
+    $this->assertEqual(count($nids), db_query("SELECT COUNT(*) FROM {job_schedule} WHERE type = 'syndication' AND name = 'feeds_source_import'")->fetchField());
+    $this->assertEqual(1, db_query("SELECT COUNT(*) FROM {job_schedule} WHERE type = 'syndication' AND name = 'feeds_importer_expire' AND id = 0")->fetchField());
 
     $this->drupalPost('admin/structure/feeds/delete/syndication', array(), t('Delete'));
-    $this->assertEqual(0, db_query("SELECT COUNT(*) FROM {job_schedule} WHERE type = 'syndication' AND callback = 'feeds_importer_expire' AND id = 0")->fetchField());
-    $this->assertEqual(count($nids), db_query("SELECT COUNT(*) FROM {job_schedule} WHERE type = 'syndication' AND callback = 'feeds_source_import'")->fetchField());
+    $this->assertEqual(0, db_query("SELECT COUNT(*) FROM {job_schedule} WHERE type = 'syndication' AND name = 'feeds_importer_expire' AND id = 0")->fetchField());
+    $this->assertEqual(count($nids), db_query("SELECT COUNT(*) FROM {job_schedule} WHERE type = 'syndication' AND name = 'feeds_source_import'")->fetchField());
   }
 
   /**
