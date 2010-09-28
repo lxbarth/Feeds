@@ -7,7 +7,7 @@
  */
 
 /**
- * Implements hook_feeds_node_processor_targets_alter().
+ * Implements hook_feeds_processor_targets_alter().
  *
  * @see FeedsNodeProcessor::getMappingTargets().
  *
@@ -47,7 +47,7 @@ function date_feeds_processor_targets_alter(&$targets, $entity_type, $bundle_nam
  *
  * @todo Support array of values for dates.
  */
-function date_feeds_set_target($node, $target, $feed_element) {
+function date_feeds_set_target($entity, $target, $feed_element) {
   list($field_name, $sub_field) = split(':', $target);
   if (!($feed_element instanceof FeedsDateTimeElement)) {
     if (is_array($feed_element)) {
@@ -60,5 +60,6 @@ function date_feeds_set_target($node, $target, $feed_element) {
       $feed_element = new FeedsDateTimeElement($feed_element, NULL);
     }
   }
-  $feed_element->buildDateField($node, $field_name);
+  $feed_element->buildDateField($entity, $field_name);
+
 }

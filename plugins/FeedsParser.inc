@@ -465,36 +465,36 @@ class FeedsDateTimeElement extends FeedsElement {
    * Helper method for buildDateField(). Build a FeedsDateTimeElement object
    * from a standard formatted node.
    */
-  protected static function readDateField($node, $field_name) {
-    $field = content_fields($field_name);
+  protected static function readDateField($entity, $field_name) {
     $ret = new FeedsDateTimeElement();
-    if (isset($node->{$field_name}[0]['date']) && $node->{$field_name}[0]['date'] instanceof FeedsDateTime) {
-      $ret->start = $node->{$field_name}[0]['date'];
+    if (isset($entity->{$field_name}['und'][0]['date']) && $entity->{$field_name}['und'][0]['date'] instanceof FeedsDateTime) {
+      $ret->start = $entity->{$field_name}['und'][0]['date'];
     }
-    if (isset($node->{$field_name}[0]['date2']) && $node->{$field_name}[0]['date2'] instanceof FeedsDateTime) {
-      $ret->end = $node->{$field_name}[0]['date2'];
+    if (isset($entity->{$field_name}['und'][0]['date2']) && $entity->{$field_name}['und'][0]['date2'] instanceof FeedsDateTime) {
+      $ret->end = $entity->{$field_name}['und'][0]['date2'];
     }
     return $ret;
   }
 
   /**
-   * Build a node's date CCK field from our object.
+   * Build a entity's date field from our object.
    *
-   * @param $node
-   *   The node to build the date field on.
+   * @param $entity
+   *   The entity to build the date field on.
    * @param $field_name
    *   The name of the field to build.
    */
-  public function buildDateField($node, $field_name) {
-    $field = content_fields($field_name);
-    $oldfield = FeedsDateTimeElement::readDateField($node, $field_name);
+  public function buildDateField($entity, $field_name) {
+    $info = field_info_field($field_name);
+
+    $oldfield = FeedsDateTimeElement::readDateField($entity, $field_name);
     // Merge with any preexisting objects on the field; we take precedence.
     $oldfield = $this->merge($oldfield);
     $use_start = $oldfield->start;
     $use_end = $oldfield->end;
 
     // Set timezone if not already in the FeedsDateTime object
-    $to_tz = date_get_timezone($field['tz_handling'], date_default_timezone_name());
+    $to_tz = date_get_timezone($info['settings']['tz_handling'], date_default_timezone());
     $temp = new FeedsDateTime(NULL, new DateTimeZone($to_tz));
 
     $db_tz = '';
@@ -503,7 +503,7 @@ class FeedsDateTimeElement extends FeedsElement {
       if (!date_timezone_is_valid($use_start->getTimezone()->getName())) {
         $use_start->setTimezone(new DateTimeZone("UTC"));
       }
-      $db_tz = date_get_timezone_db($field['tz_handling'], $use_start->getTimezone()->getName());
+      $db_tz = date_get_timezone_db($info['setting']['tz_handling'], $use_start->getTimezone()->getName());
     }
     if ($use_end) {
       $use_end = $use_end->merge($temp);
@@ -511,7 +511,7 @@ class FeedsDateTimeElement extends FeedsElement {
         $use_end->setTimezone(new DateTimeZone("UTC"));
       }
       if (!$db_tz) {
-        $db_tz = date_get_timezone_db($field['tz_handling'], $use_end->getTimezone()->getName());
+        $db_tz = date_get_timezone_db($info['settings']['tz_handling'], $use_end->getTimezone()->getName());
       }
     }
     if (!$db_tz) {
@@ -519,28 +519,28 @@ class FeedsDateTimeElement extends FeedsElement {
     }
 
     $db_tz = new DateTimeZone($db_tz);
-    if (!isset($node->{$field_name})) {
-      $node->{$field_name} = array();
+    if (!isset($entity->{$field_name})) {
+      $entity->{$field_name} = array('und' => array());
     }
     if ($use_start) {
-      $node->{$field_name}[0]['timezone'] = $use_start->getTimezone()->getName();
-      $node->{$field_name}[0]['offset'] = $use_start->getOffset();
+      $entity->{$field_name}['und'][0]['timezone'] = $use_start->getTimezone()->getName();
+      $entity->{$field_name}['und'][0]['offset'] = $use_start->getOffset();
       $use_start->setTimezone($db_tz);
-      $node->{$field_name}[0]['date'] = $use_start;
+      $entity->{$field_name}['und'][0]['date'] = $use_start;
       /**
        * @todo the date_type_format line could be simplified based upon a patch
        *   DO issue #259308 could affect this, follow up on at some point.
        *   Without this, all granularity info is lost.
        *   $use_start->format(date_type_format($field['type'], $use_start->granularity));
        */
-      $node->{$field_name}[0]['value'] = $use_start->format(date_type_format($field['type']));
+      $entity->{$field_name}['und'][0]['value'] = $use_start->format(date_type_format($info['type']));
     }
     if ($use_end) {
       // Don't ever use end to set timezone (for now)
-      $node->{$field_name}[0]['offset2'] = $use_end->getOffset();
+      $entity->{$field_name}['und'][0]['offset2'] = $use_end->getOffset();
       $use_end->setTimezone($db_tz);
-      $node->{$field_name}[0]['date2'] = $use_end;
-      $node->{$field_name}[0]['value2'] = $use_end->format(date_type_format($field['type']));
+      $entity->{$field_name}['und'][0]['date2'] = $use_end;
+      $entity->{$field_name}['und'][0]['value2'] = $use_end->format(date_type_format($info['type']));
     }
   }
 }
