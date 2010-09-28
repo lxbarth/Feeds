@@ -137,7 +137,7 @@ abstract class FeedsConfigurable {
     if ($name == 'config') {
       return $this->getConfig();
     }
-    return $this->$name;
+    return isset($this->$name) ? $this->$name : NULL;
   }
 
   /**
