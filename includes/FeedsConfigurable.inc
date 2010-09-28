@@ -124,7 +124,7 @@ abstract class FeedsConfigurable {
    *   returned by configDefaults().
    */
   public function addConfig($config) {
-    $this->config = array_merge($this->config, $config);
+    $this->config = is_array($this->config) ? array_merge($this->config, $config) : $config;
     $default_keys = $this->configDefaults();
     $this->config = array_intersect_key($this->config, $default_keys);
   }

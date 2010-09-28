@@ -3,6 +3,7 @@
 Feeds 7.x XXXXXXXXXXXXXXXXXXXXXX
 --------------------------------
 
+- #625196 mstrelan, alex_b: Fix array_merge(), array_intersect_key() warnings.
 - Remove hidden setting feeds_worker_time. Use hook_cron_queue_info_alter() to
   modify this setting.
 - Expand batch support to fetchers and parsers.
