@@ -14,6 +14,8 @@
  * Feeds at some time.
  */
 class FeedsDateTimeTest extends DrupalWebTestCase  {
+  protected $profile = 'testing';
+
   /**
    * Describe this test.
    */
@@ -30,9 +32,6 @@ class FeedsDateTimeTest extends DrupalWebTestCase  {
    */
   public function setUp() {
     parent::setUp('feeds', 'feeds_ui', 'ctools', 'job_scheduler');
-    // Trick feeds into loading the FeedsParser class file.
-    // @todo: break out FeedsElement and children into its own include file.
-    feeds_plugin_instance('FeedsCSVParser', 'test');
   }
 
   /**
