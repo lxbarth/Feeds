@@ -1,6 +1,6 @@
 // $Id: CHANGELOG.txt,v 1.174 2010/09/16 22:18:29 alexb Exp $
 
-Feeds 7.x XXXXXXXXXXXXXXXXXXXXXX
+Feeds 7.x 2.0 Alpha 1, 2010-09-29
 --------------------------------
 
 - #925842 alex_b: Support batching through directories on disk.
