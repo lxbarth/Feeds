@@ -1,5 +1,5 @@
 <?php
-// $Id: FeedsParser.inc,v 1.24 2010/09/20 15:41:03 alexb Exp $
+// $Id: FeedsParser.inc,v 1.25.2.1 2010/09/29 23:56:10 alexb Exp $
 
 /**
  * A result of a parsing stage.

@@ -1,5 +1,5 @@
 <?php
-// $Id: feeds.test.inc,v 1.18 2010/09/17 23:58:18 alexb Exp $
+// $Id: feeds.test.inc,v 1.19.2.1 2010/09/29 23:56:10 alexb Exp $
 
 /**
  * @file

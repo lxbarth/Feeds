@@ -1,5 +1,5 @@
 <?php
-// $Id: feeds.api.php,v 1.16 2010/09/15 18:28:33 alexb Exp $
+// $Id: feeds.api.php,v 1.17.2.1 2010/09/29 23:56:09 alexb Exp $
 
 /**
  * @mainpage

@@ -1,5 +1,5 @@
 <?php
-// $Id: FeedsFetcher.inc,v 1.7 2010/09/15 19:40:57 alexb Exp $
+// $Id: FeedsFetcher.inc,v 1.7.4.1 2010/09/29 23:56:10 alexb Exp $
 
 /**
  * Base class for all fetcher results.

@@ -1,4 +1,4 @@
-$Id: README.txt,v 1.35 2010/09/18 00:40:43 alexb Exp $
+$Id: README.txt,v 1.35.2.1 2010/09/29 23:56:09 alexb Exp $
 
 
 "It feeds"
