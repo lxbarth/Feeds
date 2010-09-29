@@ -330,9 +330,9 @@ class FeedsWebTestCase extends DrupalWebTestCase {
     $this->assertEqual($config['FeedsHTTPFetcher']['source'], $feed_url, t('URL in DB correct.'));
 
     // Check whether feed got properly added to scheduler.
-    $this->assertEqual(1, db_query("SELECT COUNT(*) FROM {job_schedule} WHERE type = :id AND id = 0 AND callback = 'feeds_source_import' AND last <> 0 AND scheduled = 0", array(':id' => $id))->fetchField());
+    $this->assertEqual(1, db_query("SELECT COUNT(*) FROM {job_schedule} WHERE type = :id AND id = 0 AND name = 'feeds_source_import' AND last <> 0 AND scheduled = 0", array(':id' => $id))->fetchField());
     // There must be only one entry for callback 'expire' - no matter what the feed_nid is.
-    $this->assertEqual(0, db_query("SELECT COUNT(*) FROM {job_schedule} WHERE type = :id AND callback = 'feeds_importer_expire' AND last <> 0 AND scheduled = 0", array(':id' => $id))->fetchField());
+    $this->assertEqual(0, db_query("SELECT COUNT(*) FROM {job_schedule} WHERE type = :id AND name = 'feeds_importer_expire' AND last <> 0 AND scheduled = 0", array(':id' => $id))->fetchField());
   }
 
   /**
