@@ -66,7 +66,7 @@ class FeedsExamplesNodeTestCase extends FeedsWebTestCase {
       $count = db_query("SELECT COUNT(*) FROM {node} WHERE type = 'article' AND status = 1 AND uid = 0")->fetchField();
       $this->assertEqual($count, 8, 'Found correct number of items.');
       // Do not filter on type intentionally. There shouldn't be more than 8 nodes total.
-      $count = db_query("SELECT COUNT(*) FROM {node_revisions}")->fetchField();
+      $count = db_query("SELECT COUNT(*) FROM {node_revision}")->fetchField();
       $this->assertEqual($count, 8, 'Found correct number of items.');
 
       // Import again. Feeds only updates items that haven't changed. However,
