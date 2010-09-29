@@ -354,8 +354,7 @@ class FeedsNodeProcessor extends FeedsProcessor {
         $node = node_load($nid, NULL, TRUE);
       }
       else {
-        $node->nid = $nid;
-        $node->vid = db_query("SELECT vid FROM {node} WHERE nid = :nid", array(':nid' => $nid))->fetchField();
+        $node = db_query("SELECT nid, vid, created FROM {node} WHERE nid = :nid", array(':nid' => $nid))->fetch();
         $populate = TRUE;
       }
     }
