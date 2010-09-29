@@ -197,6 +197,8 @@ class FeedsSource extends FeedsConfigurable {
       // Fetch.
       if (empty($this->fetcher_result) || FEEDS_BATCH_COMPLETE == $this->progressParsing()) {
         $this->fetcher_result = $this->importer->fetcher->fetch($this);
+        // Clean the parser's state, we are parsing an entirely new file.
+        unset($this->state[get_class($this->importer->parser)]);
       }
 
       // Parse.

@@ -47,7 +47,51 @@ class FeedsFileFetcher extends FeedsFetcher {
    */
   public function fetch(FeedsSource $source) {
     $source_config = $source->getConfigFor($this);
-    return new FeedsFileFetcherResult($source_config['source']);
+
+    // Just return a file fetcher result if this is a file.
+    if (is_file($source_config['source'])) {
+      return new FeedsFileFetcherResult($source_config['source']);
+    }
+
+    // Batch if this is a directory.
+    $state = $source->state($this);
+    $files = array();
+    if (!isset($state->files)) {
+      $state->files = $this->listFiles($source_config['source']);
+      $state->progress =
+      $state->total = count($state->files);
+    }
+    if (count($state->files)) {
+      $file = array_shift($state->files);
+      // When progress == total, file fetcher will not be called again.
+      $state->progress = $state->total - count($state->files);
+      return new FeedsFileFetcherResult($file);
+    }
+
+    throw new Exception(t('Resource is not a file or it is an empty directory: %source', array('%source' => $source_config['source'])));
+  }
+
+  /**
+   * Return an array of files in a directory.
+   *
+   * @param $dir
+   *   A stream wreapper URI that is a directory.
+   *
+   * @return
+   *   An array of stream wrapper URIs pointing to files. The array is empty
+   *   if no files could be found. Never contains directories.
+   */
+  protected function listFiles($dir) {
+    $dir = file_stream_wrapper_uri_normalize($dir);
+    $files = array();
+    if ($items = scandir($dir)) {
+      foreach ($items as $item) {
+        if (is_file("$dir/$item")) {
+          $files[] = "$dir/$item";
+        }
+      }
+    }
+    return $files;
   }
 
   /**
@@ -62,7 +106,7 @@ class FeedsFileFetcher extends FeedsFetcher {
     $form['source'] = array(
       '#type' => empty($this->config['direct']) ? 'value' : 'textfield',
       '#title' => t('File'),
-      '#description' => t('Specify a file in the site\'s file system path or upload a file below.'),
+      '#description' => t('Specify a path to a file or a directory starting with @scheme://. Alternatively upload a file below.', array('@scheme' => file_default_scheme())),
       '#default_value' => empty($source_config['source']) ? '' : $source_config['source'],
     );
     $form['upload'] = array(
@@ -95,9 +139,9 @@ class FeedsFileFetcher extends FeedsFetcher {
     }
     // If a file has not been uploaded and $values['source'] is not empty, make
     // sure that this file is within Drupal's files directory as otherwise
-    // potentially any file that the web server has access could be exposed.
-    elseif (strpos($values['source'], 'public://') !== 0) {
-      form_set_error('feeds][source', t('File needs to reside within the site\'s file directory, its path needs to start with public://.'));
+    // potentially any file that the web server has access to could be exposed.
+    elseif (strpos($values['source'], file_default_scheme()) !== 0) {
+      form_set_error('feeds][source', t('File needs to reside within the site\'s file directory, its path needs to start with @scheme://.', array('@scheme' => file_default_scheme())));
     }
   }
 
@@ -158,7 +202,7 @@ class FeedsFileFetcher extends FeedsFetcher {
     $form['direct'] = array(
       '#type' =>'checkbox',
       '#title' => t('Supply path to file directly'),
-      '#description' => t('For experts. If checked users can specify a path to a file when importing rather than uploading a file. This is useful when files to be imported are already present on server.'),
+      '#description' => t('For experts. Lets users specify a path to a file or a directory of files directly. This is useful when the files that need to be imported are already on the server.'),
       '#default_value' => $this->config['direct'],
     );
     return $form;
