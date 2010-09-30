@@ -1,5 +1,5 @@
 <?php
-// $Id: FeedsImporter.inc,v 1.31.2.2 2010/09/30 17:45:47 alexb Exp $
+// $Id: FeedsImporter.inc,v 1.31.2.3 2010/09/30 19:16:28 alexb Exp $
 
 /**
  * @file
@@ -208,7 +208,7 @@ class FeedsImporter extends FeedsConfigurable {
     foreach (array('fetcher', 'parser', 'processor') as $type) {
       $this->config[$type]['config'] = $this->$type->getConfig();
     }
-    return $this->config;// Collect information from plugins.
+    return parent::getConfig();
   }
 
   /**
@@ -239,44 +239,51 @@ class FeedsImporter extends FeedsConfigurable {
    * Override parent::configForm().
    */
   public function configForm(&$form_state) {
+    $config = $this->getConfig();
     $form = array();
     $form['name'] = array(
       '#type' => 'textfield',
       '#title' => t('Name'),
-      '#description' => t('The name of this configuration.'),
-      '#default_value' => $this->config['name'],
+      '#description' => t('A human readable name of this importer.'),
+      '#default_value' => $config['name'],
       '#required' => TRUE,
     );
     $form['description'] = array(
       '#type' => 'textfield',
       '#title' => t('Description'),
-      '#description' => t('A description of this configuration.'),
-      '#default_value' => $this->config['description'],
+      '#description' => t('A description of this importer.'),
+      '#default_value' => $config['description'],
     );
     $node_types = node_type_get_names();
     array_walk($node_types, 'check_plain');
     $form['content_type'] = array(
       '#type' => 'select',
       '#title' => t('Attach to content type'),
-      '#description' => t('If an importer is attached to a content type, content is imported by creating a node. If the standalone form is selected, content is imported by using the standalone form under http://example.com/import.'),
+      '#description' => t('If "Use standalone form" is selected a source is imported by using a form under !import_form.
+                           If a content type is selected a source is imported by creating a node of that content type.',
+                           array('!import_form' => l(url('import', array('absolute' => TRUE)), 'import', array('attributes' => array('target' => '_new'))))),
       '#options' => array('' => t('Use standalone form')) + $node_types,
-      '#default_value' => $this->config['content_type'],
+      '#default_value' => $config['content_type'],
     );
+    $cron_required =  ' ' . l(t('Requires cron to be configured.'), 'http://drupal.org/cron', array('attributes' => array('target' => '_new')));
     $period = drupal_map_assoc(array(0, 900, 1800, 3600, 10800, 21600, 43200, 86400, 259200, 604800, 2419200), 'format_interval');
-    $period[FEEDS_SCHEDULE_NEVER] = t('Never');
+    foreach ($period as &$p) {
+      $p = t('Every !p', array('!p' => $p));
+    }
+    $period[FEEDS_SCHEDULE_NEVER] = t('off');
     $period[0] = t('As often as possible');
     $form['import_period'] = array(
       '#type' => 'select',
-      '#title' => t('Minimum refresh period'),
+      '#title' => t('Periodic import'),
       '#options' => $period,
-      '#description' => t('This is the minimum time that must elapse before a feed may be refreshed automatically.'),
-      '#default_value' => $this->config['import_period'],
+      '#description' => t('Choose how often a source should be imported periodically.') . $cron_required,
+      '#default_value' => $config['import_period'],
     );
     $form['import_on_create'] = array(
       '#type' => 'checkbox',
       '#title' => t('Import on submission'),
-      '#description' => t('Check if content should be imported at the moment of feed submission.'),
-      '#default_value' => $this->config['import_on_create'],
+      '#description' => t('Check if import should be started at the moment of standalone form or node form submission.'),
+      '#default_value' => $config['import_on_create'],
     );
     return $form;
   }

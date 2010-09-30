@@ -1,5 +1,5 @@
 <?php
-// $Id: feeds_scheduler.test,v 1.6.2.2 2010/09/30 17:45:48 alexb Exp $
+// $Id: feeds_scheduler.test,v 1.6.2.3 2010/09/30 19:16:28 alexb Exp $
 
 /**
  * @file
@@ -126,7 +126,7 @@ class FeedsSchedulerTestCase extends FeedsWebTestCase {
       'import_period' => 0,
     );
     $this->drupalPost('admin/structure/feeds/edit/syndication/settings', $edit, 'Save');
-    $this->assertText('Refresh: as often as possible');
+    $this->assertText('Periodic import: as often as possible');
     $this->drupalLogout();
 
     // Hit cron once, this should cause Feeds to reschedule all entries.

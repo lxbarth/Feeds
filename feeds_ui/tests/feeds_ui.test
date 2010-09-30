@@ -1,5 +1,5 @@
 <?php
-// $Id: feeds_ui.test,v 1.9 2010/09/18 01:44:47 alexb Exp $
+// $Id: feeds_ui.test,v 1.9.2.1 2010/09/30 19:16:27 alexb Exp $
 
 /**
  * @file
@@ -115,7 +115,7 @@ class FeedsUIUserInterfaceTestCase extends FeedsWebTestCase {
     // Assert results of change.
     $this->assertText('Edit importer: Syndication');
     $this->assertText('Attached to: Page');
-    $this->assertText('Refresh: every 1 hour');
+    $this->assertText('Periodic import: every 1 hour');
     $this->drupalGet('admin/structure/feeds');
     $this->assertLink('Page'); // See whether string 'Page' shows up in table.
 

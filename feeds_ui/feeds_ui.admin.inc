@@ -1,5 +1,5 @@
 <?php
-// $Id: feeds_ui.admin.inc,v 1.60.2.2 2010/09/30 17:45:47 alexb Exp $
+// $Id: feeds_ui.admin.inc,v 1.60.2.3 2010/09/30 19:16:27 alexb Exp $
 
 /**
  * @file
@@ -26,7 +26,7 @@ function feeds_ui_edit_help() {
     In Basic settings, you can <strong>attach an importer configuration to a content type</strong>. This is useful when many imports of a kind should be created, for example in an RSS aggregation scenario. If you don\'t attach a configuration to a content type, you can use it on the !import page.
     </li>
     <li>
-    Imports can be <strong>refreshed periodically</strong> - see the minimum refresh period in the Basic settings.
+    Imports can be <strong>scheduled periodically</strong> - see the periodic import select box in the Basic settings.
     </li>
     <li>
     Processors can have <strong>mappings</strong> in addition to settings. Mappings allow you to define what elements of a data feed should be mapped to what content fields on a granular level. For instance, you can specify that a feed item\'s author should be mapped to a node\'s body.
@@ -319,7 +319,7 @@ function feeds_ui_edit_page($importer, $active = 'help', $plugin_key = '') {
   $items = array();
   $items[] = t('Attached to: @type', array('@type' => $importer->config['content_type'] ? node_type_get_name($importer->config['content_type']) : t('[none]')));
   if ($importer->config['import_period'] == FEEDS_SCHEDULE_NEVER) {
-    $import_period = t('never');
+    $import_period = t('off');
   }
   elseif ($importer->config['import_period'] == 0) {
     $import_period = t('as often as possible');
@@ -327,7 +327,7 @@ function feeds_ui_edit_page($importer, $active = 'help', $plugin_key = '') {
   else {
     $import_period = t('every !interval', array('!interval' => format_interval($importer->config['import_period'])));
   }
-  $items[] = t('Refresh: !import_period', array('!import_period' => $import_period));
+  $items[] = t('Periodic import: !import_period', array('!import_period' => $import_period));
   $items[] = $importer->config['import_on_create'] ? t('Import on submission') : t('Do not import on submission');
 
   $info['title'] = t('Basic settings');
