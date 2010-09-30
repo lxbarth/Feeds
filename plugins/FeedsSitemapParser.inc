@@ -1,12 +1,12 @@
 <?php
-// $Id: FeedsSitemapParser.inc,v 1.4 2010/09/17 17:25:19 alexb Exp $
+// $Id: FeedsSitemapParser.inc,v 1.3 2010/09/07 17:29:36 alexb Exp $
 
 /**
  * A parser for the Sitemap specification http://www.sitemaps.org/protocol.php
  */
 class FeedsSitemapParser extends FeedsParser {
   /**
-   * Implements FeedsParser::parse().
+   * Implementation of FeedsParser::parse().
    */
   public function parse(FeedsImportBatch $batch, FeedsSource $source) {
     // Set time zone to GMT for parsing dates with strtotime().
@@ -31,7 +31,7 @@ class FeedsSitemapParser extends FeedsParser {
   }
 
   /**
-   * Implements FeedsParser::getMappingSources().
+   * Implementation of FeedsParser::getMappingSources().
    */
   public function getMappingSources() {
     return array(

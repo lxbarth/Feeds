@@ -1,5 +1,5 @@
 <?php
-// $Id: feeds_processor_term.test,v 1.4 2010/09/17 23:58:18 alexb Exp $
+// $Id: feeds_processor_term.test,v 1.3 2010/09/15 19:27:42 alexb Exp $
 
 /**
  * @file
@@ -65,7 +65,7 @@ class FeedsCSVtoTermsTest extends FeedsWebTestCase {
     $edit = array(
       'content_type' => '',
     );
-    $this->drupalPost('admin/structure/feeds/edit/term_import/settings', $edit, 'Save');
+    $this->drupalPost('admin/build/feeds/edit/term_import/settings', $edit, 'Save');
 
     $edit = array(
       'name' => 'Addams vocabulary',
@@ -75,7 +75,7 @@ class FeedsCSVtoTermsTest extends FeedsWebTestCase {
     $edit = array(
       'vocabulary' => 1,
     );
-    $this->drupalPost('admin/structure/feeds/edit/term_import/settings/FeedsTermProcessor', $edit, t('Save'));
+    $this->drupalPost('admin/build/feeds/edit/term_import/settings/FeedsTermProcessor', $edit, t('Save'));
 
     // Import and assert.
     $this->importFile('term_import', $this->absolutePath() .'/tests/feeds/users.csv');

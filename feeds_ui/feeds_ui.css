@@ -1,4 +1,4 @@
-/* $Id: feeds_ui.css,v 1.8 2010/09/18 01:44:46 alexb Exp $ */
+/* $Id: feeds_ui.css,v 1.6 2010/07/10 23:30:19 alexb Exp $ */
 
 /* Feeds admin overview form. */
 table.feeds-admin-importers thead th {
@@ -49,8 +49,6 @@ div.feeds-container.plain {
   }
   div.feeds-container.plain h4 {
     font-size: 1.0em;
-    margin: 0;
-    padding: 0;
     }
   div.feeds-container-body p {
     padding: 5px 0;
@@ -60,7 +58,6 @@ div.feeds-container.plain {
     margin: 0;
     }
     div.feeds-container-body div.item-list ul li {
-      list-style-type: none;
       margin: 0;
       padding: 0;
       background-image: none;
@@ -71,7 +68,6 @@ div.feeds-container.plain {
     margin: 0;
     }
     ul.container-actions li {
-      list-style-type: none;
       text-align: right;
       background-image: none;
       margin: 0;

@@ -1,5 +1,5 @@
 <?php
-// $Id: feeds_processor_user.test,v 1.4 2010/09/17 23:58:18 alexb Exp $
+// $Id: feeds_processor_user.test,v 1.2 2010/09/15 19:27:42 alexb Exp $
 
 /**
  * @file
@@ -77,7 +77,7 @@ class FeedsCSVtoUsersTest extends FeedsWebTestCase {
     $edit = array(
       'content_type' => '',
     );
-    $this->drupalPost('admin/structure/feeds/edit/user_import/settings', $edit, 'Save');
+    $this->drupalPost('admin/build/feeds/edit/user_import/settings', $edit, 'Save');
 
     // Create roles and assign one of them to the users to be imported.
     $manager_rid = $this->drupalCreateRole(array('access content'), 'manager');
@@ -101,9 +101,9 @@ class FeedsCSVtoUsersTest extends FeedsWebTestCase {
     $this->assertText('Fester');
     $this->assertText('Gomez');
     $this->assertText('Pugsley');
-    $count = db_query("SELECT count(*) FROM {users_roles} WHERE rid = :rid", array(':rid' => $manager_rid))->fetchField();
+    $count = db_result(db_query("SELECT count(*) FROM {users_roles} WHERE rid = %d", $manager_rid));
     $this->assertEqual($count, 4, t('All imported users were assigned the manager role.'));
-    $count = db_query("SELECT count(*) FROM {users_roles} WHERE rid = :rid", array(':rid' => $admin_rid))->fetchField();
+    $count = db_result(db_query("SELECT count(*) FROM {users_roles} WHERE rid = %d", $admin_rid));
     $this->assertEqual($count, 0, t('No imported user was assigned the administrator role.'));
 
     // @todo Test status setting, update existing and role settings.

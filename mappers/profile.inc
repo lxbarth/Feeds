@@ -1,5 +1,5 @@
 <?php
-// $Id: profile.inc,v 1.2 2010/09/17 17:25:19 alexb Exp $
+// $Id: profile.inc,v 1.1 2010/06/19 15:32:07 alexb Exp $
 
 /**
  * @file
@@ -7,7 +7,7 @@
  */
 
 /**
- * Implements feeds_user_processor_target_alter().
+ * Implementation of feeds_user_processor_target_alter().
  */
 function profile_feeds_user_processor_targets_alter(&$targets) {
   if (module_exists('profile')) {

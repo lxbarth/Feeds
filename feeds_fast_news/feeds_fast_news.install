@@ -1,5 +1,5 @@
 <?php
-// $Id: feeds_fast_news.install,v 1.1 2010/07/27 23:01:25 alexb Exp $
+// $Id: feeds_fast_news.install,v 1.1.2.1 2010/09/17 12:09:53 alexb Exp $
 
 /**
  * @file
@@ -41,6 +41,6 @@ function feeds_fast_news_install() {
 /**
  * Implementation of hook_uninstall();
  */
-function feeds_defaults_uninstall() {
+function feeds_fast_news_uninstall() {
   drupal_uninstall_schema('feeds_fast_news');
 }

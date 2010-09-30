@@ -1,5 +1,5 @@
 <?php
-// $Id: FeedsFeedNodeProcessor.inc,v 1.19 2010/09/17 21:00:47 alexb Exp $
+// $Id: FeedsFeedNodeProcessor.inc,v 1.15 2010/09/07 17:29:36 alexb Exp $
 
 /**
  * @file
@@ -13,7 +13,7 @@
 class FeedsFeedNodeProcessor extends FeedsProcessor {
 
   /**
-   * Implements FeedsProcessor::process().
+   * Implementation of FeedsProcessor::process().
    */
   public function process(FeedsImportBatch $batch, FeedsSource $source) {
     while ($item = $batch->shiftItem()) {
@@ -28,7 +28,7 @@ class FeedsFeedNodeProcessor extends FeedsProcessor {
         // If updating populate nid and vid avoiding an expensive node_load().
         if (!empty($nid)) {
           $node->nid = $nid;
-          $node->vid = db_query("SELECT vid FROM {node} WHERE nid = :nid", array(':nid' => $nid))->fetchField();
+          $node->vid = db_result(db_query("SELECT vid FROM {node} WHERE nid = %d", $nid));
         }
 
         // Save the node.
@@ -56,7 +56,7 @@ class FeedsFeedNodeProcessor extends FeedsProcessor {
   }
 
   /**
-   * Implements FeedsProcessor::clear().
+   * Implementation of FeedsProcessor::clear().
    */
   public function clear(FeedsBatch $batch, FeedsSource $source) {
     // Do not support deleting imported items as we would have to delete all
@@ -116,7 +116,7 @@ class FeedsFeedNodeProcessor extends FeedsProcessor {
     $types = array();
     foreach ($feeds as $feed) {
       if ($feed->id != $this->id && !empty($feed->config['content_type'])) {
-        $types[$feed->config['content_type']] = check_plain(node_type_get_name($feed->config['content_type']));
+        $types[$feed->config['content_type']] = node_get_types('name', $feed->config['content_type']);
       }
     }
     if (empty($types)) {
@@ -151,7 +151,7 @@ class FeedsFeedNodeProcessor extends FeedsProcessor {
   public function setTargetElement($target_node, $target_element, $value) {
     if ($target_element == 'source') {
       // Get the class of the feed node importer's fetcher and set the source
-      // property. See feeds_node_update() how $node->feeds gets stored.
+      // property. See feeds_nodeapi() how $node->feeds gets stored.
       $class = get_class($this->feedNodeImporter()->fetcher);
       $target_node->feeds[$class]['source'] = $value;
     }
@@ -202,7 +202,7 @@ class FeedsFeedNodeProcessor extends FeedsProcessor {
     // We only support one unique target: source
     foreach ($this->uniqueTargets($batch) as $target => $value) {
       if ($target == 'source') {
-        return db_query("SELECT fs.feed_nid FROM {node} n JOIN {feeds_source} fs ON n.nid = fs.feed_nid WHERE fs.id = :id AND fs.source = :source", array(':id' => $this->feedNodeImporter()->id, ':source' => $value))->fetchField();
+        return db_result(db_query("SELECT fs.feed_nid FROM {node} n JOIN {feeds_source} fs ON n.nid = fs.feed_nid WHERE fs.id = '%s' AND fs.source = '%s'", $this->feedNodeImporter()->id, $value));
       }
     }
     return 0;

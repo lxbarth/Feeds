@@ -1,5 +1,5 @@
 <?php
-// $Id: feeds.install,v 1.16 2010/09/17 23:58:18 alexb Exp $
+// $Id: feeds.install,v 1.13.2.1 2010/09/25 16:07:50 alexb Exp $
 
 /**
  * @file
@@ -7,7 +7,7 @@
  */
 
 /**
- * Implements hook_schema().
+ * Implementation of hook_schema().
  */
 function feeds_schema() {
   $schema = array();
@@ -68,13 +68,13 @@ function feeds_schema() {
       'source' => array(
         'type' => 'text',
         'not null' => TRUE,
-        'description' => 'Main source resource identifier. E. g. a path or a URL.',
+        'description' => t('Main source resource identifier. E. g. a path or a URL.'),
       ),
       'batch' => array(
         'type' => 'text',
         'size' => 'big',
         'not null' => FALSE,
-        'description' => 'Cache for batching.',
+        'description' => t('Cache for batching.'),
         'serialize' => TRUE,
       ),
     ),
@@ -86,13 +86,13 @@ function feeds_schema() {
     ),
   );
   $schema['feeds_node_item'] = array(
-    'description' => 'Stores additional information about feed item nodes. Used by FeedsNodeProcessor.',
+    'description' => t('Stores additional information about feed item nodes. Used by FeedsNodeProcessor.'),
     'fields' => array(
       'nid' => array(
         'type' => 'int',
         'unsigned' => TRUE,
         'not null' => TRUE,
-        'description' => 'Primary Key: The feed item node\'s nid.',
+        'description' => t("Primary Key: The feed item node's nid."),
       ),
       'id' => array(
         'type' => 'varchar',
@@ -105,30 +105,30 @@ function feeds_schema() {
         'type' => 'int',
         'unsigned' => TRUE,
         'not null' => TRUE,
-        'description' => 'Node id of the owner feed, if available.',
+        'description' => t("Node id of the owner feed, if available."),
       ),
       'imported' => array(
         'type' => 'int',
         'not null' => TRUE,
         'default' => 0,
-        'description' => 'Import date of the feed item, as a Unix timestamp.',
+        'description' => t('Import date of the feed item, as a Unix timestamp.'),
       ),
       'url' => array(
         'type' => 'text',
         'not null' => TRUE,
-        'description' => 'Link to the feed item.',
+        'description' => t('Link to the feed item.'),
       ),
       'guid' => array(
         'type' => 'text',
         'not null' => TRUE,
-        'description' => 'Unique identifier for the feed item.'
+        'description' => t('Unique identifier for the feed item.'),
       ),
       'hash' => array(
         'type' => 'varchar',
         'length' => 32, // The length of an MD5 hash.
         'not null' => TRUE,
         'default' => '',
-        'description' => 'The hash of the item.',
+        'description' => t('The hash of the item.'),
       ),
     ),
     'primary key' => array('nid'),
@@ -161,7 +161,7 @@ function feeds_schema() {
         'type' => 'int',
         'unsigned' => TRUE,
         'not null' => TRUE,
-        'description' => 'Node id of the owner feed, if available.',
+        'description' => t("Node id of the owner feed, if available."),
       ),
     ),
     'primary key' => array('tid'),
@@ -197,12 +197,12 @@ function feeds_schema() {
       'hub' => array(
         'type' => 'text',
         'not null' => TRUE,
-        'description' => 'The URL of the hub endpoint of this subscription.',
+        'description' => t('The URL of the hub endpoint of this subscription.'),
       ),
       'topic' => array(
         'type' => 'text',
         'not null' => TRUE,
-        'description' => 'The topic URL (feed URL) of this subscription.',
+        'description' => t('The topic URL (feed URL) of this subscription.'),
       ),
       'secret' => array(
         'type' => 'varchar',
@@ -231,6 +231,22 @@ function feeds_schema() {
     ),
   );
   return $schema;
+}
+
+/**
+ * Implementation of hook_install().
+ */
+function feeds_install() {
+  // Create tables.
+  drupal_install_schema('feeds');
+}
+
+/**
+ * Implementation of hook_uninstall().
+ */
+function feeds_uninstall() {
+  // Remove tables.
+  drupal_uninstall_schema('feeds');
 }
 
 /**
@@ -271,7 +287,7 @@ function feeds_update_6004() {
   $spec = array(
     'type' => 'text',
     'not null' => TRUE,
-    'description' => 'Main source resource identifier. E. g. a path or a URL.',
+    'description' => t('Main source resource identifier. E. g. a path or a URL.'),
   );
   db_add_field($ret, 'feeds_source', 'source', $spec);
   db_add_index($ret, 'feeds_source', 'id_source', array('id', array('source', 255)));
@@ -344,7 +360,7 @@ function feeds_update_6007() {
     'length' => 32,
     'not null' => TRUE,
     'default' => '',
-    'description' => 'The hash of the item.',
+    'description' => t('The hash of the item.'),
   );
   db_add_field($ret, 'feeds_node_item', 'hash', $spec);
 
@@ -361,7 +377,7 @@ function feeds_update_6008() {
     'type' => 'text',
     'size' => 'big',
     'not null' => FALSE,
-    'description' => 'Cache for batching.',
+    'description' => t('Cache for batching.'),
     'serialize' => TRUE,
   );
   db_add_field($ret, 'feeds_source', 'batch', $spec);
@@ -423,12 +439,12 @@ function feeds_update_6009() {
       'hub' => array(
         'type' => 'text',
         'not null' => TRUE,
-        'description' => 'The URL of the hub endpoint of this subscription.',
+        'description' => t('The URL of the hub endpoint of this subscription.'),
       ),
       'topic' => array(
         'type' => 'text',
         'not null' => TRUE,
-        'description' => 'The topic URL (feed URL) of this subscription.',
+        'description' => t('The topic URL (feed URL) of this subscription.'),
       ),
       'secret' => array(
         'type' => 'varchar',
@@ -473,10 +489,10 @@ function feeds_update_6010() {
     drupal_set_message(t('Installed Feeds News and Feeds Import as replacement for Feeds Defaults module. If you were not using Feeds Defaults then you can safely disable Feeds News and Feeds Import.'));
   }
   if (module_exists('features')) {
-    drupal_set_message(t('<strong>Review enabled state of importer configurations on admin/structure/feeds and features on admin/build/features.</strong>'));
+    drupal_set_message(t('<strong>Review enabled state of importer configurations on admin/build/feeds and features on admin/build/features.</strong>'));
   }
   else {
-    drupal_set_message(t('<strong>Review enabled state of importer configurations on admin/structure/feeds and Feeds modules on admin/build/modules.</strong>'));
+    drupal_set_message(t('<strong>Review enabled state of importer configurations on admin/build/feeds and Feeds modules on admin/build/modules.</strong>'));
   }
   return array();
 }
@@ -507,7 +523,7 @@ function feeds_update_6011() {
         'type' => 'int',
         'unsigned' => TRUE,
         'not null' => TRUE,
-        'description' => "Node id of the owner feed, if available.",
+        'description' => t("Node id of the owner feed, if available."),
       ),
     ),
     'primary key' => array('tid'),
@@ -521,7 +537,7 @@ function feeds_update_6011() {
 }
 
 /**
- * Drop schedule table and reschedule all tasks, install Job Scheduler module.
+ * Drop schedule table install Job Scheduler module.
  */
 function feeds_update_6012() {
   $ret = array();
@@ -538,6 +554,16 @@ function feeds_update_6012() {
     drupal_set_message(t('NOTE: Please install new dependency of Feeds: !job_scheduler module.', array('!job_scheduler' => l(t('Job Scheduler'), 'http://drupal.org/project/job_scheduler'))), 'warning');
   }
   db_drop_table($ret, 'feeds_schedule');
-  feeds_reschedule(TRUE);
   return $ret;
+}
+
+/**
+ * Reschedule all tasks.
+ */
+function feeds_update_6013() {
+  // This was originally part of 6012 upgrade, but failed due to usage of
+  // API functions residing in feeds.module. Make sure it runs again for all
+  // users of Feeds.
+  variable_set('feeds_reschedule', TRUE);
+  return array();
 }

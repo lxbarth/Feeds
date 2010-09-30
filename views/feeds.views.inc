@@ -1,5 +1,5 @@
 <?php
-// $Id: feeds.views.inc,v 1.4 2010/09/17 17:25:19 alexb Exp $
+// $Id: feeds.views.inc,v 1.3 2010/07/11 16:57:02 alexb Exp $
 
 /**
  * @file
@@ -9,7 +9,7 @@
  */
 
 /**
- * Implements hook_views_data().
+ * Implementation of hook_views_data().
  */
 function feeds_views_data() {
   $data = array();
@@ -175,7 +175,7 @@ function feeds_views_data() {
 }
 
 /**
- * Implements hook_views_handlers().
+ * Implementation of hook_views_handlers().
  */
 function feeds_views_handlers() {
   return array(

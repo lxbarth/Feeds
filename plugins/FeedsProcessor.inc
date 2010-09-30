@@ -1,5 +1,5 @@
 <?php
-// $Id: FeedsProcessor.inc,v 1.19 2010/09/16 22:30:18 alexb Exp $
+// $Id: FeedsProcessor.inc,v 1.18 2010/09/10 15:44:56 alexb Exp $
 
 
 // Update mode for existing items.
@@ -48,7 +48,7 @@ abstract class FeedsProcessor extends FeedsPlugin {
    *
    * @param $time
    *   If implemented, all items produced by this configuration that are older
-   *   than REQUEST_TIME - $time should be deleted.
+   *   than FEEDS_REQUEST_TIME - $time should be deleted.
    *   If $time === NULL processor should use internal configuration.
    *
    * @return

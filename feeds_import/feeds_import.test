@@ -1,5 +1,5 @@
 <?php
-// $Id: feeds_import.test,v 1.3 2010/09/18 01:44:46 alexb Exp $
+// $Id: feeds_import.test,v 1.2 2010/09/15 19:27:42 alexb Exp $
 
 /**
  * @file
@@ -48,7 +48,7 @@ class FeedsExamplesNodeTestCase extends FeedsWebTestCase {
     $this->importFile('node', $this->absolutePath() .'/tests/feeds/nodes.csv');
 
     // Assert returning page.
-    $this->assertText('Created 8 Article nodes.');
+    $this->assertText('Created 8 Story nodes.');
     $this->assertText('Import CSV files with one or more of these columns: title, body, published, guid.');
     $this->assertText('Column guid is mandatory and considered unique: only one item per guid value will be created.');
     $this->assertRaw('feeds/nodes.csv');
@@ -74,7 +74,7 @@ class FeedsExamplesNodeTestCase extends FeedsWebTestCase {
     for ($i = 0; $i < 2; $i++) {
       $count = db_result(db_query("SELECT COUNT(*) FROM {feeds_node_item}"));
       $this->assertEqual($count, 8, 'Found correct number of items.');
-      $count = db_result(db_query("SELECT COUNT(*) FROM {node} WHERE type = 'article' AND status = 1 AND uid = 0"));
+      $count = db_result(db_query("SELECT COUNT(*) FROM {node} WHERE type = 'story' AND status = 1 AND uid = 0"));
       $this->assertEqual($count, 8, 'Found correct number of items.');
       // Do not filter on type intentionally. There shouldn't be more than 8 nodes total.
       $count = db_result(db_query("SELECT COUNT(*) FROM {node_revisions}"));
@@ -84,7 +84,7 @@ class FeedsExamplesNodeTestCase extends FeedsWebTestCase {
       // there are 2 different items with the same GUID in nodes.csv.
       // Therefore, feeds will show updates to 2 nodes.
       $this->drupalPost('import/node/import', array(), 'Import');
-      $this->assertText('Updated 2 Article nodes.');
+      $this->assertText('Updated 2 Story nodes.');
     }
 
     // Remove all nodes.
@@ -93,17 +93,17 @@ class FeedsExamplesNodeTestCase extends FeedsWebTestCase {
 
     // Import once again.
     $this->drupalPost('import/node/import', array(), 'Import');
-    $this->assertText('Created 8 Article nodes.');
+    $this->assertText('Created 8 Story nodes.');
 
     // Import a similar file with changes in 4 records. Feeds should report 6
-    // Updated Article nodes (4 changed records, 2 records sharing a GUID
+    // Updated story nodes (4 changed records, 2 records sharing a GUID
     // subsequently being updated).
     $this->importFile('node', $this->absolutePath() .'/tests/feeds/nodes_changes.csv');
-    $this->assertText('Updated 6 Article nodes.');
+    $this->assertText('Updated 6 Story nodes.');
 
     // Import a larger file with more records.
     $this->importFile('node', $this->absolutePath() .'/tests/feeds/many_nodes.csv');
-    $this->assertText('Created 71 Article nodes.');
+    $this->assertText('Created 71 Story nodes.');
 
     // Remove all nodes.
     $this->drupalPost('import/node/delete-items', array(), 'Delete');
@@ -111,7 +111,7 @@ class FeedsExamplesNodeTestCase extends FeedsWebTestCase {
 
     // Import once again.
     $this->drupalPost('import/node/import', array(), 'Import');
-    $this->assertText('Created 79 Article nodes.');
+    $this->assertText('Created 79 Story nodes.');
 
     // Import a tab separated file.
     $this->drupalPost('import/node/delete-items', array(), 'Delete');
@@ -120,7 +120,7 @@ class FeedsExamplesNodeTestCase extends FeedsWebTestCase {
       'feeds[FeedsCSVParser][delimiter]' => "TAB",
     );
     $this->drupalPost('import/node', $edit, 'Import');
-    $this->assertText('Created 8 Article nodes.');
+    $this->assertText('Created 8 Story nodes.');
   }
 }
 

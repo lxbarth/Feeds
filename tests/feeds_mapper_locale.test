@@ -1,5 +1,5 @@
 <?php
-// $Id: feeds_mapper_locale.test,v 1.7 2010/09/18 01:44:47 alexb Exp $
+// $Id: feeds_mapper_locale.test,v 1.4 2010/09/15 19:27:42 alexb Exp $
 
 /**
  * @file
@@ -39,7 +39,7 @@ class FeedsMapperLocaleTestCase extends FeedsMapperTestCase {
         )
     ));
 
-    // Add an additional language and enable it for page and article.
+    // Add an additional language and enable it for page and story.
     $edit = array(
       'langcode' => 'zh-hans',
     );
@@ -48,7 +48,7 @@ class FeedsMapperLocaleTestCase extends FeedsMapperTestCase {
     $edit = array(
       'language_content_type' => TRUE,
     );
-    foreach (array('article', 'page') as $type) {
+    foreach (array('story', 'page') as $type) {
       $this->drupalPost("admin/content/node-type/$type", $edit, t('Save content type'));
     }
 
@@ -102,7 +102,7 @@ class FeedsMapperLocaleTestCase extends FeedsMapperTestCase {
     $edit = array(
       'import_on_create' => FALSE,
     );
-    $this->drupalPost('admin/structure/feeds/edit/syndication/settings', $edit, 'Save');
+    $this->drupalPost('admin/build/feeds/edit/syndication/settings', $edit, 'Save');
     $this->assertText('Do not import on create');
     $nid = $this->createFeedNode();
     $edit = array(
@@ -110,7 +110,7 @@ class FeedsMapperLocaleTestCase extends FeedsMapperTestCase {
     );
     $this->drupalPost("node/$nid/edit", $edit, t('Save'));
     $this->drupalPost('node/'. $nid .'/import', array(), 'Import');
-    $count = db_query("SELECT COUNT(*) FROM {node} WHERE language = 'zh-hans'")->fetchField();
+    $count = db_result(db_query("SELECT COUNT(*) FROM {node} WHERE language = 'zh-hans'", $nid));
     $this->assertEqual(11, $count, 'Found correct number of nodes.');
   }
 }

@@ -1,5 +1,5 @@
 <?php
-// $Id: parser_csv.test,v 1.2 2010/09/17 21:08:36 alexb Exp $
+// $Id: parser_csv.test,v 1.1 2010/09/09 22:44:23 alexb Exp $
 
 /**
  * @file
@@ -82,6 +82,6 @@ class ParserCSVTest extends DrupalWebTestCase  {
    * Absolute path to feeds.
    */
   public function absolutePath() {
-    return DRUPAL_ROOT .'/'. drupal_get_path('module', 'feeds');
+    return realpath(getcwd()) .'/'. drupal_get_path('module', 'feeds');
   }
 }

@@ -1,5 +1,5 @@
 <?php
-// $Id: feeds_parser_syndication.test,v 1.3 2010/09/18 01:44:47 alexb Exp $
+// $Id: feeds_parser_syndication.test,v 1.2 2010/09/15 19:27:42 alexb Exp $
 
 /**
  * @file
@@ -50,7 +50,7 @@ class FeedsSyndicationParserTestCase extends FeedsWebTestCase {
       $this->setPlugin('syndication', $parser);
       foreach ($this->feedUrls() as $url => $assertions) {
         $this->createFeedNode('syndication', $url);
-        $this->assertText('Created '. $assertions['item_count'] .' Article nodes.');
+        $this->assertText('Created '. $assertions['item_count'] .' Story nodes.');
       }
     }
   }

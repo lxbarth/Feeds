@@ -1,5 +1,5 @@
 <?php
-// $Id: FeedsUserProcessor.inc,v 1.21 2010/09/17 17:25:19 alexb Exp $
+// $Id: FeedsUserProcessor.inc,v 1.19 2010/09/07 17:29:36 alexb Exp $
 
 /**
  * @file
@@ -12,7 +12,7 @@
 class FeedsUserProcessor extends FeedsProcessor {
 
   /**
-   * Implements FeedsProcessor::process().
+   * Implementation of FeedsProcessor::process().
    */
   public function process(FeedsImportBatch $batch, FeedsSource $source) {
 
@@ -83,7 +83,7 @@ class FeedsUserProcessor extends FeedsProcessor {
   }
 
   /**
-   * Implements FeedsProcessor::clear().
+   * Implementation of FeedsProcessor::clear().
    */
   public function clear(FeedsBatch $batch, FeedsSource $source) {
     // Do not support deleting users as we have no way of knowing which ones we
@@ -204,13 +204,13 @@ class FeedsUserProcessor extends FeedsProcessor {
     foreach ($this->uniqueTargets($batch) as $target => $value) {
       switch ($target) {
         case 'name':
-          $uid = db_query("SELECT uid FROM {users} WHERE name = :name", array(':name' => $value))->fetchField();
+          $uid = db_result(db_query("SELECT uid FROM {users} WHERE name = '%s'", $value));
           break;
         case 'mail':
-          $uid = db_query("SELECT uid FROM {users} WHERE mail = :mail", array(':mail' => $value))->fetchField();
+          $uid = db_result(db_query("SELECT uid FROM {users} WHERE mail = '%s'", $value));
           break;
         case 'openid':
-          $uid = db_query("SELECT uid FROM {authmap} WHERE authname = :authname AND module = 'openid'", array(':authname' => $value))->fetchField();
+          $uid = db_result(db_query("SELECT uid FROM {authmap} WHERE authname = '%s' AND module = 'openid'", $value));
           break;
       }
       if ($uid) {

@@ -1,5 +1,5 @@
 <?php
-// $Id: FeedsSource.inc,v 1.25 2010/09/20 16:03:30 alexb Exp $
+// $Id: FeedsSource.inc,v 1.21.2.1 2010/09/26 17:39:45 alexb Exp $
 
 /**
  * @file
@@ -242,7 +242,7 @@ class FeedsSource extends FeedsConfigurable {
       'source' => $source,
       'batch' => isset($this->batch) ? $this->batch : FALSE,
     );
-    if (db_query_range("SELECT 1 FROM {feeds_source} WHERE id = :id AND feed_nid = :nid", 0, 1, array(':id' => $this->id, ':nid' => $this->feed_nid))->fetchField()) {
+    if (db_result(db_query_range("SELECT 1 FROM {feeds_source} WHERE id = '%s' AND feed_nid = %d", $this->id, $this->feed_nid, 0, 1))) {
       drupal_write_record('feeds_source', $object, array('id', 'feed_nid'));
     }
     else {
@@ -256,7 +256,7 @@ class FeedsSource extends FeedsConfigurable {
    * @todo Patch CTools to move constants from export.inc to ctools.module.
    */
   public function load() {
-    if ($record = db_query("SELECT config, batch FROM {feeds_source} WHERE id = :id AND feed_nid = :nid", array(':id' => $this->id, ':nid' => $this->feed_nid))->fetch()) {
+    if ($record = db_fetch_object(db_query("SELECT config, batch FROM {feeds_source} WHERE id = '%s' AND feed_nid = %d", $this->id, $this->feed_nid))) {
       // While FeedsSource cannot be exported, we still use CTool's export.inc
       // export definitions.
       ctools_include('export');
@@ -276,10 +276,7 @@ class FeedsSource extends FeedsConfigurable {
     foreach ($this->importer->plugin_types as $type) {
       $this->importer->$type->sourceDelete($this);
     }
-    db_delete('feeds_source')
-      ->condition('id', $this->id)
-      ->condition('feed_nid', $this->feed_nid)
-      ->execute();
+    db_query("DELETE FROM {feeds_source} WHERE id = '%s' AND feed_nid = %d", $this->id, $this->feed_nid);
     // Remove from schedule.
     $job = array(
       'callback' => 'feeds_source_import',
@@ -304,6 +301,7 @@ class FeedsSource extends FeedsConfigurable {
       $this->importer->existing();
       return parent::existing();
     }
+    throw new FeedsNotExistingException(t('Source configuration not valid.'));
   }
 
   /**
@@ -342,8 +340,7 @@ class FeedsSource extends FeedsConfigurable {
     foreach ($this->importer->plugin_types as $type) {
       if ($this->importer->$type->hasSourceConfig()) {
         $class = get_class($this->importer->$type);
-        $config = isset($this->config[$class]) ? $this->config[$class] : array();
-        $form[$class] = $this->importer->$type->sourceForm($config);
+        $form[$class] = $this->importer->$type->sourceForm($this->config[$class]);
         $form[$class]['#tree'] = TRUE;
       }
     }

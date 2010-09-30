@@ -1,5 +1,5 @@
 <?php
-// $Id: feeds_mapper_profile.test,v 1.6 2010/09/18 00:36:58 alexb Exp $
+// $Id: feeds_mapper_profile.test,v 1.4 2010/09/15 19:27:42 alexb Exp $
 
 /**
  * @file
@@ -96,7 +96,7 @@ class FeedsMapperProfileTestCase extends FeedsMapperTestCase {
       'content_type' => '',
       'import_period' => FEEDS_SCHEDULE_NEVER,
     );
-    $this->drupalPost('admin/structure/feeds/edit/profile_import/settings', $edit, 'Save');
+    $this->drupalPost('admin/build/feeds/edit/profile_import/settings', $edit, 'Save');
 
     // Import CSV file.
     $this->importFile('profile_import', $this->absolutePath() .'/tests/feeds/profile.csv');
@@ -107,11 +107,11 @@ class FeedsMapperProfileTestCase extends FeedsMapperTestCase {
     $this->assertText('magna');
     $this->assertText('rhoncus');
 
-    $account = user_load_by_name('magna');
+    $account = user_load(array('name' => 'magna'));
     $this->assertEqual($account->profile_textfield_test, 'red', 'User profile_textfield_test is correct');
     $this->assertEqual($account->profile_select_test, 'alpha', 'User profile_select_test is correct');
 
-    $account = user_load_by_name('rhoncus');
+    $account = user_load(array('name' => 'rhoncus'));
     $this->assertEqual($account->profile_textfield_test, 'blue', 'User profile_textfield_test is correct');
     $this->assertEqual($account->profile_select_test, 'beta', 'User profile_select_test is correct');
   }

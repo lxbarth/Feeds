@@ -1,5 +1,5 @@
 <?php
-// $Id: FeedsNodeProcessor.inc,v 1.68 2010/09/20 19:06:11 alexb Exp $
+// $Id: FeedsNodeProcessor.inc,v 1.51.2.1 2010/09/17 13:46:30 alexb Exp $
 
 /**
  * @file
@@ -15,16 +15,13 @@ define('FEEDS_NODE_SKIP_EXISTING', 0);
 define('FEEDS_NODE_REPLACE_EXISTING', 1);
 define('FEEDS_NODE_UPDATE_EXISTING', 2);
 
-// "Use the present default format"
-define('FEEDS_NODE_DEFAULT_FORMAT', -1);
-
 /**
  * Creates nodes from feed items.
  */
 class FeedsNodeProcessor extends FeedsProcessor {
 
   /**
-   * Implements FeedsProcessor::process().
+   * Implementation of FeedsProcessor::process().
    */
   public function process(FeedsImportBatch $batch, FeedsSource $source) {
 
@@ -73,10 +70,10 @@ class FeedsNodeProcessor extends FeedsProcessor {
 
     // Set messages.
     if ($batch->created) {
-      drupal_set_message(format_plural($batch->created, 'Created @number @type node.', 'Created @number @type nodes.', array('@number' => $batch->created, '@type' => node_type_get_name($this->config['content_type']))));
+      drupal_set_message(format_plural($batch->created, 'Created @number @type node.', 'Created @number @type nodes.', array('@number' => $batch->created, '@type' => node_get_types('name', $this->config['content_type']))));
     }
     elseif ($batch->updated) {
-      drupal_set_message(format_plural($batch->updated, 'Updated @number @type node.', 'Updated @number @type nodes.', array('@number' => $batch->updated, '@type' => node_type_get_name($this->config['content_type']))));
+      drupal_set_message(format_plural($batch->updated, 'Updated @number @type node.', 'Updated @number @type nodes.', array('@number' => $batch->updated, '@type' => node_get_types('name', $this->config['content_type']))));
     }
     else {
       drupal_set_message(t('There is no new content.'));
@@ -85,22 +82,19 @@ class FeedsNodeProcessor extends FeedsProcessor {
   }
 
   /**
-   * Implements FeedsProcessor::clear().
+   * Implementation of FeedsProcessor::clear().
    */
   public function clear(FeedsBatch $batch, FeedsSource $source) {
     if (!$batch->getTotal(FEEDS_CLEARING)) {
-      $total = db_query("SELECT COUNT(n.nid) FROM {node} n JOIN {feeds_node_item} fn ON n.nid = fn.nid WHERE fn.id = :id AND fn.feed_nid = :nid", array(':id' => $source->id, ':nid' => $source->feed_nid))->fetchField();
+      $total = db_result(db_query("SELECT COUNT(nid) FROM {feeds_node_item} WHERE id = '%s' AND feed_nid = %d", $source->id, $source->feed_nid));
       $batch->setTotal(FEEDS_CLEARING, $total);
     }
-    $count = variable_get('feeds_node_batch_size', FEEDS_NODE_BATCH_SIZE);
-    $nids = array();
-    $nodes = db_query_range("SELECT n.nid FROM {node} n JOIN {feeds_node_item} fn ON n.nid = fn.nid WHERE fn.id = :id AND fn.feed_nid = :nid", 0, $count, array(':id' => $source->id, ':nid' => $source->feed_nid));
-    foreach ($nodes as $node) {
-      $nids[] = $node->nid;
+    $result = db_query_range("SELECT nid FROM {feeds_node_item} WHERE id = '%s' AND feed_nid = %d", $source->id, $source->feed_nid, 0, variable_get('feeds_node_batch_size', FEEDS_NODE_BATCH_SIZE));
+    while ($node = db_fetch_object($result)) {
+      _feeds_node_delete($node->nid);
       $batch->deleted++;
     }
-    node_delete_multiple($nids);
-    if (db_query_range("SELECT 1 FROM {node} n JOIN {feeds_node_item} fn ON n.nid = fn.nid WHERE fn.id = :id AND fn.feed_nid = :nid", 0, 1, array(':id' => $source->id, ':nid' => $source->feed_nid))->fetchField()) {
+    if (db_result(db_query_range("SELECT nid FROM {feeds_node_item} WHERE id = '%s' AND feed_nid = %d", $source->id, $source->feed_nid, 0, 1))) {
       $batch->setProgress(FEEDS_CLEARING, $batch->deleted);
       return;
     }
@@ -126,12 +120,11 @@ class FeedsNodeProcessor extends FeedsProcessor {
     if ($time == FEEDS_EXPIRE_NEVER) {
       return;
     }
-    $count = variable_get('feeds_node_batch_size', FEEDS_NODE_BATCH_SIZE);
-    $nodes = db_query_range("SELECT n.nid FROM {node} n JOIN {feeds_node_item} fni ON n.nid = fni.nid WHERE fni.id = :id AND n.created < :created", 0, $count, array(':id' => $this->id, ':created' => REQUEST_TIME - $time));
-    foreach ($nodes as $node) {
+    $result = db_query_range("SELECT n.nid FROM {node} n JOIN {feeds_node_item} fni ON n.nid = fni.nid WHERE fni.id = '%s' AND n.created < %d", $this->id, FEEDS_REQUEST_TIME - $time, 0, variable_get('feeds_node_batch_size', FEEDS_NODE_BATCH_SIZE));
+    while ($node = db_fetch_object($result)) {
       _feeds_node_delete($node->nid);
     }
-    if (db_query_range("SELECT 1 FROM {node} n JOIN {feeds_node_item} fni ON n.nid = fni.nid WHERE fni.id = :id AND n.created < :created", 0, 1, array(':id' => $this->id, ':created' => REQUEST_TIME - $time))->fetchField()) {
+    if (db_result(db_query_range("SELECT n.nid FROM {node} n JOIN {feeds_node_item} fni ON n.nid = fni.nid WHERE fni.id = '%s' AND n.created < %d", $this->id, FEEDS_REQUEST_TIME - $time, 0, 1))) {
       return FEEDS_BATCH_ACTIVE;
     }
     return FEEDS_BATCH_COMPLETE;
@@ -148,11 +141,11 @@ class FeedsNodeProcessor extends FeedsProcessor {
    * Override parent::configDefaults().
    */
   public function configDefaults() {
-    $types = node_type_get_names();
-    $type = isset($types['article']) ? 'article' : key($types);
+    $types = node_get_types('names');
+    $type = isset($types['story']) ? 'story' : key($types);
     return array(
       'content_type' => $type,
-      'input_format' => FEEDS_NODE_DEFAULT_FORMAT,
+      'input_format' => FILTER_FORMAT_DEFAULT,
       'update_existing' => FEEDS_SKIP_EXISTING,
       'expire' => FEEDS_EXPIRE_NEVER,
       'mappings' => array(),
@@ -164,8 +157,7 @@ class FeedsNodeProcessor extends FeedsProcessor {
    * Override parent::configForm().
    */
   public function configForm(&$form_state) {
-    $types = node_type_get_names();
-    array_walk($types, 'check_plain');
+    $types = node_get_types('names');
     $form = array();
     $form['content_type'] = array(
       '#type' => 'select',
@@ -174,11 +166,10 @@ class FeedsNodeProcessor extends FeedsProcessor {
       '#options' => $types,
       '#default_value' => $this->config['content_type'],
     );
-    $format_options = array(FEEDS_NODE_DEFAULT_FORMAT => t('Default format'));
-    global $user;
-    $formats = filter_formats($user);
+    $format_options = array(FILTER_FORMAT_DEFAULT => t('Default format'));
+    $formats = filter_formats();
       foreach ($formats as $format) {
-        $format_options[$format->format] = check_plain($format->name);
+        $format_options[$format->format] = $format->name;
       }
     $form['input_format'] = array(
       '#type' => 'select',
@@ -187,7 +178,7 @@ class FeedsNodeProcessor extends FeedsProcessor {
       '#options' => $format_options,
       '#default_value' => $this->config['input_format'],
     );
-    $author = user_load($this->config['author']);
+    $author = user_load(array('uid' => $this->config['author']));
     $form['author'] = array(
       '#type' => 'textfield',
       '#title' => t('Author'),
@@ -221,7 +212,7 @@ class FeedsNodeProcessor extends FeedsProcessor {
    * Override parent::configFormValidate().
    */
   public function configFormValidate(&$values) {
-    if ($author = user_load_by_name($values['author'])) {
+    if ($author = user_load(array('name' => $values['author']))) {
       $values['author'] = $author->uid;
     }
     else {
@@ -246,6 +237,10 @@ class FeedsNodeProcessor extends FeedsProcessor {
     if (in_array($target_element, array('url', 'guid'))) {
       $target_node->feeds_node_item->$target_element = $value;
     }
+    elseif ($target_element == 'body') {
+      $target_node->teaser = node_teaser($value);
+      $target_node->body = $value;
+    }
     elseif (in_array($target_element, array('title', 'status', 'created', 'nid', 'uid'))) {
       $target_node->$target_element = $value;
     }
@@ -255,12 +250,19 @@ class FeedsNodeProcessor extends FeedsProcessor {
    * Return available mapping targets.
    */
   public function getMappingTargets() {
-    $type = node_type_get_type($this->config['content_type']);
-    $targets = array();
-    if ($type->has_title) {
-      $targets['title'] = array(
+    $targets = array(
+      'title' => array(
         'name' => t('Title'),
         'description' => t('The title of the node.'),
+       ),
+     );
+    // Include body field only if available.
+    $type = node_get_types('type',  $this->config['content_type']);
+    if ($type->has_body) {
+      // Using 'teaser' instead of 'body' forces entire content above the break.
+      $targets['body'] = array(
+        'name' => t('Body'),
+        'description' => t('The body of the node. The teaser will be the same as the entire body.'),
       );
     }
     $targets += array(
@@ -310,13 +312,13 @@ class FeedsNodeProcessor extends FeedsProcessor {
     foreach ($this->uniqueTargets($batch) as $target => $value) {
       switch ($target) {
         case 'nid':
-          $nid = db_query("SELECT nid FROM {node} WHERE nid = :nid", array(':nid' => $value))->fetchField();
+          $nid = db_result(db_query("SELECT nid FROM {node} WHERE nid = %d", $value));
           break;
         case 'url':
-          $nid = db_query("SELECT nid FROM {feeds_node_item} WHERE feed_nid = :nid AND id = :id AND url = :url", array(':nid' => $source->feed_nid, ':id' => $source->id, ':url' => $value))->fetchField();
+          $nid = db_result(db_query("SELECT nid FROM {feeds_node_item} WHERE feed_nid = %d AND id = '%s' AND url = '%s'", $source->feed_nid, $source->id, $value));
           break;
         case 'guid':
-          $nid = db_query("SELECT nid FROM {feeds_node_item} WHERE feed_nid = :nid AND id = :id AND guid = :guid", array(':nid' => $source->feed_nid, ':id' => $source->id, ':guid' => $value))->fetchField();
+          $nid = db_result(db_query("SELECT nid FROM {feeds_node_item} WHERE feed_nid = %d AND id = '%s' AND guid = '%s'", $source->feed_nid, $source->id, $value));
           break;
       }
       if ($nid) {
@@ -333,7 +335,7 @@ class FeedsNodeProcessor extends FeedsProcessor {
   protected function buildNode($nid, $feed_nid) {
     $node = new stdClass();
     if (empty($nid)) {
-      $node->created = REQUEST_TIME;
+      $node->created = FEEDS_REQUEST_TIME;
       $populate = TRUE;
     }
     else {
@@ -342,17 +344,17 @@ class FeedsNodeProcessor extends FeedsProcessor {
       }
       else {
         $node->nid = $nid;
-        $node->vid = db_query("SELECT vid FROM {node} WHERE nid = :nid", array(':nid' => $nid))->fetchField();
+        $node->vid = db_result(db_query("SELECT vid FROM {node} WHERE nid = %d", $nid));
         $populate = TRUE;
       }
     }
     if ($populate) {
       $node->type = $this->config['content_type'];
-      $node->changed = REQUEST_TIME;
-      $node->format = ($this->config['input_format'] == FEEDS_NODE_DEFAULT_FORMAT) ? filter_fallback_format() : $this->config['input_format'];
+      $node->changed = FEEDS_REQUEST_TIME;
+      $node->format = $this->config['input_format'];
       $node->feeds_node_item = new stdClass();
       $node->feeds_node_item->id = $this->id;
-      $node->feeds_node_item->imported = REQUEST_TIME;
+      $node->feeds_node_item->imported = FEEDS_REQUEST_TIME;
       $node->feeds_node_item->feed_nid = $feed_nid;
       $node->feeds_node_item->url = '';
       $node->feeds_node_item->guid = '';
@@ -396,10 +398,38 @@ class FeedsNodeProcessor extends FeedsProcessor {
    * @return Empty string if no item is found, hash otherwise.
    */
   protected function getHash($nid) {
-    if ($hash = db_query("SELECT hash FROM {feeds_node_item} WHERE nid = :nid", array(':nid' => $nid))->fetchField()) {
+    $hash = db_result(db_query("SELECT hash FROM {feeds_node_item} WHERE nid = %d", $nid));
+    if ($hash) {
       // Return with the hash.
       return $hash;
     }
     return '';
   }
+}
+
+/**
+ * Copy of node_delete() that circumvents node_access().
+ *
+ * Used for batch deletion.
+ */
+function _feeds_node_delete($nid) {
+
+  $node = node_load($nid);
+
+  db_query("DELETE FROM {node} WHERE nid = %d", $node->nid);
+  db_query("DELETE FROM {node_revisions} WHERE nid = %d", $node->nid);
+
+  // Call the node-specific callback (if any):
+  node_invoke($node, 'delete');
+  node_invoke_nodeapi($node, 'delete');
+
+  // Clear the page and block caches.
+  cache_clear_all();
+
+  // Remove this node from the search index if needed.
+  if (function_exists('search_wipe')) {
+    search_wipe($node->nid, 'node');
+  }
+  watchdog('content', '@type: deleted %title.', array('@type' => $node->type, '%title' => $node->title));
+  drupal_set_message(t('@type %title has been deleted.', array('@type' => node_get_types('name', $node), '%title' => $node->title)));
 }

@@ -1,5 +1,5 @@
 <?php
-// $Id: FeedsPlugin.inc,v 1.8 2010/09/18 00:44:58 alexb Exp $
+// $Id: FeedsPlugin.inc,v 1.6 2010/09/07 17:29:36 alexb Exp $
 
 /**
  * @file
@@ -43,7 +43,7 @@ abstract class FeedsPlugin extends FeedsConfigurable implements FeedsSourceInter
   }
 
   /**
-   * Implements FeedsSourceInterface::sourceDefaults().
+   * Implementation of FeedsSourceInterface::sourceDefaults().
    */
   public function sourceDefaults() {
     $values = array_flip(array_keys($this->sourceForm(array())));
@@ -88,7 +88,7 @@ abstract class FeedsPlugin extends FeedsConfigurable implements FeedsSourceInter
     static $loaded = FALSE;
     if (!$loaded) {
       $path = drupal_get_path('module', 'feeds') .'/mappers';
-      $files = drupal_system_listing('/.*\.inc$/', $path, 'name', 0);
+      $files = drupal_system_listing('.*\.inc$', $path, 'name', 0);
       foreach ($files as $file) {
         if (strstr($file->filename, '/mappers/')) {
           require_once("./$file->filename");

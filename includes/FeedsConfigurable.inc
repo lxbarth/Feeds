@@ -1,5 +1,5 @@
 <?php
-// $Id: FeedsConfigurable.inc,v 1.18 2010/09/18 00:14:36 alexb Exp $
+// $Id: FeedsConfigurable.inc,v 1.14.2.1 2010/09/25 17:26:16 alexb Exp $
 
 /**
  * @file
@@ -124,7 +124,7 @@ abstract class FeedsConfigurable {
    *   returned by configDefaults().
    */
   public function addConfig($config) {
-    $this->config = array_merge($this->config, $config);
+    $this->config = is_array($this->config) ? array_merge($this->config, $config) : $config;
     $default_keys = $this->configDefaults();
     $this->config = array_intersect_key($this->config, $default_keys);
   }
@@ -141,7 +141,7 @@ abstract class FeedsConfigurable {
   }
 
   /**
-   * Implements getConfig().
+   * Implementation of getConfig().
    */
   public function getConfig() {
     return $this->config;
@@ -205,12 +205,14 @@ abstract class FeedsConfigurable {
  *   The form method that should be rendered.
  *
  * @return
- *   Config form array if available. NULL otherwise.
+ *   Rendered config form, if available. Empty string otherwise.
  */
 function feeds_get_form($configurable, $form_method) {
+  $form_state = array();
   if (method_exists($configurable, $form_method)) {
     return drupal_get_form(get_class($configurable) .'_feeds_form', $configurable, $form_method);
   }
+  return '';
 }
 
 /**
@@ -226,7 +228,7 @@ function feeds_get_form($configurable, $form_method) {
  * @param $form_method
  *   The $form_method that should be rendered.
  */
-function feeds_form($form, &$form_state, $configurable, $form_method) {
+function feeds_form(&$form_state, $configurable, $form_method) {
   $form = $configurable->$form_method($form_state);
   $form['#configurable'] = $configurable;
   $form['#feeds_form_method'] = $form_method;

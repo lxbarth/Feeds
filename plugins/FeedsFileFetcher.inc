@@ -1,5 +1,5 @@
 <?php
-// $Id: FeedsFileFetcher.inc,v 1.21 2010/09/20 18:30:17 alexb Exp $
+// $Id: FeedsFileFetcher.inc,v 1.15 2010/09/09 23:41:24 alexb Exp $
 
 /**
  * @file
@@ -11,23 +11,25 @@
  * FeedsFileFetcher.
  */
 class FeedsFileBatch extends FeedsImportBatch {
+  protected $file_path;
+
   /**
    * Constructor.
    */
   public function __construct($file_path, $feed_nid = 0) {
-    parent::__construct('', $feed_nid);
     $this->file_path = $file_path;
+    parent::__construct('', $feed_nid);
   }
 
   /**
-   * Implements FeedsImportBatch::getRaw();
+   * Implementation of FeedsImportBatch::getRaw();
    */
   public function getRaw() {
-    return file_get_contents($this->file_path);
+    return file_get_contents(realpath($this->file_path));
   }
 
   /**
-   * Implements FeedsImportBatch::getFilePath().
+   * Implementation of FeedsImportBatch::getFilePath().
    */
   public function getFilePath() {
     if (!file_exists($this->file_path)) {
@@ -43,7 +45,7 @@ class FeedsFileBatch extends FeedsImportBatch {
 class FeedsFileFetcher extends FeedsFetcher {
 
   /**
-   * Implements FeedsFetcher::fetch().
+   * Implementation of FeedsFetcher::fetch().
    */
   public function fetch(FeedsSource $source) {
     $source_config = $source->getConfigFor($this);
@@ -56,14 +58,12 @@ class FeedsFileFetcher extends FeedsFetcher {
   public function sourceForm($source_config) {
     $form = $info = array();
     if (!empty($source_config['source']) && file_exists($source_config['source'])) {
-      $wrapper = file_stream_wrapper_get_instance_by_uri($source_config['source']);
-      $path = $wrapper->getExternalUrl();
       $info = array(
-        'path' => $path,
-        'size' => filesize($source_config['source']),
+        'path' => $source_config['source'],
+        'size' => filesize(realpath($source_config['source'])),
       );
       if (module_exists('mimedetect')) {
-        $info['mime'] = mimedetect_mime($source_config['source']);
+        $info['mime'] = mimedetect_mime(realpath($source_config['source']));
       }
     }
     $form['source'] = array(
@@ -87,13 +87,14 @@ class FeedsFileFetcher extends FeedsFetcher {
    * Override parent::sourceFormValidate().
    */
   public function sourceFormValidate(&$values) {
-    $feed_dir = 'public://feeds';
-    file_prepare_directory($feed_dir, FILE_CREATE_DIRECTORY | FILE_MODIFY_PERMISSIONS);
+    $feed_dir = file_directory_path() .'/feeds';
+    file_check_directory($feed_dir, TRUE);
 
     // If there is a file uploaded, save it, otherwise validate input on
     // file.
-    if ($file = file_save_upload('feeds', array('file_validate_extensions' => array(0 => $this->config['allowed_extensions'])), $feed_dir)) {
-      $values['source'] = $file->uri;
+    if ($file = file_save_upload('feeds', array(), $feed_dir)) {
+      file_set_status($file, FILE_STATUS_PERMANENT);
+      $values['source'] = $file->filepath;
     }
     elseif (empty($values['source'])) {
       form_set_error('feeds][source', t('Upload a file first.'));
@@ -101,8 +102,8 @@ class FeedsFileFetcher extends FeedsFetcher {
     // If a file has not been uploaded and $values['source'] is not empty, make
     // sure that this file is within Drupal's files directory as otherwise
     // potentially any file that the web server has access could be exposed.
-    elseif (strpos($values['source'], 'public://') !== 0) {
-      form_set_error('feeds][source', t('File needs to reside within the site\'s file directory, its path needs to start with public://.'));
+    elseif (!file_check_location($values['source'], file_directory_path())) {
+      form_set_error('feeds][source', t('File needs to point to a file in your Drupal file system path.'));
     }
   }
 
@@ -111,7 +112,6 @@ class FeedsFileFetcher extends FeedsFetcher {
    */
   public function configDefaults() {
     return array(
-      'allowed_extensions' => 'txt csv xml',
       'direct' => FALSE,
     );
   }
@@ -121,12 +121,6 @@ class FeedsFileFetcher extends FeedsFetcher {
    */
   public function configForm(&$form_state) {
     $form = array();
-    $form['allowed_extensions'] = array(
-      '#type' =>'textfield',
-      '#title' => t('Allowed file extensions'),
-      '#description' => t('Allowed file extensions for upload.'),
-      '#default_value' => $this->config['allowed_extensions'],
-    );
     $form['direct'] = array(
       '#type' =>'checkbox',
       '#title' => t('Supply path to file directly'),

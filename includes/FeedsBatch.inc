@@ -1,5 +1,5 @@
 <?php
-// $Id: FeedsBatch.inc,v 1.17 2010/09/20 15:41:03 alexb Exp $
+// $Id: FeedsBatch.inc,v 1.15 2010/09/07 17:29:36 alexb Exp $
 
 // Batch stages.
 define('FEEDS_FETCHING', 'fetching');
@@ -142,7 +142,6 @@ class FeedsBatch {
  * @see FeedsHTTPBatch
  */
 class FeedsImportBatch extends FeedsBatch {
-  protected $file_path;
   protected $title;
   protected $description;
   protected $link;
@@ -160,7 +159,6 @@ class FeedsImportBatch extends FeedsBatch {
       FEEDS_PARSING => FEEDS_BATCH_COMPLETE,
       FEEDS_PROCESSING => FEEDS_BATCH_COMPLETE,
     );
-    $this->file_path = NULL;
     $this->title = '';
     $this->description = '';
     $this->link = '';
@@ -191,17 +189,15 @@ class FeedsImportBatch extends FeedsBatch {
    */
   public function getFilePath() {
     if (!isset($this->file_path)) {
-      $dir = 'public://feeds';
-      if (!file_prepare_directory($dir, FILE_CREATE_DIRECTORY | FILE_MODIFY_PERMISSIONS)) {
+      $dir = file_directory_path() .'/feeds';
+      if (!file_check_directory($dir, TRUE)) {
         throw new Exception(t('Feeds directory either cannot be created or is not writable.'));
       }
       $dest = file_destination($dir . '/' . get_class($this) .'_'. drupal_get_token($this->url) .'_'. time(), FILE_EXISTS_RENAME);
-      $this->file_path = FALSE;
-      $file = file_save_data($this->getRaw(), $dest);
-      if ($file === FALSE) {
+      $this->file_path = file_save_data($this->getRaw(), $dest);
+      if($this->file_path === 0) {
         throw new Exception(t('Cannot write content to %dest', array('%dest' => $dest)));
       }
-      $this->file_path = $file->uri;
     }
     return $this->file_path;
   }

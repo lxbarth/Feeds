@@ -1,5 +1,5 @@
 <?php
-// $Id: feeds_ui.test,v 1.9 2010/09/18 01:44:47 alexb Exp $
+// $Id: feeds_ui.test,v 1.7 2010/09/15 19:27:42 alexb Exp $
 
 /**
  * @file
@@ -34,7 +34,7 @@ class FeedsUIUserInterfaceTestCase extends FeedsWebTestCase {
     $this->drupalLogin(
       $this->drupalCreateUser(
         array(
-          'administer feeds', 'create article content', 'create page content',
+          'administer feeds', 'create story content', 'create page content',
         )
       )
     );
@@ -52,7 +52,7 @@ class FeedsUIUserInterfaceTestCase extends FeedsWebTestCase {
     $this->createImporterConfiguration('Test feed', 'test_feed');
 
     // Assert UI elements.
-    $this->drupalGet('admin/structure/feeds/edit/test_feed');
+    $this->drupalGet('admin/build/feeds/edit/test_feed');
     $this->assertText('Basic settings');
     $this->assertText('Fetcher');
     $this->assertText('HTTP Fetcher');
@@ -61,43 +61,43 @@ class FeedsUIUserInterfaceTestCase extends FeedsWebTestCase {
     $this->assertText('Processor');
     $this->assertText('Node processor');
     $this->assertText('Getting started');
-    $this->assertRaw('admin/structure/feeds/edit/test_feed/settings');
-    $this->assertRaw('admin/structure/feeds/edit/test_feed/settings/FeedsNodeProcessor');
-    $this->assertRaw('admin/structure/feeds/edit/test_feed/fetcher');
-    $this->assertRaw('admin/structure/feeds/edit/test_feed/parser');
-    $this->assertRaw('admin/structure/feeds/edit/test_feed/processor');
+    $this->assertRaw('admin/build/feeds/edit/test_feed/settings');
+    $this->assertRaw('admin/build/feeds/edit/test_feed/settings/FeedsNodeProcessor');
+    $this->assertRaw('admin/build/feeds/edit/test_feed/fetcher');
+    $this->assertRaw('admin/build/feeds/edit/test_feed/parser');
+    $this->assertRaw('admin/build/feeds/edit/test_feed/processor');
     $this->drupalGet('import');
     $this->assertText('Page');
 
     // Select some other plugins.
-    $this->drupalGet('admin/structure/feeds/edit/test_feed');
+    $this->drupalGet('admin/build/feeds/edit/test_feed');
 
     $this->clickLink('Change', 0);
     $this->assertText('Select a fetcher');
     $edit = array(
       'plugin_key' => 'FeedsFileFetcher',
     );
-    $this->drupalPost('admin/structure/feeds/edit/test_feed/fetcher', $edit, 'Save');
+    $this->drupalPost('admin/build/feeds/edit/test_feed/fetcher', $edit, 'Save');
 
     $this->clickLink('Change', 1);
     $this->assertText('Select a parser');
     $edit = array(
       'plugin_key' => 'FeedsCSVParser',
     );
-    $this->drupalPost('admin/structure/feeds/edit/test_feed/parser', $edit, 'Save');
+    $this->drupalPost('admin/build/feeds/edit/test_feed/parser', $edit, 'Save');
 
     $this->clickLink('Change', 2);
     $this->assertText('Select a processor');
     $edit = array(
       'plugin_key' => 'FeedsFeedNodeProcessor',
     );
-    $this->drupalPost('admin/structure/feeds/edit/test_feed/processor', $edit, 'Save');
+    $this->drupalPost('admin/build/feeds/edit/test_feed/processor', $edit, 'Save');
 
     // Assert changed configuration.
     $this->assertPlugins('test_feed', 'FeedsFileFetcher', 'FeedsCSVParser', 'FeedsFeedNodeProcessor');
 
     // Delete feed.
-    $this->drupalPost('admin/structure/feeds/delete/test_feed', array(), 'Delete');
+    $this->drupalPost('admin/build/feeds/delete/test_feed', array(), 'Delete');
     $this->drupalGet('import');
     $this->assertNoText('Test feed');
 
@@ -110,21 +110,21 @@ class FeedsUIUserInterfaceTestCase extends FeedsWebTestCase {
       'content_type' => 'page',
       'import_period' => 3600,
     );
-    $this->drupalPost('admin/structure/feeds/edit/test_feed/settings', $edit, 'Save');
+    $this->drupalPost('admin/build/feeds/edit/test_feed/settings', $edit, 'Save');
 
     // Assert results of change.
     $this->assertText('Edit importer: Syndication');
     $this->assertText('Attached to: Page');
     $this->assertText('Refresh: every 1 hour');
-    $this->drupalGet('admin/structure/feeds');
+    $this->drupalGet('admin/build/feeds');
     $this->assertLink('Page'); // See whether string 'Page' shows up in table.
 
     // Configure processor.
     $edit = array(
-      'content_type' => 'article',
+      'content_type' => 'story',
     );
-    $this->drupalPost('admin/structure/feeds/edit/test_feed/settings/FeedsNodeProcessor', $edit, 'Save');
-    $this->assertRaw('value="article" selected="selected"');
+    $this->drupalPost('admin/build/feeds/edit/test_feed/settings/FeedsNodeProcessor', $edit, 'Save');
+    $this->assertRaw('value="story" selected="selected"');
 
     // Create a feed node.
     $edit = array(

@@ -1,5 +1,5 @@
 <?php
-// $Id: FeedsHTTPFetcher.inc,v 1.29 2010/09/18 00:06:39 alexb Exp $
+// $Id: FeedsHTTPFetcher.inc,v 1.25 2010/09/15 19:40:57 alexb Exp $
 
 /**
  * @file
@@ -25,7 +25,7 @@ class FeedsHTTPBatch extends FeedsImportBatch {
   }
 
   /**
-   * Implements FeedsImportBatch::getRaw();
+   * Implementation of FeedsImportBatch::getRaw();
    */
   public function getRaw() {
     feeds_include_library('http_request.inc', 'http_request');
@@ -43,7 +43,7 @@ class FeedsHTTPBatch extends FeedsImportBatch {
 class FeedsHTTPFetcher extends FeedsFetcher {
 
   /**
-   * Implements FeedsFetcher::fetch().
+   * Implementation of FeedsFetcher::fetch().
    */
   public function fetch(FeedsSource $source) {
     $source_config = $source->getConfigFor($this);
@@ -64,7 +64,7 @@ class FeedsHTTPFetcher extends FeedsFetcher {
   }
 
   /**
-   * Implements FeedsFetcher::request().
+   * Implementation of FeedsFetcher::request().
    */
   public function request($feed_nid = 0) {
     feeds_dbg($_GET);
@@ -122,7 +122,7 @@ class FeedsHTTPFetcher extends FeedsFetcher {
       '#title' => t('Designated hub'),
       '#description' => t('Enter the URL of a designated PubSubHubbub hub (e. g. superfeedr.com). If given, this hub will be used instead of the hub specified in the actual feed.'),
       '#default_value' => $this->config['designated_hub'],
-//      '#process' => array('ctools_dependent_process'),
+      '#process' => array('ctools_dependent_process'),
       '#dependency' => array(
         'edit-use-pubsubhubbub' => array(1),
       ),
@@ -226,7 +226,7 @@ class PuSHSubscription implements PuSHSubscriptionInterface {
    * Load a subscription.
    */
   public static function load($domain, $subscriber_id) {
-    if ($v = db_query("SELECT * FROM {feeds_push_subscriptions} WHERE domain = :domain AND subscriber_id = :sid", array(':domain' => $domain, ':sid' => $subscriber_id))->fetchAssoc()) {
+    if ($v = db_fetch_array(db_query("SELECT * FROM {feeds_push_subscriptions} WHERE domain = '%s' AND subscriber_id = %d", $domain, $subscriber_id))) {
       $v['post_fields'] = unserialize($v['post_fields']);
       return new PuSHSubscription($v['domain'], $v['subscriber_id'], $v['hub'], $v['topic'], $v['secret'], $v['status'], $v['post_fields'], $v['timestamp']);
     }
@@ -258,10 +258,7 @@ class PuSHSubscription implements PuSHSubscriptionInterface {
    * Delete a subscription.
    */
   public function delete() {
-    db_delete('feeds_push_subscriptions')
-      ->condition('domain', $this->domain)
-      ->condition('subscriber_id', $this->subscriber_id)
-      ->execute();
+    db_query("DELETE FROM {feeds_push_subscriptions} WHERE domain = '%s' AND subscriber_id = %d", $this->domain, $this->subscriber_id);
   }
 }
 
@@ -281,14 +278,14 @@ class PuSHEnvironment implements PuSHSubscriberEnvironmentInterface {
   }
 
   /**
-   * Implements PuSHSubscriberEnvironmentInterface::msg().
+   * Implementation of PuSHSubscriberEnvironmentInterface::msg().
    */
   public function msg($msg, $level = 'status') {
     drupal_set_message($msg, $level);
   }
 
   /**
-   * Implements PuSHSubscriberEnvironmentInterface::log().
+   * Implementation of PuSHSubscriberEnvironmentInterface::log().
    */
   public function log($msg, $level = 'status') {
     switch ($level) {

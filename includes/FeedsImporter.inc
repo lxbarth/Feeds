@@ -1,10 +1,15 @@
 <?php
-// $Id: FeedsImporter.inc,v 1.30 2010/09/18 00:47:58 alexb Exp $
+// $Id: FeedsImporter.inc,v 1.23.2.1 2010/09/17 13:50:04 alexb Exp $
 
 /**
  * @file
  * FeedsImporter class and related.
  */
+
+// Including FeedsImporter.inc automatically includes dependencies.
+require_once(dirname(__FILE__) .'/FeedsConfigurable.inc');
+require_once(dirname(__FILE__) .'/FeedsSource.inc');
+require_once(dirname(__FILE__) .'/FeedsBatch.inc');
 
 /**
  * A FeedsImporter object describes how an external source should be fetched,
@@ -59,7 +64,7 @@ class FeedsImporter extends FeedsConfigurable {
    * Remove items older than $time.
    *
    * @param $time
-   *   All items older than REQUEST_TIME - $time will be deleted. If not
+   *   All items older than FEEDS_REQUEST_TIME - $time will be deleted. If not
    *   given, internal processor settings will be used.
    *
    * @return
@@ -99,7 +104,7 @@ class FeedsImporter extends FeedsConfigurable {
     $save = new stdClass();
     $save->id = $this->id;
     $save->config = $this->getConfig();
-    if (db_query_range("SELECT 1 FROM {feeds_importer} WHERE id = :id", 0, 1, array(':id' => $this->id))->fetchField()) {
+    if (db_result(db_query_range("SELECT 1 FROM {feeds_importer} WHERE id = '%s'", $this->id, 0, 1))) {
       drupal_write_record('feeds_importer', $save, 'id');
     }
     else {
@@ -129,9 +134,7 @@ class FeedsImporter extends FeedsConfigurable {
    * from database, does not delete configuration itself.
    */
   public function delete() {
-    db_delete('feeds_importer')
-      ->condition('id', $this->id)
-      ->execute();
+    db_query("DELETE FROM {feeds_importer} WHERE id = '%s'", $this->id);
     $job = array(
       'callback' => 'feeds_importer_expire',
       'type' => $this->id,
@@ -236,13 +239,11 @@ class FeedsImporter extends FeedsConfigurable {
       '#description' => t('A description of this configuration.'),
       '#default_value' => $this->config['description'],
     );
-    $node_types = node_type_get_names();
-    array_walk($node_types, 'check_plain');
     $form['content_type'] = array(
       '#type' => 'select',
       '#title' => t('Attach to content type'),
       '#description' => t('If an importer is attached to a content type, content is imported by creating a node. If the standalone form is selected, content is imported by using the standalone form under http://example.com/import.'),
-      '#options' => array('' => t('Use standalone form')) + $node_types,
+      '#options' => array('' => t('Use standalone form')) + node_get_types('names'),
       '#default_value' => $this->config['content_type'],
     );
     $period = drupal_map_assoc(array(0, 900, 1800, 3600, 10800, 21600, 43200, 86400, 259200, 604800, 2419200), 'format_interval');

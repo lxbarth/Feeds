@@ -1,5 +1,5 @@
 <?php
-// $Id: feeds_mapper_og.test,v 1.6 2010/09/18 01:44:47 alexb Exp $
+// $Id: feeds_mapper_og.test,v 1.4 2010/09/15 19:27:42 alexb Exp $
 
 /**
  * @file
@@ -39,7 +39,7 @@ class FeedsMapperOGTestCase extends FeedsMapperTestCase {
         )
     ));
 
-    // Add and configure a group content type, configure article, page type.
+    // Add and configure a group content type, configure story, page type.
     $edit = array(
       'name' => 'Group',
       'type' => 'group',
@@ -49,7 +49,7 @@ class FeedsMapperOGTestCase extends FeedsMapperTestCase {
     $edit = array(
       'og_content_type_usage' => 'group_post_standard',
     );
-    foreach (array('article', 'page') as $type) {
+    foreach (array('story', 'page') as $type) {
       $this->drupalPost("admin/content/node-type/$type", $edit, t('Save content type'));
     }
 
@@ -116,7 +116,7 @@ class FeedsMapperOGTestCase extends FeedsMapperTestCase {
     $this->drupalPost('node/add/page', $edit, 'Save');
 
     // Count number of items for this group, should be 11.
-    $count = db_query("SELECT COUNT(*) FROM {og_ancestry} WHERE group_nid = :nid", array(':nid' => $group_nid))->fetchField();
+    $count = db_result(db_query("SELECT COUNT(*) FROM {og_ancestry} WHERE group_nid = %d", $group_nid));
     $this->assertEqual(11, $count, 'Found correct number of nodes in group.');
 
     // Make page (= feed content type) itself a group content type, test again.
@@ -132,7 +132,7 @@ class FeedsMapperOGTestCase extends FeedsMapperTestCase {
     $group_nid = $this->getNid($this->getUrl());
 
     // Count number of items for this group, should be 10.
-    $count = db_query("SELECT COUNT(*) FROM {og_ancestry} WHERE group_nid = :nid", array(':nid' => $group_nid))->fetchField();
+    $count = db_result(db_query("SELECT COUNT(*) FROM {og_ancestry} WHERE group_nid = %d", $group_nid));
     $this->assertEqual(10, $count, 'Found correct number of nodes in group.');
   }
 }

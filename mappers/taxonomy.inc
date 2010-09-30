@@ -1,5 +1,5 @@
 <?php
-// $Id: taxonomy.inc,v 1.12 2010/09/17 17:25:19 alexb Exp $
+// $Id: taxonomy.inc,v 1.11 2010/09/16 18:28:24 alexb Exp $
 
 /**
  * @file
@@ -7,7 +7,7 @@
  */
 
 /**
- * Implements hook_feeds_parser_sources_alter().
+ * Implementation of hook_feeds_parser_sources_alter().
  */
 function taxonomy_feeds_parser_sources_alter(&$sources, $content_type) {
   if (!empty($content_type)) {
@@ -39,7 +39,7 @@ function taxonomy_feeds_get_source(FeedsImportBatch $batch, $key) {
 }
 
 /**
- * Implements hook_feeds_node_processor_targets_alter().
+ * Implementation of hook_feeds_node_processor_targets_alter().
  *
  * @see FeedsNodeProcessor::getMappingTargets().
  */

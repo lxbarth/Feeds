@@ -257,7 +257,7 @@ function feeds_news_views_default_views() {
       'validate_argument_node_type' => array(
         'feed' => 0,
         'feed_item' => 0,
-        'article' => 0,
+        'story' => 0,
       ),
       'validate_argument_node_access' => 0,
       'validate_argument_nid_type' => 'nid',
@@ -332,7 +332,7 @@ function feeds_news_views_default_views() {
       'validate_argument_node_type' => array(
         'feed' => 'feed',
         'feed_item' => 0,
-        'article' => 0,
+        'story' => 0,
       ),
       'validate_argument_node_access' => 0,
       'validate_argument_nid_type' => 'nid',

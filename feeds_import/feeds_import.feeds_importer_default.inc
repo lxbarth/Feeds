@@ -27,7 +27,7 @@ function feeds_import_feeds_importer_default() {
     'processor' => array(
       'plugin_key' => 'FeedsNodeProcessor',
       'config' => array(
-        'content_type' => 'article',
+        'content_type' => 'story',
         'update_existing' => 1,
         'expire' => '-1',
         'mappings' => array(

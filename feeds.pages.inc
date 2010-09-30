@@ -1,5 +1,5 @@
 <?php
-// $Id: feeds.pages.inc,v 1.33 2010/09/20 16:56:24 alexb Exp $
+// $Id: feeds.pages.inc,v 1.22 2010/09/16 19:01:04 alexb Exp $
 
 /**
  * @file
@@ -25,7 +25,7 @@ function feeds_page() {
       }
       elseif (user_access('create '. $importer->config['content_type'] .' content')) {
         $link = 'node/add/'. str_replace('_', '-', $importer->config['content_type']);
-        $title = node_type_get_name($importer->config['content_type']);
+        $title = node_get_types('name', $importer->config['content_type']);
       }
       $rows[] = array(
         l($title, $link),
@@ -37,13 +37,13 @@ function feeds_page() {
     t('Import'),
     t('Description'),
   );
-  return theme('table', array('header' => $header, 'rows' => $rows));
+  return theme('table', $header, $rows);
 }
 
 /**
  * Render a feeds import form on import/[config] pages.
  */
-function feeds_import_form($form, &$form_state, $importer_id) {
+function feeds_import_form(&$form_state, $importer_id) {
   $source = feeds_source($importer_id, empty($form['nid']['#value']) ? 0 : $form['nid']['#value']);
 
   $form = array();
@@ -93,7 +93,7 @@ function feeds_import_form_submit($form, &$form_state) {
 /**
  * Render a feeds import form on node/id/import pages.
  */
-function feeds_import_tab_form($form, &$form_state, $node) {
+function feeds_import_tab_form(&$form_state, $node) {
   $importer_id = feeds_get_importer_id($node->type);
 
   $form = array();
@@ -117,7 +117,7 @@ function feeds_import_tab_form_submit($form, &$form_state) {
  * Used on both node pages and configuration pages.
  * Therefore $node may be missing.
  */
-function feeds_delete_tab_form($form, &$form_state, $importer_id, $node = NULL) {
+function feeds_delete_tab_form(&$form_state, $importer_id, $node = NULL) {
   if (empty($node)) {
     $form['#redirect'] = 'import/'. $importer_id;
   }
@@ -153,33 +153,28 @@ function feeds_fetcher_callback($importer, $feed_nid = 0) {
 /**
  * Theme upload widget.
  */
-function theme_feeds_upload($variables) {
-  $element = $variables['element'];
+function theme_feeds_upload($element) {
   drupal_add_css(drupal_get_path('module', 'feeds') .'/feeds.css');
   _form_set_class($element, array('form-file'));
-  $description = '';
+  $output = '';
   if (!empty($element['#file_info'])) {
     $info = $element['#file_info'];
-    $description .= '<div class="file-info">';
-    $description .= '<div class="file-name">';
-    $description .= l(basename($info['path']), $info['path']);
-    $description .= '</div>';
-    $description .= '<div class="file-size">';
-    $description .= format_size($info['size']);
-    $description .= '</div>';
+    $output .= '<div class="file-info">';
+    $output .= '<div class="file-name">';
+    $output .= l(basename($info['path']), $info['path']);
+    $output .= '</div>';
+    $output .= '<div class="file-size">';
+    $output .= format_size($info['size']);
+    $output .= '</div>';
     if (isset($info['mime'])) {
-      $description .= '<div class="file-mime">';
-      $description .= check_plain($info['mime']);
-      $description .= '</div>';
+      $output .= '<div class="file-mime">';
+      $output .= check_plain($info['mime']);
+      $output .= '</div>';
     }
-    $description .= '</div>';
+    $output .= '</div>';
   }
-  $description .= '<div class="file-upload">';
-  $description .= '<input type="file" name="'. $element['#name'] .'"'. ($element['#attributes'] ? ' '. drupal_attributes($element['#attributes']) : '') .' id="'. $element['#id'] .'" size="'. $element['#size'] ."\" />\n";
-  $description .= '</div>';
-  $element['#description'] = $description;
-
-  // For some reason not unsetting #title leads to printing the title twice.
-  unset($element['#title']);
-  return theme('form_element', $element);
+  $output .= '<div class="file-upload">';
+  $output .= '<input type="file" name="'. $element['#name'] .'"'. ($element['#attributes'] ? ' '. drupal_attributes($element['#attributes']) : '') .' id="'. $element['#id'] .'" size="'. $element['#size'] ."\" />\n";
+  $output .= '</div>';
+  return theme('form_element', $element, $output);
 }

@@ -1,5 +1,5 @@
 <?php
-// $Id: feeds.plugins.inc,v 1.7 2010/09/16 22:30:18 alexb Exp $
+// $Id: feeds.plugins.inc,v 1.6 2010/07/10 22:43:05 alexb Exp $
 
 /**
  * @file
@@ -163,6 +163,19 @@ function _feeds_feeds_plugins() {
       'path' => $path,
     ),
   );
+  if (module_exists('data')) {
+    $info['FeedsDataProcessor'] = array(
+      'name' => 'Data processor',
+      'description' => 'Create data table records.',
+      'help' => 'Create data table records from parsed content.',
+      'handler' => array(
+        'parent' => 'FeedsProcessor',
+        'class' => 'FeedsDataProcessor',
+        'file' => 'FeedsDataProcessor.inc',
+        'path' => $path,
+      ),
+    );
+  }
   if (module_exists('taxonomy')) {
     $info['FeedsTermProcessor'] = array(
       'name' => 'Taxonomy term processor',

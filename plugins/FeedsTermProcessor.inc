@@ -1,5 +1,5 @@
 <?php
-// $Id: FeedsTermProcessor.inc,v 1.24 2010/09/17 21:29:12 alexb Exp $
+// $Id: FeedsTermProcessor.inc,v 1.20 2010/09/14 15:03:07 alexb Exp $
 
 /**
  * @file
@@ -12,7 +12,7 @@
 class FeedsTermProcessor extends FeedsProcessor {
 
   /**
-   * Implements FeedsProcessor::process().
+   * Implementation of FeedsProcessor::process().
    */
   public function process(FeedsImportBatch $batch, FeedsSource $source) {
 
@@ -47,7 +47,7 @@ class FeedsTermProcessor extends FeedsProcessor {
         }
 
         // Save the term.
-        $term['feeds_importer_id'] = $this->id;
+        $term['importer_id'] = $this->id;
         $term['feed_nid'] = $this->feed_nid;
         taxonomy_save_term($term);
         if ($tid) {
@@ -84,23 +84,19 @@ class FeedsTermProcessor extends FeedsProcessor {
   }
 
   /**
-   * Implements FeedsProcessor::clear().
+   * Implementation of FeedsProcessor::clear().
    */
   public function clear(FeedsBatch $batch, FeedsSource $source) {
     $deleted = 0;
     $vocabulary = $this->vocabulary();
-    $terms = db_query("SELECT td.tid
+    $result = db_query("SELECT td.tid
                         FROM {term_data} td
                         JOIN {feeds_term_item} ft ON td.tid = ft.tid
-                        WHERE td.vid = :vid
-                        AND ft.id = :id
-                        AND ft.feed_nid = :feed_nid",
-                        array(
-                          ':vid' => $vocabulary->vid,
-                          ':id' => $this->id,
-                          ':feed_nid' => $source->feed_nid,
-                        ));
-    foreach ($terms as $term) {
+                        WHERE td.vid = %d
+                        AND ft.id = '%s'
+                        AND ft.feed_nid = %d",
+                        $vocabulary->vid, $this->id, $source->feed_nid);
+    while ($term = db_fetch_object($result)) {
       if (taxonomy_del_term($term->tid) == SAVED_DELETED) {
         $deleted++;
       }
@@ -223,7 +219,7 @@ class FeedsTermProcessor extends FeedsProcessor {
     foreach ($this->uniqueTargets($batch) as $target => $value) {
       if ($target == 'name') {
         $vocabulary = $this->vocabulary();
-        if ($tid = db_query("SELECT tid FROM {term_data} WHERE name = :name AND vid = :vid", array(':name' => $value, ':vid' => $vocabulary->vid))->fetchField()) {
+        if ($tid = db_result(db_query("SELECT tid FROM {term_data} WHERE name = '%s' AND vid = %d", $value, $vocabulary->vid))) {
           return $tid;
         }
       }

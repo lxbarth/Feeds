@@ -1,5 +1,5 @@
 <?php
-// $Id: http_request.inc,v 1.9 2010/09/17 22:02:45 alexb Exp $
+// $Id: http_request.inc,v 1.8 2010/09/08 14:54:36 alexb Exp $
 
 /**
  * @file
@@ -178,7 +178,7 @@ function http_request_get($url, $username = NULL, $password = NULL, $accept_inva
     }
   }
   else {
-    $result = drupal_http_request($url, array('headers' => $headers));
+    $result = drupal_http_request($url, $headers);
   }
 
   $result->code = isset($result->code) ? $result->code : 200;
