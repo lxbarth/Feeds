@@ -190,7 +190,7 @@ function feeds_set_status_message($source) {
   }
   if ($source->progressClearing() !== FEEDS_BATCH_COMPLETE) {
     $percent = feeds_format_percentage($source->progressClearing());
-    drupal_set_message(t('Deleting all items - !percent complete.', array('!percent' => $percent)));
+    drupal_set_message(t('Deleting items - !percent complete.', array('!percent' => $percent)));
   }
 }
 
