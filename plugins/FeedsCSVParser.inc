@@ -1,5 +1,5 @@
 <?php
-// $Id: FeedsCSVParser.inc,v 1.19.2.1 2010/09/29 23:56:10 alexb Exp $
+// $Id: FeedsCSVParser.inc,v 1.19.2.2 2010/09/30 21:21:12 alexb Exp $
 
 /**
  * Parses a given file as a CSV file.
@@ -119,11 +119,11 @@ class FeedsCSVParser extends FeedsParser {
       }
     }
 
+    $output = t('Import !csv_files with one or more of these columns: !columns.',array('!csv_files' => l(t('CSV files'), 'http://en.wikipedia.org/wiki/Comma-separated_values'), '!columns' => implode(', ', $sources)));
     $items = array();
-    $items[] = t('Import !csv_files with one or more of these columns: !columns.',array('!csv_files' => l(t('CSV files'), 'http://en.wikipedia.org/wiki/Comma-separated_values'), '!columns' => implode(', ', $sources)));
     $items[] = format_plural(count($uniques), t('Column <strong>!column</strong> is mandatory and considered unique: only one item per !column value will be created.', array('!column' => implode(', ', $uniques))), t('Columns <strong>!columns</strong> are mandatory and values in these columns are considered unique: only one entry per value in one of these column will be created.', array('!columns' => implode(', ', $uniques))));
-    $items[] = l(t('Template'), 'import/' . $this->id . '/template');
-    $form['help']['#markup'] = '<div class="help">'. theme('item_list', array('items' => $items)) .'</div>';
+    $items[] = l(t('Download a template'), 'import/' . $this->id . '/template');
+    $form['help']['#markup'] = '<div class="help"><p>' . $output . '</p>' . theme('item_list', array('items' => $items)) . '</div>';
     $form['delimiter'] = array(
       '#type' => 'select',
       '#title' => t('Delimiter'),
