@@ -82,7 +82,7 @@ function feeds_import_form_submit($form, &$form_state) {
 
   // Refresh feed if import on create is selected.
   if ($source->importer->config['import_on_create']) {
-    feeds_batch_set(t('Importing'), 'import', $form['#importer_id']);
+    $source->import();
   }
 
   // Add to schedule, make sure importer is scheduled, too.
@@ -108,7 +108,7 @@ function feeds_import_tab_form($form, &$form_state, $node) {
  */
 function feeds_import_tab_form_submit($form, &$form_state) {
   $form_state['redirect'] = $form['#redirect'];
-  feeds_batch_set(t('Importing'), 'import', $form['#importer_id'], $form['#feed_nid']);
+  feeds_source($form['#importer_id'], $form['#feed_nid'])->startImport();
 }
 
 /**
@@ -137,7 +137,7 @@ function feeds_delete_tab_form($form, &$form_state, $importer_id, $node = NULL) 
 function feeds_delete_tab_form_submit($form, &$form_state) {
   $form_state['redirect'] = $form['#redirect'];
   $feed_nid = empty($form['#feed_nid']) ? 0 : $form['#feed_nid'];
-  feeds_batch_set(t('Deleting'), 'clear', $form['#importer_id'], $feed_nid);
+  feeds_source($form['#importer_id'], $feed_nid)->clear();
 }
 
 /**

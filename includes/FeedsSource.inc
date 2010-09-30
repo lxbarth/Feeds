@@ -1,5 +1,5 @@
 <?php
-// $Id: FeedsSource.inc,v 1.26.2.1 2010/09/29 23:56:10 alexb Exp $
+// $Id: FeedsSource.inc,v 1.26.2.2 2010/09/30 19:50:08 alexb Exp $
 
 /**
  * @file
@@ -183,7 +183,94 @@ class FeedsSource extends FeedsConfigurable {
   }
 
   /**
-   * Import a feed: execute fetching, parsing and processing stage.
+   * Start importing a source.
+   *
+   * This method starts an import job and returns immediately. Depending on the
+   * configuration of the importer of this source, a Batch API job or a
+   * background job with Job Scheduler will be created.
+   */
+  public function startImport() {
+    if ($this->importer->config['process_in_background']) {
+      $this->startBackgroundJob('import');
+    }
+    else {
+      $this->startBatchAPIJob(t('Importing'), 'import');
+    }
+  }
+
+  /**
+   * Start deleting all imported items of a source.
+   *
+   * This method starts a clear job and returns immediately. Depending on the
+   * configuration of the importer of this source, a Batch API job or a
+   * background job with Job Scheduler will be created.
+   */
+  public function startClear() {
+    if ($this->importer->config['process_in_background']) {
+      $this->startBackgroundJob('clear');
+    }
+    else {
+      $this->startBatchAPIJob(t('Deleting'), 'clear');
+    }
+  }
+
+  /**
+   * Schedule all periodic tasks for this source.
+   */
+  public function schedule() {
+    $this->scheduleImport();
+  }
+
+  /**
+   * Schedule periodic or background import tasks.
+   */
+  public function scheduleImport() {
+    // Check whether any fetcher is overriding the import period.
+    $period = $this->importer->config['import_period'];
+    $fetcher_period = $this->importer->fetcher->importPeriod($this);
+    if (is_numeric($fetcher_period)) {
+      $period = $fetcher_period;
+    }
+    $period = $this->progressImporting() === FEEDS_BATCH_COMPLETE ? $period : 0;
+    $job = array(
+      'type' => $this->id,
+      'id' => $this->feed_nid,
+      // Schedule as soon as possible if a batch is active.
+      'period' => $period,
+      'periodic' => TRUE,
+    );
+    if ($job['period'] != FEEDS_SCHEDULE_NEVER || !$period) {
+      JobScheduler::get('feeds_source_import')->set($job);
+    }
+    else {
+      JobScheduler::get('feeds_source_import')->remove($job);
+    }
+  }
+
+  /**
+   * Schedule background clearing tasks.
+   */
+  public function scheduleClear() {
+    // Schedule as soon as possible if batch is not complete.
+    if ($this->progressClearing() !== FEEDS_BATCH_COMPLETE) {
+      $job = array(
+        'type' => $this->id,
+        'id' => $this->feed_nid,
+        'period' => 0,
+        'periodic' => TRUE,
+      );
+      JobScheduler::get('feeds_source_clear')->set($job);
+    }
+    else {
+      JobScheduler::get('feeds_source_clear')->remove($job);
+    }
+  }
+
+  /**
+   * Import a source: execute fetching, parsing and processing stage.
+   *
+   * This method only executes the current batch chunk, then returns. If you are
+   * looking to import an entire source, use FeedsSource::startImport() instead.
    *
    * @return
    *   FEEDS_BATCH_COMPLETE if the import process finished. A decimal between
@@ -228,6 +315,10 @@ class FeedsSource extends FeedsConfigurable {
 
   /**
    * Remove all items from a feed.
+   *
+   * This method only executes the current batch chunk, then returns. If you are
+   * looking to delete all items of a source, use FeedsSource::startClear()
+   * instead.
    *
    * @return
    *   FEEDS_BATCH_COMPLETE if the clearing process finished. A decimal between
@@ -305,31 +396,6 @@ class FeedsSource extends FeedsConfigurable {
       $this->state[$class] = new FeedsState();
     }
     return $this->state[$class];
-  }
-
-  /**
-   * Schedule this source.
-   */
-  public function schedule() {
-    // Check whether any fetcher is overriding the import period.
-    $period = $this->importer->config['import_period'];
-    $fetcher_period = $this->importer->fetcher->importPeriod($this);
-    if (is_numeric($fetcher_period)) {
-      $period = $fetcher_period;
-    }
-    $job = array(
-      'type' => $this->id,
-      'id' => $this->feed_nid,
-      // Schedule as soon as possible if a batch is active.
-      'period' => $this->progressImporting() === FEEDS_BATCH_COMPLETE ? $period : 0,
-      'periodic' => TRUE,
-    );
-    if ($job['period'] != FEEDS_SCHEDULE_NEVER) {
-      JobScheduler::get('feeds_source_import')->set($job);
-    }
-    else {
-      JobScheduler::get('feeds_source_import')->remove($job);
-    }
   }
 
   /**
@@ -422,6 +488,7 @@ class FeedsSource extends FeedsConfigurable {
       $this->importer->existing();
       return parent::existing();
     }
+    throw new FeedsNotExistingException(t('Source configuration not valid.'));
   }
 
   /**
@@ -493,5 +560,48 @@ class FeedsSource extends FeedsConfigurable {
         $this->importer->$type->sourceFormValidate($values[$class]);
       }
     }
+  }
+
+  /**
+   * Background job helper. Starts a background job using Job Scheduler.
+   *
+   * @see FeedsSource::startImport().
+   * @see FeedsSource::startClear().
+   *
+   * @param $method
+   *   Method to execute on importer; one of 'import' or 'clear'.
+   */
+  protected function startBackgroundJob($method) {
+    $job = array(
+      'type' => $this->id,
+      'id' => $this->feed_nid,
+      'next' => 0,
+      'period' => 0,
+      'periodic' => FALSE,
+    );
+    JobScheduler::get("feeds_source_{$method}")->set($job);
+  }
+
+  /**
+   * Batch API helper. Starts a Batch API job.
+   *
+   * @see FeedsSource::startImport().
+   * @see FeedsSource::startClear().
+   * @see feeds_batch()
+   *
+   * @param $title
+   *   Title to show to user when executing batch.
+   * @param $method
+   *   Method to execute on importer; one of 'import' or 'clear'.
+   */
+  protected function startBatchAPIJob($title, $method) {
+    $batch = array(
+      'title' => $title,
+      'operations' => array(
+        array('feeds_batch', array($method, $this->id, $this->feed_nid)),
+      ),
+      'progress_message' => '',
+    );
+    batch_set($batch);
   }
 }

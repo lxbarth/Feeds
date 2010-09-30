@@ -49,6 +49,9 @@ function feeds_cron_job_scheduler_info() {
   $info['feeds_source_import'] = array(
     'queue name' => 'feeds_source_import',
   );
+  $info['feeds_source_clear'] = array(
+    'queue name' => 'feeds_source_clear',
+  );
   $info['feeds_importer_expire'] = array(
     'queue name' => 'feeds_importer_expire',
   );
@@ -62,6 +65,10 @@ function feeds_cron_queue_info() {
   $queues = array();
   $queues['feeds_source_import'] = array(
     'worker callback' => 'feeds_source_import',
+    'time' => 15,
+  );
+  $queues['feeds_source_clear'] = array(
+    'worker callback' => 'feeds_source_clear',
     'time' => 15,
   );
   $queues['feeds_importer_expire'] = array(
@@ -83,7 +90,22 @@ function feeds_source_import($job) {
   catch (Exception $e) {
     watchdog('feeds_source_import()', $e->getMessage(), array(), WATCHDOG_ERROR);
   }
-  $source->schedule();
+  $source->scheduleImport();
+}
+
+/**
+ * Scheduler callback for deleting all items from a source.
+ */
+function feeds_source_clear($job) {
+  $source = feeds_source($job['type'], $job['id']);
+  try {
+    $source->existing()->clear();
+  }
+  catch (FeedsNotExistingException $e) {}
+  catch (Exception $e) {
+    watchdog('feeds_source_clear()', $e->getMessage(), array(), WATCHDOG_ERROR);
+  }
+  $source->scheduleClear();
 }
 
 /**
@@ -98,7 +120,34 @@ function feeds_importer_expire($job) {
   catch (Exception $e) {
     watchdog('feeds_importer_expire()', $e->getMessage(), array(), WATCHDOG_ERROR);
   }
-  $importer->schedule();
+  $importer->scheduleExpire();
+}
+
+/**
+ * Batch API worker callback. Used by FeedsSource::startBatchAPIJob().
+ *
+ * @see FeedsSource::startBatchAPIJob().
+ *
+ * @todo Harmonize Job Scheduler API callbacks with Batch API callbacks?
+ *
+ * @param $method
+ *   Method to execute on importer; one of 'import' or 'clear'.
+ * @param $importer_id
+ *   Identifier of a FeedsImporter object.
+ * @param $feed_nid
+ *   If importer is attached to content type, feed node id identifying the
+ *   source to be imported.
+ * @param $context
+ *   Batch context.
+ */
+function feeds_batch($method, $importer_id, $feed_nid = 0, &$context) {
+  $context['finished'] = 1;
+  try {
+    $context['finished'] = feeds_source($importer_id, $feed_nid)->$method();
+  }
+  catch (Exception $e) {
+    drupal_set_message($e->getMessage(), 'error');
+  }
 }
 
 /**
@@ -408,12 +457,13 @@ function feeds_node_insert($node) {
   _feeds_node_processor_node_insert($node);
   feeds_node_update($node);
   if ($importer_id = feeds_get_importer_id($node->type)) {
+    $source = feeds_source($importer_id, $node->nid);
     // Start import if requested.
     if (feeds_importer($importer_id)->config['import_on_create'] && !isset($node->feeds['suppress_import'])) {
-      feeds_batch_set(t('Importing'), 'import', $importer_id, $node->nid);
+      $source->startImport();
     }
     // Schedule source and importer.
-    feeds_source($importer_id, $node->nid)->schedule();
+    $source->schedule();
     feeds_importer($importer_id)->schedule();
   }
 }
@@ -537,61 +587,6 @@ function feeds_form_alter(&$form, $form_state, $form_id) {
       $form['feeds'] += $source->configForm($form_state);
       $form['#feed_id'] = $importer_id;
     }
-  }
-}
-
-/**
- * @}
- */
-
-/**
- * @defgroup batch Batch functions
- */
-
-/**
- * Batch helper.
- *
- * @param $title
- *   Title to show to user when executing batch.
- * @param $method
- *   Method to execute on importer; one of 'import', 'clear' or 'expire'.
- * @param $importer_id
- *   Identifier of a FeedsImporter object.
- * @param $feed_nid
- *   If importer is attached to content type, feed node id identifying the
- *   source to be imported.
- */
-function feeds_batch_set($title, $method, $importer_id, $feed_nid = 0) {
-  $batch = array(
-    'title' => $title,
-    'operations' => array(
-      array('feeds_batch', array($method, $importer_id, $feed_nid)),
-    ),
-    'progress_message' => '',
-  );
-  batch_set($batch);
-}
-
-/**
- * Batch callback.
- *
- * @param $method
- *   Method to execute on importer; one of 'import' or 'clear'.
- * @param $importer_id
- *   Identifier of a FeedsImporter object.
- * @param $feed_nid
- *   If importer is attached to content type, feed node id identifying the
- *   source to be imported.
- * @param $context
- *   Batch context.
- */
-function feeds_batch($method, $importer_id, $feed_nid = 0, &$context) {
-  $context['finished'] = 1;
-  try {
-    $context['finished'] = feeds_source($importer_id, $feed_nid)->$method();
-  }
-  catch (Exception $e) {
-    drupal_set_message($e->getMessage(), 'error');
   }
 }
 

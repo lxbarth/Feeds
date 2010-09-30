@@ -74,9 +74,16 @@ class FeedsImporter extends FeedsConfigurable {
   }
 
   /**
-   * Schedule this importer.
+   * Schedule all periodic tasks for this importer.
    */
   public function schedule() {
+    $this->scheduleExpire();
+  }
+
+  /**
+   * Schedule expiry of items.
+   */
+  public function scheduleExpire() {
     $job = array(
       'type' => $this->id,
       'period' => 0,
