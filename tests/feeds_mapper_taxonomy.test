@@ -1,5 +1,5 @@
 <?php
-// $Id: feeds_mapper_taxonomy.test,v 1.9 2010/09/18 01:44:47 alexb Exp $
+// $Id: feeds_mapper_taxonomy.test,v 1.9.2.1 2010/09/30 17:45:48 alexb Exp $
 
 /**
  * @file
@@ -98,7 +98,7 @@ class FeedsMapperTaxonomyTestCase extends FeedsMapperTestCase {
       'import_on_create' => FALSE,
     );
     $this->drupalPost('admin/structure/feeds/edit/syndication/settings', $edit, 'Save');
-    $this->assertText('Do not import on create');
+    $this->assertText('Do not import on submission');
     $nid = $this->createFeedNode();
     $terms = array('testterm1', 'testterm2', 'testterm3');
     $edit = array(

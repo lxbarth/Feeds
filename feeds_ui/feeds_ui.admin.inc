@@ -1,5 +1,5 @@
 <?php
-// $Id: feeds_ui.admin.inc,v 1.60.2.1 2010/09/29 23:56:10 alexb Exp $
+// $Id: feeds_ui.admin.inc,v 1.60.2.2 2010/09/30 17:45:47 alexb Exp $
 
 /**
  * @file
@@ -328,7 +328,7 @@ function feeds_ui_edit_page($importer, $active = 'help', $plugin_key = '') {
     $import_period = t('every !interval', array('!interval' => format_interval($importer->config['import_period'])));
   }
   $items[] = t('Refresh: !import_period', array('!import_period' => $import_period));
-  $items[] = $importer->config['import_on_create'] ? t('Import on create') : t('Do not import on create');
+  $items[] = $importer->config['import_on_create'] ? t('Import on submission') : t('Do not import on submission');
 
   $info['title'] = t('Basic settings');
   $info['body'] = array(

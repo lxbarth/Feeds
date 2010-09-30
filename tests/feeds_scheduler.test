@@ -1,5 +1,5 @@
 <?php
-// $Id: feeds_scheduler.test,v 1.6.2.1 2010/09/29 23:56:10 alexb Exp $
+// $Id: feeds_scheduler.test,v 1.6.2.2 2010/09/30 17:45:48 alexb Exp $
 
 /**
  * @file
@@ -63,7 +63,7 @@ class FeedsSchedulerTestCase extends FeedsWebTestCase {
       'import_on_create' => FALSE,
     );
     $this->drupalPost('admin/structure/feeds/edit/syndication/settings', $edit, 'Save');
-    $this->assertText('Do not import on create');
+    $this->assertText('Do not import on submission');
 
     $nids = $this->createFeedNodes();
     // This implicitly tests the import_on_create node setting being 0.

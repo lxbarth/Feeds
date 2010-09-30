@@ -1,5 +1,5 @@
 <?php
-// $Id: FeedsImporter.inc,v 1.31.2.1 2010/09/29 23:56:10 alexb Exp $
+// $Id: FeedsImporter.inc,v 1.31.2.2 2010/09/30 17:45:47 alexb Exp $
 
 /**
  * @file
@@ -231,7 +231,7 @@ class FeedsImporter extends FeedsConfigurable {
       'update' => 0,
       'import_period' => 1800, // Refresh every 30 minutes by default.
       'expire_period' => 3600, // Expire every hour by default, this is a hidden setting.
-      'import_on_create' => TRUE, // Import on create.
+      'import_on_create' => TRUE, // Import on submission.
     );
   }
 
