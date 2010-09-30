@@ -190,7 +190,8 @@ class FeedsSource extends FeedsConfigurable {
    * background job with Job Scheduler will be created.
    */
   public function startImport() {
-    if ($this->importer->config['process_in_background']) {
+    $config = $this->importer->getConfig();
+    if ($config['process_in_background']) {
       $this->startBackgroundJob('import');
     }
     else {
@@ -206,7 +207,8 @@ class FeedsSource extends FeedsConfigurable {
    * background job with Job Scheduler will be created.
    */
   public function startClear() {
-    if ($this->importer->config['process_in_background']) {
+    $config = $this->importer->getConfig();
+    if ($config['process_in_background']) {
       $this->startBackgroundJob('clear');
     }
     else {

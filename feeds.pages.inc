@@ -46,6 +46,8 @@ function feeds_page() {
 function feeds_import_form($form, &$form_state, $importer_id) {
   $source = feeds_source($importer_id, empty($form['nid']['#value']) ? 0 : $form['nid']['#value']);
 
+  feeds_set_status_message($source);
+
   $form = array();
   $form['#importer_id'] = $importer_id;
   // @todo Move this into fetcher?
@@ -59,6 +61,10 @@ function feeds_import_form($form, &$form_state, $importer_id) {
     '#type' => 'submit',
     '#value' => t('Import'),
   );
+  if ($source->progressImporting() !== FEEDS_BATCH_COMPLETE) {
+    $form['submit']['#disabled'] = TRUE;
+    $form['submit']['#value'] = t('Importing (!percent)', array('!percent' => feeds_format_percentage($source->progressImporting())));
+  }
   return $form;
 }
 
@@ -95,12 +101,18 @@ function feeds_import_form_submit($form, &$form_state) {
  */
 function feeds_import_tab_form($form, &$form_state, $node) {
   $importer_id = feeds_get_importer_id($node->type);
+  $source = feeds_source($importer_id, $node->nid);
 
   $form = array();
   $form['#feed_nid'] = $node->nid;
   $form['#importer_id'] = $importer_id;
   $form['#redirect'] = 'node/'. $node->nid;
-  return confirm_form($form, t('Import all content from feed?'), 'node/'. $node->nid, '', t('Import'), t('Cancel'), 'confirm feeds update');
+  $form = confirm_form($form, t('Import all content from feed?'), 'node/'. $node->nid, '', t('Import'), t('Cancel'), 'confirm feeds update');
+  if ($source->progressImporting() !== FEEDS_BATCH_COMPLETE) {
+    $form['actions']['submit']['#disabled'] = TRUE;
+    $form['actions']['submit']['#value'] = t('Importing (!percent)', array('!percent' => feeds_format_percentage($source->progressImporting())));
+  }
+  return $form;
 }
 
 /**
@@ -118,17 +130,24 @@ function feeds_import_tab_form_submit($form, &$form_state) {
  * Therefore $node may be missing.
  */
 function feeds_delete_tab_form($form, &$form_state, $importer_id, $node = NULL) {
-  if (empty($node)) {
-    $form['#redirect'] = 'import/'. $importer_id;
-  }
-  else {
+  if ($node) {
     $importer_id = feeds_get_importer_id($node->type);
-    $form['#feed_nid'] = $node->nid;
+    $source = feeds_source($importer_id, $node->nid);
     $form['#redirect'] = 'node/'. $node->nid;
   }
-  // Form cannot pass on feed object.
-  $form['#importer_id'] = $importer_id;
-  return confirm_form($form, t('Delete all items from feed?'), $form['#redirect'], '', t('Delete'), t('Cancel'), 'confirm feeds update');
+  else {
+    $source = feeds_source($importer_id, 0);
+    $form['#redirect'] = 'import/'. $importer_id;
+  }
+  $form['#feed_nid'] = $source->feed_nid;
+  // Form cannot pass on source object.
+  $form['#importer_id'] = $source->id;
+  $form = confirm_form($form, t('Delete all items from feed?'), $form['#redirect'], '', t('Delete'), t('Cancel'), 'confirm feeds update');
+  if ($source->progressClearing() !== FEEDS_BATCH_COMPLETE) {
+    $form['actions']['submit']['#disabled'] = TRUE;
+    $form['actions']['submit']['#value'] = t('Deleting (!percent)', array('!percent' => feeds_format_percentage($source->progressClearing())));
+  }
+  return $form;
 }
 
 /**
@@ -160,6 +179,28 @@ function feeds_importer_template($importer) {
   }
   return drupal_not_found();
 }
+
+/**
+ * Report import/clear status of a source as drupal messages.
+ */
+function feeds_set_status_message($source) {
+  if ($source->progressImporting() !== FEEDS_BATCH_COMPLETE) {
+    $percent = feeds_format_percentage($source->progressImporting());
+    drupal_set_message(t('Importing - !percent complete.', array('!percent' => $percent)));
+  }
+  if ($source->progressClearing() !== FEEDS_BATCH_COMPLETE) {
+    $percent = feeds_format_percentage($source->progressClearing());
+    drupal_set_message(t('Deleting all items - !percent complete.', array('!percent' => $percent)));
+  }
+}
+
+/**
+ * Format a percentage.
+ */
+function feeds_format_percentage($float) {
+  return t('!percent %', array('!percent' => number_format(100 * $float, 0)));
+}
+
 /**
  * Theme upload widget.
  */
