@@ -273,7 +273,7 @@ class FeedsSource extends FeedsConfigurable {
       'period' => $period,
       'periodic' => TRUE,
     );
-    if ($job['period'] != FEEDS_SCHEDULE_NEVER || !$period) {
+    if ($period != FEEDS_SCHEDULE_NEVER) {
       JobScheduler::get('feeds_source_import')->set($job);
     }
     else {
@@ -615,7 +615,6 @@ class FeedsSource extends FeedsConfigurable {
     $job = array(
       'type' => $this->id,
       'id' => $this->feed_nid,
-      'next' => 0,
       'period' => 0,
       'periodic' => FALSE,
     );
