@@ -85,6 +85,13 @@ function feeds_schema() {
         'description' => 'Cache for fetcher result.',
         'serialize' => TRUE,
       ),
+      'imported' => array(
+        'type' => 'int',
+        'not null' => TRUE,
+        'default' => 0,
+        'unsigned' => TRUE,
+        'description' => 'Timestamp when this source was imported last.',
+      ),
     ),
     'primary key' => array('id', 'feed_nid'),
     'indexes' => array(
@@ -263,4 +270,18 @@ function feeds_update_7100(&$sandbox) {
     'serialize' => TRUE,
   );
   db_add_field('feeds_source', 'fetcher_result', $spec);
+}
+
+/**
+ * Add imported timestamp to feeds_source table.
+ */
+function feeds_update_7201(&$sandbox) {
+  $spec = array(
+    'type' => 'int',
+    'not null' => TRUE,
+    'default' => 0,
+    'unsigned' => TRUE,
+    'description' => 'Timestamp when this source was imported last.',
+  );
+  db_add_field('feeds_source', 'imported', $spec);
 }

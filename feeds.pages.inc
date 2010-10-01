@@ -211,11 +211,14 @@ function feeds_source_status($source) {
 function theme_feeds_source_status($v) {
   $output = '<div class="info-box feeds-source-status">';
   $items = array();
-  if ($v['imported']) {
-    $items[] = t('Last import: @ago ago.', array('@ago' => format_interval(REQUEST_TIME - $v['imported'])));
-  }
   if ($v['count']) {
+    if ($v['imported']) {
+      $items[] = t('Last import: @ago ago.', array('@ago' => format_interval(REQUEST_TIME - $v['imported'], 1)));
+    }
     $items[] = t('@count imported items total.', array('@count' => $v['count']));
+  }
+  else {
+    $items[] = t('No imported items.');
   }
   if ($v['progress_importing']) {
     $progress = number_format(100.0 * $v['progress_importing'], 0);
