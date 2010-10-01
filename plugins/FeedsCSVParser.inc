@@ -1,5 +1,5 @@
 <?php
-// $Id: FeedsCSVParser.inc,v 1.19.2.2 2010/09/30 21:21:12 alexb Exp $
+// $Id: FeedsCSVParser.inc,v 1.19.2.3 2010/10/01 15:24:57 alexb Exp $
 
 /**
  * Parses a given file as a CSV file.
@@ -11,7 +11,7 @@ class FeedsCSVParser extends FeedsParser {
    */
   public function parse(FeedsSource $source, FeedsFetcherResult $fetcher_result) {
     $source_config = $source->getConfigFor($this);
-    $state = $source->state($this);
+    $state = $source->state(FEEDS_PARSE);
 
     // Load and configure parser.
     feeds_include_library('ParserCSV.inc', 'ParserCSV');

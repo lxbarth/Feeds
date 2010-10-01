@@ -1,10 +1,18 @@
 <?php
-// $Id: FeedsSource.inc,v 1.26.2.2 2010/09/30 19:50:08 alexb Exp $
+// $Id: FeedsSource.inc,v 1.26.2.3 2010/10/01 15:24:57 alexb Exp $
 
 /**
  * @file
  * Definition of FeedsSourceInterface and FeedsSource class.
  */
+
+/**
+ * Denote a import or clearing stage. Used for multi page processing.
+ */
+define('FEEDS_FETCH', 'fetch');
+define('FEEDS_PARSE', 'parse');
+define('FEEDS_PROCESS', 'process');
+define('FEEDS_PROCESS_CLEAR', 'process_clear');
 
 /**
  * Declares an interface for a class that defines default values and form
@@ -198,7 +206,7 @@ class FeedsSource extends FeedsConfigurable {
       if (empty($this->fetcher_result) || FEEDS_BATCH_COMPLETE == $this->progressParsing()) {
         $this->fetcher_result = $this->importer->fetcher->fetch($this);
         // Clean the parser's state, we are parsing an entirely new file.
-        unset($this->state[get_class($this->importer->parser)]);
+        unset($this->state[FEEDS_PARSE]);
       }
 
       // Parse.
@@ -260,15 +268,15 @@ class FeedsSource extends FeedsConfigurable {
    * Report progress as float between 0 and 1. 1 = FEEDS_BATCH_COMPLETE.
    */
   public function progressParsing() {
-    return $this->state($this->importer->parser)->progress();
+    return $this->state(FEEDS_PARSE)->progress();
   }
 
   /**
    * Report progress as float between 0 and 1. 1 = FEEDS_BATCH_COMPLETE.
    */
   public function progressImporting() {
-    $fetcher = $this->state($this->importer->fetcher);
-    $parser = $this->state($this->importer->parser);
+    $fetcher = $this->state(FEEDS_FETCH);
+    $parser = $this->state(FEEDS_PARSE);
     if ($fetcher->progress() == FEEDS_BATCH_COMPLETE && $parser->progress() == FEEDS_BATCH_COMPLETE) {
       return FEEDS_BATCH_COMPLETE;
     }
@@ -281,30 +289,28 @@ class FeedsSource extends FeedsConfigurable {
    * Report progress on clearing.
    */
   public function progressClearing() {
-    return $this->state($this->importer->processor)->progress();
+    return $this->state(FEEDS_PROCESS_CLEAR)->progress();
   }
 
   /**
-   * Return a state object for a given object. Lazy instantiates new states.
+   * Return a state object for a given stage. Lazy instantiates new states.
    *
    * @todo Rename getConfigFor() accordingly to config().
    *
-   * @param FeedsSourceInterface $client
-   *   An object that implements the FeedsSourceInterface, usually a fetcher,
-   *   parser or processor plugin.
+   * @param $stage
+   *   One of FEEDS_FETCH, FEEDS_PARSE, FEEDS_PROCESS or FEEDS_PROCESS_CLEAR.
    *
    * @return
-   *   The FeedsState object for the given client.
+   *   The FeedsState object for the given stage.
    */
-  public function state(FeedsSourceInterface $client) {
-    $class = get_class($client);
+  public function state($stage) {
     if (!is_array($this->state)) {
       $this->state = array();
     }
-    if (!isset($this->state[$class])) {
-      $this->state[$class] = new FeedsState();
+    if (!isset($this->state[$stage])) {
+      $this->state[$stage] = new FeedsState();
     }
-    return $this->state[$class];
+    return $this->state[$stage];
   }
 
   /**

@@ -1,5 +1,5 @@
 <?php
-// $Id: FeedsFileFetcher.inc,v 1.22.2.1 2010/09/29 23:56:10 alexb Exp $
+// $Id: FeedsFileFetcher.inc,v 1.22.2.2 2010/10/01 15:24:57 alexb Exp $
 
 /**
  * @file
@@ -54,7 +54,7 @@ class FeedsFileFetcher extends FeedsFetcher {
     }
 
     // Batch if this is a directory.
-    $state = $source->state($this);
+    $state = $source->state(FEEDS_FETCH);
     $files = array();
     if (!isset($state->files)) {
       $state->files = $this->listFiles($source_config['source']);

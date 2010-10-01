@@ -1,8 +1,10 @@
-// $Id: CHANGELOG.txt,v 1.176.2.4 2010/09/30 19:50:08 alexb Exp $
+// $Id: CHANGELOG.txt,v 1.176.2.5 2010/10/01 15:24:57 alexb Exp $
 
 Feeds 7.x 2.0 XXXXXXXXXXXXXXXXXXX
 ---------------------------------
 
+- #928728: Track source states by stage, not by plugin. Note: call signature of
+  FeedsSource::state() has changed.
 - #923318: Fix Fatal error: Call to a member function import() on a non-object
   occuring on cron.
 - Clean up basic settings form.
