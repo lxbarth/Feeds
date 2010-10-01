@@ -77,6 +77,13 @@ abstract class FeedsProcessor extends FeedsPlugin {
   }
 
   /**
+   * Return the number of items imported by this processor.
+   */
+  public function itemCount(FeedsSource $source) {
+    return 0;
+  }
+
+  /**
    * Execute mapping on an item.
    *
    * This method encapsulates the central mapping functionality. When an item is

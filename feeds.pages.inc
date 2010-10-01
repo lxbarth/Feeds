@@ -1,5 +1,5 @@
 <?php
-// $Id: feeds.pages.inc,v 1.34.2.1 2010/09/29 23:56:09 alexb Exp $
+// $Id: feeds.pages.inc,v 1.34.2.2 2010/10/01 20:50:17 alexb Exp $
 
 /**
  * @file
@@ -95,11 +95,13 @@ function feeds_import_form_submit($form, &$form_state) {
  */
 function feeds_import_tab_form($form, &$form_state, $node) {
   $importer_id = feeds_get_importer_id($node->type);
+  $source = feeds_source($importer_id, $node->nid);
 
   $form = array();
   $form['#feed_nid'] = $node->nid;
   $form['#importer_id'] = $importer_id;
   $form['#redirect'] = 'node/'. $node->nid;
+  $form['source_status']['#markup'] = feeds_source_status($source);
   return confirm_form($form, t('Import all content from feed?'), 'node/'. $node->nid, '', t('Import'), t('Cancel'), 'confirm feeds update');
 }
 
@@ -119,15 +121,18 @@ function feeds_import_tab_form_submit($form, &$form_state) {
  */
 function feeds_delete_tab_form($form, &$form_state, $importer_id, $node = NULL) {
   if (empty($node)) {
-    $form['#redirect'] = 'import/'. $importer_id;
+    $source = feeds_source($importer_id);
+    $form['#redirect'] = 'import/' . $source->id;
   }
   else {
     $importer_id = feeds_get_importer_id($node->type);
-    $form['#feed_nid'] = $node->nid;
-    $form['#redirect'] = 'node/'. $node->nid;
+    $source = feeds_source($importer_id, $node->nid);
+    $form['#redirect'] = 'node/' . $source->feed_nid;
   }
-  // Form cannot pass on feed object.
-  $form['#importer_id'] = $importer_id;
+  // Form cannot pass on source object.
+  $form['#importer_id'] = $source->id;
+  $form['#feed_nid'] = $source->feed_nid;
+  $form['source_status']['#markup'] = feeds_source_status($source);
   return confirm_form($form, t('Delete all items from feed?'), $form['#redirect'], '', t('Delete'), t('Cancel'), 'confirm feeds update');
 }
 
@@ -160,6 +165,54 @@ function feeds_importer_template($importer) {
   }
   return drupal_not_found();
 }
+
+/**
+ * Renders a status display for a source.
+ */
+function feeds_source_status($source) {
+  $progress_importing = $source->progressImporting();
+  $v = array();
+  if ($progress_importing != FEEDS_BATCH_COMPLETE) {
+    $v['progress_importing'] = $progress_importing;
+  }
+  $progress_clearing = $source->progressClearing();
+  if ($progress_clearing != FEEDS_BATCH_COMPLETE) {
+    $v['progress_clearing'] = $progress_clearing;
+  }
+  if (empty($v)) {
+    $v['imported'] = $source->imported;
+    $v['count'] = $source->itemCount();
+  }
+  if (!empty($v)) {
+    return theme('feeds_source_status', $v);
+  }
+}
+
+/**
+ * Themes a status display for a source.
+ */
+function theme_feeds_source_status($v) {
+  $output = '<div class="info-box feeds-source-status">';
+  $items = array();
+  if ($v['imported']) {
+    $items[] = t('Last import: @ago ago', array('@ago' => format_interval(REQUEST_TIME - $v['imported'])));
+  }
+  if ($v['count']) {
+    $items[] = t('@count imported items total.', array('@count' => $v['count']));
+  }
+  if ($v['progress_importing']) {
+    $progress = number_format(100.0 * $v['progress_importing'], 0);
+    $items[] = t('Importing - @progress % complete.', array('@progress' => $progress));
+  }
+  if ($v['progress_clearing']) {
+    $progress = number_format(100.0 * $v['progress_clearing'], 0);
+    $items[] = t('Deleting items - @progress % complete.', array('@progress' => $progress));
+  }
+  $output .= theme('item_list', array('items' => $items));
+  $output .= '</div>';
+  return $output;
+}
+
 /**
  * Theme upload widget.
  */

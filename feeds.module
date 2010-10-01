@@ -255,6 +255,15 @@ function feeds_theme() {
       'file' => 'feeds.pages.inc',
       'render element' => 'element',
     ),
+    'feeds_source_status' => array(
+      'file' => 'feeds.pages.inc',
+      'variables' => array(
+        'progress_importing' => NULL,
+        'progress_clearing' => NULL,
+        'imported' => NULL,
+        'count' => NULL,
+      ),
+    ),
   );
 }
 

@@ -170,6 +170,9 @@ class FeedsSource extends FeedsConfigurable {
   // Fetcher result, used to cache fetcher result when batching.
   protected $fetcher_result;
 
+  // Timestamp when this source was imported the last time.
+  protected $imported;
+
   /**
    * Instantiate a unique object per class/id/feed_nid. Don't use
    * directly, use feeds_source() instead.
@@ -361,6 +364,13 @@ class FeedsSource extends FeedsConfigurable {
     else {
       JobScheduler::get('feeds_source_import')->remove($job);
     }
+  }
+
+  /**
+   * Count items imported by this source.
+   */
+  public function itemCount() {
+    return $this->importer->processor->itemCount($this);
   }
 
   /**
