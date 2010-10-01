@@ -46,8 +46,6 @@ function feeds_page() {
 function feeds_import_form($form, &$form_state, $importer_id) {
   $source = feeds_source($importer_id, empty($form['nid']['#value']) ? 0 : $form['nid']['#value']);
 
-  feeds_set_status_message($source);
-
   $form = array();
   $form['#importer_id'] = $importer_id;
   // @todo Move this into fetcher?
