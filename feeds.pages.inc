@@ -66,9 +66,11 @@ function feeds_import_form($form, &$form_state, $importer_id) {
     '#type' => 'submit',
     '#value' => t('Import'),
   );
-  if ($source->progressImporting() !== FEEDS_BATCH_COMPLETE) {
+  $progress = $source->progressImporting();
+  if ($progress !== FEEDS_BATCH_COMPLETE) {
     $form['submit']['#disabled'] = TRUE;
-    $form['submit']['#value'] = t('Importing (!percent)', array('!percent' => feeds_format_percentage($source->progressImporting())));
+    $form['submit']['#value'] =
+      t('Importing (@progress %)', array('@progress' => number_format(100 * $progress, 0)));
   }
   return $form;
 }
