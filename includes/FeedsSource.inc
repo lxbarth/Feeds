@@ -314,7 +314,7 @@ class FeedsSource extends FeedsConfigurable {
    *   Throws Exception if an error occurs when importing.
    */
   public function import() {
-    $this->acquireImportLock();
+    $this->acquireLock();
     try {
       // Fetch.
       if (empty($this->fetcher_result) || FEEDS_BATCH_COMPLETE == $this->progressParsing()) {
@@ -329,24 +329,20 @@ class FeedsSource extends FeedsConfigurable {
 
       // Process.
       $this->importer->processor->process($this, $parser_result);
+    }
+    catch (Exception $e) {}
 
-      // Find out whether we are done.
-      $result = $this->progressImporting();
-      $this->releaseImportLock($result === FEEDS_BATCH_COMPLETE);
-      if ($result === FEEDS_BATCH_COMPLETE) {
-        module_invoke_all('feeds_after_import', $this);
-        unset($this->fetcher_result);
-        unset($this->state);
+    // Clean up.
+    $this->releaseLock();
+    $result = $this->progressImporting();
+    if ($result == FEEDS_BATCH_COMPLETE || isset($e)) {
+      module_invoke_all('feeds_after_import', $this);
+      unset($this->fetcher_result, $this->state);
+      $this->save();
+      if ($e) {
+        throw $e;
       }
     }
-    catch (Exception $e) {
-      $this->releaseImportLock();
-      unset($this->fetcher_result);
-      unset($this->state);
-      $this->save();
-      throw $e;
-    }
-    $this->save();
     return $result;
   }
 
@@ -365,25 +361,25 @@ class FeedsSource extends FeedsConfigurable {
    *   Throws Exception if an error occurs when clearing.
    */
   public function clear() {
-    $this->acquireClearLock();
+    $this->acquireLock();
     try {
       $this->importer->fetcher->clear($this);
       $this->importer->parser->clear($this);
       $this->importer->processor->clear($this);
-      $result = $this->progressClearing();
-      $this->releaseClearLock($result == FEEDS_BATCH_COMPLETE);
-      if ($result == FEEDS_BATCH_COMPLETE) {
-        unset($this->state);
-        module_invoke_all('feeds_after_clear', $this);
-      }
     }
-    catch (Exception $e) {
-      $this->releaseClearLock();
+    catch (Exception $e) {}
+
+    // Clean up.
+    $this->releaseLock();
+    $result = $this->progressClearing();
+    if ($result == FEEDS_BATCH_COMPLETE || isset($e)) {
+      module_invoke_all('feeds_after_clear', $this);
       unset($this->state);
       $this->save();
-      throw $e;
+      if (isset($e)) {
+        throw $e;
+      }
     }
-    $this->save();
     return $result;
   }
 
@@ -650,88 +646,21 @@ class FeedsSource extends FeedsConfigurable {
   }
 
   /**
-   * Acquires an import lock.
-   */
-  protected function acquireImportLock() {
-    $this->acquireLock('import');
-  }
-
-  /**
-   * Releases an import lock.
-   */
-  protected function releaseImportLock($finished = TRUE) {
-    $this->releaseLock('import', $finished);
-  }
-
-  /**
-   * Acquires a clear lock.
-   */
-  protected function acquireClearLock() {
-    $this->acquireLock('clear');
-  }
-
-  /**
-   * Releases a clear lock.
-   */
-  protected function releaseClearLock($finished = TRUE) {
-    $this->releaseLock('clear', $finished);
-  }
-
-  /**
-   * Acquires a lock for a specific job type.
-   *
-   * There are two different kinds of jobs that can be executed on a source
-   * whose execution is *mutually exclusive*: 'import' jobs and 'clear' jobs.
-   * Import jobs must be finished before a clear job can begin and vice versa.
-   * This method makes sure that only one job type can be executed at a time and
-   * is finished before a new job of a different type is started.
-   *
-   * @param $job_type
-   *   The job type a lock should be acquired for. Either 'import' or 'clear'.
+   * Acquires a lock for this source.
    *
    * @throws FeedsLockException
    *   If a lock for the requested job could not be acquired.
    */
-  protected function acquireLock($job_type) {
-    $or = db_or()
-      ->condition('active_job', $job_type)
-      ->condition('active_job', '');
-    $update = db_update('feeds_source')
-      ->fields(array(
-        'active_job' => $job_type,
-      ))
-      ->condition('id', $this->id)
-      ->condition('feed_nid', $this->feed_nid)
-      ->condition($or);
-    // If job type lock could be acquired, acquire process lock.
-    if ($update->execute() &&
-        lock_acquire("feeds_{$job_type}_{$this->id}_{$this->feed_nid}")) {
-      return;
+  protected function acquireLock() {
+    if (!lock_acquire("feeds_source_{$this->id}_{$this->feed_nid}", 60.0)) {
+      throw new FeedsLockException(t('Cannot acquire lock for source @id / @feed_nid.', array('@id' => $this->id, '@feed_nid' => $this->feed_nid)));
     }
-    throw new FeedsLockException(t('Cannot acquire @active_job lock.', array('@active_job' => $job_type)));
   }
 
   /**
-   * Releases a lock for an active job.
-   *
-   * @param $job_type
-   *   The job type a lock should be released for. Either 'import' or 'clear'.
-   * @param $finished
-   *   If FALSE only the process lock will be broken. If TRUE the process lock
-   *   and the multi page lock will be broken, allowing jobs of a different
-   *   type to start.
+   * Releases a lock for this source.
    */
-  protected function releaseLock($job_type, $finished) {
-    lock_release("feeds_{$job_type}_{$this->id}_{$this->feed_nid}");
-    if ($finished) {
-      db_update('feeds_source')
-        ->fields(array(
-          'active_job' => '',
-        ))
-        ->condition('id', $this->id)
-        ->condition('feed_nid', $this->feed_nid)
-        ->condition('active_job', $job_type)
-        ->execute();
-    }
+  protected function releaseLock() {
+    lock_release("feeds_source_{$this->id}_{$this->feed_nid}");
   }
 }
