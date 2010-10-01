@@ -1,5 +1,5 @@
 <?php
-// $Id: FeedsImporter.inc,v 1.31.2.3 2010/09/30 19:16:28 alexb Exp $
+// $Id: FeedsImporter.inc,v 1.31.2.4 2010/10/01 20:43:02 alexb Exp $
 
 /**
  * @file
@@ -282,7 +282,7 @@ class FeedsImporter extends FeedsConfigurable {
     $form['import_on_create'] = array(
       '#type' => 'checkbox',
       '#title' => t('Import on submission'),
-      '#description' => t('Check if import should be started at the moment of standalone form or node form submission.'),
+      '#description' => t('Check if import should be started at the moment a standalone form or node form is submitted.'),
       '#default_value' => $config['import_on_create'],
     );
     return $form;
