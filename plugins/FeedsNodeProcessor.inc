@@ -1,5 +1,5 @@
 <?php
-// $Id: FeedsNodeProcessor.inc,v 1.69.2.1 2010/09/29 23:56:10 alexb Exp $
+// $Id: FeedsNodeProcessor.inc,v 1.69.2.3 2010/10/01 15:53:25 alexb Exp $
 
 /**
  * @file
@@ -23,7 +23,7 @@ class FeedsNodeProcessor extends FeedsProcessor {
    * Implements FeedsProcessor::process().
    */
   public function process(FeedsSource $source, FeedsParserResult $parser_result) {
-    $state = $source->state($this);
+    $state = $source->state(FEEDS_PROCESS);
 
     while ($item = $parser_result->shiftItem()) {
       if (!($nid = $this->existingItemId($source, $parser_result)) ||
@@ -74,7 +74,7 @@ class FeedsNodeProcessor extends FeedsProcessor {
    * Implements FeedsProcessor::clear().
    */
   public function clear(FeedsSource $source) {
-    $state = $source->state($this);
+    $state = $source->state(FEEDS_PROCESS_CLEAR);
     if (empty($state->total)) {
       $state->total = db_query("SELECT COUNT(n.nid) FROM {node} n JOIN {feeds_node_item} fn ON n.nid = fn.nid WHERE fn.id = :id AND fn.feed_nid = :nid", array(':id' => $source->id, ':nid' => $source->feed_nid))->fetchField();
     }
@@ -99,7 +99,7 @@ class FeedsNodeProcessor extends FeedsProcessor {
     else {
       drupal_set_message(t('There is no content to be deleted.'));
     }
-    $state->progress = FEEDS_BATCH_COMPLETE;
+    $state->finished();
   }
 
   /**
