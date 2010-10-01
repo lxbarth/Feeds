@@ -95,6 +95,9 @@ class FeedsState {
    *   A float between 0 and 1, 1 = FEEDS_BATCH_COMPLETE.
    */
   public function progress() {
+    if ($this->progress > $this->total) {
+      return FEEDS_BATCH_COMPLETE;
+    }
     $progress = $this->progress / $this->total;
     if ($progress == FEEDS_BATCH_COMPLETE && $this->total != $this->progress) {
       return 0.999;
@@ -367,7 +370,8 @@ class FeedsSource extends FeedsConfigurable {
     }
     // Fetching envelops parsing.
     $parser_progress = $parser->progress() / $fetcher->total;
-    return $fetcher->progress - 1.0 + $parser_progress;
+    $fetcher_progress = $fetcher->progress > $fetcher->total ? $fetcher->total : $fetcher->progress;
+    return $fetcher_progress - 1.0 + $parser_progress;
   }
 
   /**
