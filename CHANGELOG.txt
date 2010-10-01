@@ -1,8 +1,10 @@
-// $Id: CHANGELOG.txt,v 1.176.2.3 2010/09/30 19:18:44 alexb Exp $
+// $Id: CHANGELOG.txt,v 1.176.2.4 2010/09/30 19:50:08 alexb Exp $
 
 Feeds 7.x 2.0 XXXXXXXXXXXXXXXXXXX
 ---------------------------------
 
+- #923318: Fix Fatal error: Call to a member function import() on a non-object
+  occuring on cron.
 - Clean up basic settings form.
 - Make getConfig() include configuration defaults.
 
