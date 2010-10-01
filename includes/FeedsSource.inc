@@ -370,9 +370,9 @@ class FeedsSource extends FeedsConfigurable {
       return FEEDS_BATCH_COMPLETE;
     }
     // Fetching envelops parsing.
+    $fetcher_fraction = 1.0 / $fetcher->total;
     $parser_progress = $parser->progress() / $fetcher->total;
-    $fetcher_progress = $fetcher->progress > $fetcher->total ? $fetcher->total : $fetcher->progress;
-    return $fetcher_progress - 1.0 + $parser_progress;
+    return $fetcher->progress() - $fetcher_fraction + $parser_progress;
   }
 
   /**
