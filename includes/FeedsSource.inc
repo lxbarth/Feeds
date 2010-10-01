@@ -660,7 +660,7 @@ class FeedsSource extends FeedsConfigurable {
    * is finished before a new job of a different type is started.
    *
    * @param $job_type
-   *   Either 'import' or 'clear'.
+   *   The job type a lock should be acquired for. Either 'import' or 'clear'.
    *
    * @throws FeedsLockException
    *   If a lock for the requested job could not be acquired.
@@ -686,6 +686,13 @@ class FeedsSource extends FeedsConfigurable {
 
   /**
    * Releases a lock for an active job.
+   *
+   * @param $job_type
+   *   The job type a lock should be released for. Either 'import' or 'clear'.
+   * @param $finished
+   *   If FALSE only the process lock will be broken. If TRUE the process lock
+   *   and the multi page lock will be broken, allowing jobs of a different
+   *   type to start.
    */
   protected function releaseLock($job_type, $finished) {
     lock_release("feeds_{$job_type}_{$this->id}_{$this->feed_nid}");
