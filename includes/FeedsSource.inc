@@ -338,10 +338,10 @@ class FeedsSource extends FeedsConfigurable {
     if ($result == FEEDS_BATCH_COMPLETE || isset($e)) {
       module_invoke_all('feeds_after_import', $this);
       unset($this->fetcher_result, $this->state);
-      $this->save();
-      if (isset($e)) {
-        throw $e;
-      }
+    }
+    $this->save();
+    if (isset($e)) {
+      throw $e;
     }
     return $result;
   }
@@ -375,10 +375,10 @@ class FeedsSource extends FeedsConfigurable {
     if ($result == FEEDS_BATCH_COMPLETE || isset($e)) {
       module_invoke_all('feeds_after_clear', $this);
       unset($this->state);
-      $this->save();
-      if (isset($e)) {
-        throw $e;
-      }
+    }
+    $this->save();
+    if (isset($e)) {
+      throw $e;
     }
     return $result;
   }
