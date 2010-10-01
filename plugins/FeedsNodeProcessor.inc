@@ -1,5 +1,5 @@
 <?php
-// $Id: FeedsNodeProcessor.inc,v 1.69.2.2 2010/10/01 15:24:57 alexb Exp $
+// $Id: FeedsNodeProcessor.inc,v 1.69.2.3 2010/10/01 15:53:25 alexb Exp $
 
 /**
  * @file
@@ -99,7 +99,7 @@ class FeedsNodeProcessor extends FeedsProcessor {
     else {
       drupal_set_message(t('There is no content to be deleted.'));
     }
-    $state->progress = FEEDS_BATCH_COMPLETE;
+    $state->finished();
   }
 
   /**

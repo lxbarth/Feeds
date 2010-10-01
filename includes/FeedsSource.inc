@@ -1,5 +1,5 @@
 <?php
-// $Id: FeedsSource.inc,v 1.26.2.3 2010/10/01 15:24:57 alexb Exp $
+// $Id: FeedsSource.inc,v 1.26.2.4 2010/10/01 15:53:25 alexb Exp $
 
 /**
  * @file
@@ -88,7 +88,7 @@ class FeedsState {
    */
   public function __construct() {
     $this->total =
-    $this->progress = 1;
+    $this->progress =
     $this->created =
     $this->updated =
     $this->deleted =
@@ -103,11 +103,23 @@ class FeedsState {
    *   A float between 0 and 1, 1 = FEEDS_BATCH_COMPLETE.
    */
   public function progress() {
+    // If no total and no progress is reported, we are done.
+    if (empty($this->total) && empty($this->progress)) {
+      return FEEDS_BATCH_COMPLETE;
+    }
     $progress = $this->progress / $this->total;
     if ($progress == FEEDS_BATCH_COMPLETE && $this->total != $this->progress) {
       return 0.999;
     }
     return $progress;
+  }
+
+  /**
+   * Sets this state to finished.
+   */
+  public function finished() {
+    $this->total =
+    $this->progress = FEEDS_BATCH_COMPLETE;
   }
 }
 
@@ -282,7 +294,8 @@ class FeedsSource extends FeedsConfigurable {
     }
     // Fetching envelops parsing.
     $parser_progress = $parser->progress() / $fetcher->total;
-    return $fetcher->progress - 1.0 + $parser_progress;
+    $fetcher_fraction = 1.0 / $fetcher->total;
+    return $fetcher->progress() - $fetcher_fraction + $parser_progress;
   }
 
   /**
