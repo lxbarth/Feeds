@@ -331,15 +331,15 @@ class FeedsSource extends FeedsConfigurable {
       $this->importer->processor->process($this, $parser_result);
     }
     catch (Exception $e) {}
+    $this->releaseLock();
 
     // Clean up.
-    $this->releaseLock();
     $result = $this->progressImporting();
     if ($result == FEEDS_BATCH_COMPLETE || isset($e)) {
       module_invoke_all('feeds_after_import', $this);
       unset($this->fetcher_result, $this->state);
       $this->save();
-      if ($e) {
+      if (isset($e)) {
         throw $e;
       }
     }
@@ -368,9 +368,9 @@ class FeedsSource extends FeedsConfigurable {
       $this->importer->processor->clear($this);
     }
     catch (Exception $e) {}
+    $this->releaseLock();
 
     // Clean up.
-    $this->releaseLock();
     $result = $this->progressClearing();
     if ($result == FEEDS_BATCH_COMPLETE || isset($e)) {
       module_invoke_all('feeds_after_clear', $this);

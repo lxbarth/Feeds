@@ -88,7 +88,7 @@ function feeds_import_form_submit($form, &$form_state) {
 
   // Refresh feed if import on create is selected.
   if ($source->importer->config['import_on_create']) {
-    $source->import();
+    $source->startImport();
   }
 
   // Add to schedule, make sure importer is scheduled, too.

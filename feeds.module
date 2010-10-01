@@ -141,7 +141,7 @@ function feeds_importer_expire($job) {
  *   Batch context.
  */
 function feeds_batch($method, $importer_id, $feed_nid = 0, &$context) {
-  $context['finished'] = 1;
+  $context['finished'] = FEEDS_BATCH_COMPLETE;
   try {
     $context['finished'] = feeds_source($importer_id, $feed_nid)->$method();
   }
