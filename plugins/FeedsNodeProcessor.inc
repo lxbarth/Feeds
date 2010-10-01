@@ -1,5 +1,5 @@
 <?php
-// $Id: FeedsNodeProcessor.inc,v 1.69.2.3 2010/10/01 15:53:25 alexb Exp $
+// $Id: FeedsNodeProcessor.inc,v 1.69.2.4 2010/10/01 17:45:18 alexb Exp $
 
 /**
  * @file
@@ -87,7 +87,7 @@ class FeedsNodeProcessor extends FeedsProcessor {
     }
     node_delete_multiple($nids);
     if (db_query_range("SELECT 1 FROM {node} n JOIN {feeds_node_item} fn ON n.nid = fn.nid WHERE fn.id = :id AND fn.feed_nid = :nid", 0, 1, array(':id' => $source->id, ':nid' => $source->feed_nid))->fetchField()) {
-      $state->progress = $state->deleted;
+      $state->progress($state->total, $state->deleted);
       return;
     }
 
@@ -99,7 +99,9 @@ class FeedsNodeProcessor extends FeedsProcessor {
     else {
       drupal_set_message(t('There is no content to be deleted.'));
     }
-    $state->finished();
+    // Make sure we are finished, there may be a discrepancy between total and
+    // deleted if other processes have deleted nodes in the meantime.
+    $state->progress = FEEDS_BATCH_COMPLETE;
   }
 
   /**

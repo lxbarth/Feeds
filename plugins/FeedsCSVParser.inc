@@ -1,5 +1,5 @@
 <?php
-// $Id: FeedsCSVParser.inc,v 1.19.2.3 2010/10/01 15:24:57 alexb Exp $
+// $Id: FeedsCSVParser.inc,v 1.19.2.4 2010/10/01 17:45:18 alexb Exp $
 
 /**
  * Parses a given file as a CSV file.
@@ -33,8 +33,9 @@ class FeedsCSVParser extends FeedsParser {
 
     // Report progress.
     $state->total = filesize($fetcher_result->getFilePath());
-    $state->pointer =
-    $state->progress = $parser->lastLinePos() ? $parser->lastLinePos() : $state->total;
+    $state->pointer = $parser->lastLinePos();
+    $progress = $parser->lastLinePos() ? $parser->lastLinePos() : $state->total;
+    $state->progress($state->total, $progress);
 
     // Create a result object and return it.
     return new FeedsParserResult($rows, $source->feed_nid);

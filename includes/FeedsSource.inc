@@ -1,5 +1,5 @@
 <?php
-// $Id: FeedsSource.inc,v 1.26.2.4 2010/10/01 15:53:25 alexb Exp $
+// $Id: FeedsSource.inc,v 1.26.2.5 2010/10/01 17:45:18 alexb Exp $
 
 /**
  * @file
@@ -64,9 +64,9 @@ interface FeedsSourceInterface {
  */
 class FeedsState {
   /**
-   * Natural numbers denoting the total and the progress of that total made.
+   * Floating point number denoting the progress made. 0.0 meaning no progress
+   * 1.0 = FEEDS_BATCH_COMPLETE meaning finished.
    */
-  public $total;
   public $progress;
 
   /**
@@ -77,6 +77,7 @@ class FeedsState {
   /**
    * Natural numbers denoting more details about the progress being made.
    */
+  public $total;
   public $created;
   public $updated;
   public $deleted;
@@ -87,8 +88,8 @@ class FeedsState {
    * Constructor, initialize variables.
    */
   public function __construct() {
+    $this->progress = FEEDS_BATCH_COMPLETE;
     $this->total =
-    $this->progress =
     $this->created =
     $this->updated =
     $this->deleted =
@@ -97,29 +98,35 @@ class FeedsState {
   }
 
   /**
-   * Report normalized progress.
+   * Safely report progress.
    *
-   * @return
-   *   A float between 0 and 1, 1 = FEEDS_BATCH_COMPLETE.
+   * When $total == $progress, the state of the task tracked by this state is
+   * regarded to be complete.
+   *
+   * Handles the following cases gracefully:
+   *
+   * - $total is 0
+   * - $progress is larger than $total
+   * - $progress approximates $total so that $finished rounds to 1.0
+   *
+   * @param $total
+   *   A natural number that is the total to be worked off.
+   * @param $progress
+   *   A natural number that is the progress made on $total.
    */
-  public function progress() {
-    // If no total and no progress is reported, we are done.
-    if (empty($this->total) && empty($this->progress)) {
-      return FEEDS_BATCH_COMPLETE;
+  public function progress($total, $progress) {
+    if ($progress > $total) {
+      $this->progress = FEEDS_BATCH_COMPLETE;
     }
-    $progress = $this->progress / $this->total;
-    if ($progress == FEEDS_BATCH_COMPLETE && $this->total != $this->progress) {
-      return 0.999;
+    elseif ($total) {
+      $this->progress = $progress / $total;
+      if ($this->progress == FEEDS_BATCH_COMPLETE && $total != $progress) {
+        $this->progress = 0.99;
+      }
     }
-    return $progress;
-  }
-
-  /**
-   * Sets this state to finished.
-   */
-  public function finished() {
-    $this->total =
-    $this->progress = FEEDS_BATCH_COMPLETE;
+    else {
+      $this->progress = FEEDS_BATCH_COMPLETE;
+    }
   }
 }
 
@@ -280,7 +287,7 @@ class FeedsSource extends FeedsConfigurable {
    * Report progress as float between 0 and 1. 1 = FEEDS_BATCH_COMPLETE.
    */
   public function progressParsing() {
-    return $this->state(FEEDS_PARSE)->progress();
+    return $this->state(FEEDS_PARSE)->progress;
   }
 
   /**
@@ -289,20 +296,25 @@ class FeedsSource extends FeedsConfigurable {
   public function progressImporting() {
     $fetcher = $this->state(FEEDS_FETCH);
     $parser = $this->state(FEEDS_PARSE);
-    if ($fetcher->progress() == FEEDS_BATCH_COMPLETE && $parser->progress() == FEEDS_BATCH_COMPLETE) {
+    if ($fetcher->progress == FEEDS_BATCH_COMPLETE && $parser->progress == FEEDS_BATCH_COMPLETE) {
       return FEEDS_BATCH_COMPLETE;
     }
     // Fetching envelops parsing.
-    $parser_progress = $parser->progress() / $fetcher->total;
-    $fetcher_fraction = 1.0 / $fetcher->total;
-    return $fetcher->progress() - $fetcher_fraction + $parser_progress;
+    // @todo: this assumes all fetchers neatly use total. May not be the case.
+    $fetcher_fraction = $fetcher->total ? 1.0 / $fetcher->total : 1.0;
+    $parser_progress = $parser->progress * $fetcher_fraction;
+    $result = $fetcher->progress - $fetcher_fraction + $parser_progress;
+    if ($result == FEEDS_BATCH_COMPLETE) {
+      return 0.99;
+    }
+    return $result;
   }
 
   /**
    * Report progress on clearing.
    */
   public function progressClearing() {
-    return $this->state(FEEDS_PROCESS_CLEAR)->progress();
+    return $this->state(FEEDS_PROCESS_CLEAR)->progress;
   }
 
   /**

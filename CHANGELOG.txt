@@ -1,8 +1,11 @@
-// $Id: CHANGELOG.txt,v 1.176.2.5 2010/10/01 15:24:57 alexb Exp $
+// $Id: CHANGELOG.txt,v 1.176.2.6 2010/10/01 17:45:18 alexb Exp $
 
 Feeds 7.x 2.0 XXXXXXXXXXXXXXXXXXX
 ---------------------------------
 
+- #928836: Set progress floating point directly. Note: fetchers and parsers
+  must use $state->progress() for setting the batch progress now IF they support
+  batching.
 - #928728: Track source states by stage, not by plugin. Note: call signature of
   FeedsSource::state() has changed.
 - #923318: Fix Fatal error: Call to a member function import() on a non-object
