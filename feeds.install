@@ -1,5 +1,5 @@
 <?php
-// $Id: feeds.install,v 1.16.2.2 2010/09/30 19:57:25 alexb Exp $
+// $Id: feeds.install,v 1.16.2.3 2010/10/01 22:15:41 alexb Exp $
 
 /**
  * @file

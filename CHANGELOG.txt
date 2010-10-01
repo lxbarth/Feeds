@@ -1,8 +1,10 @@
-// $Id: CHANGELOG.txt,v 1.176.2.7 2010/10/01 18:29:22 alexb Exp $
+// $Id: CHANGELOG.txt,v 1.176.2.8 2010/10/01 22:15:41 alexb Exp $
 
 Feeds 7.x 2.0 XXXXXXXXXXXXXXXXXXX
 ---------------------------------
 
+- #929058 alex_b: Report status of source on import and delete forms, track
+  last updated time on a source level.
 - #928836: Set progress floating point directly. Note: fetchers and parsers
   must use $state->progress() for setting the batch progress now IF they support
   batching.

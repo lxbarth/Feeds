@@ -1,5 +1,5 @@
 <?php
-// $Id: FeedsNodeProcessor.inc,v 1.69.2.4 2010/10/01 17:45:18 alexb Exp $
+// $Id: FeedsNodeProcessor.inc,v 1.69.2.5 2010/10/01 22:15:41 alexb Exp $
 
 /**
  * @file
