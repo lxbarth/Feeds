@@ -1,5 +1,5 @@
 <?php
-// $Id: FeedsFileFetcher.inc,v 1.22.2.2 2010/10/01 15:24:57 alexb Exp $
+// $Id: FeedsFileFetcher.inc,v 1.22.2.3 2010/10/01 17:45:18 alexb Exp $
 
 /**
  * @file
@@ -58,13 +58,11 @@ class FeedsFileFetcher extends FeedsFetcher {
     $files = array();
     if (!isset($state->files)) {
       $state->files = $this->listFiles($source_config['source']);
-      $state->progress =
       $state->total = count($state->files);
     }
     if (count($state->files)) {
       $file = array_shift($state->files);
-      // When progress == total, file fetcher will not be called again.
-      $state->progress = $state->total - count($state->files);
+      $state->progress($state->total, $state->total - count($state->files));
       return new FeedsFileFetcherResult($file);
     }
 
