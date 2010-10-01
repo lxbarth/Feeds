@@ -7,6 +7,11 @@
  */
 
 /**
+ * For distinguishing exceptions occuring when handling locks.
+ */
+class FeedsLockException extends Exception {}
+
+/**
  * Declares an interface for a class that defines default values and form
  * descriptions for a FeedSource.
  */
@@ -646,7 +651,19 @@ class FeedsSource extends FeedsConfigurable {
   }
 
   /**
-   * Acquires a lock for an active job.
+   * Acquires a lock for a specific job.
+   *
+   * There are two different kinds of jobs that can be executed on a source
+   * whose execution is *mutually exclusive*: 'import' jobs and 'clear' jobs.
+   * Import jobs must be finished before a clear job can begin and vice versa.
+   * This method makes sure that only one job type can be executed at a time and
+   * is finished before a new job of a different type is started.
+   *
+   * @param $active_job
+   *   Either 'import' or 'clear'.
+   *
+   * @throws FeedsLockException
+   *   If no lock for the requested job could be acquired.
    */
   protected function acquireLock($active_job) {
     $or = db_or()
