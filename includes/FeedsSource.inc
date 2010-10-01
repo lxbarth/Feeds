@@ -663,7 +663,7 @@ class FeedsSource extends FeedsConfigurable {
    *   Either 'import' or 'clear'.
    *
    * @throws FeedsLockException
-   *   If no lock for the requested job could be acquired.
+   *   If a lock for the requested job could not be acquired.
    */
   protected function acquireLock($active_job) {
     $or = db_or()
