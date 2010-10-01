@@ -285,6 +285,7 @@ class FeedsSource extends FeedsConfigurable {
    *   Throws Exception if an error occurs when importing.
    */
   public function import() {
+    $this->acquireImportLock();
     try {
       // Fetch.
       if (empty($this->fetcher_result) || FEEDS_BATCH_COMPLETE == $this->progressParsing()) {
@@ -302,6 +303,7 @@ class FeedsSource extends FeedsConfigurable {
 
       // Find out whether we are done.
       $result = $this->progressImporting();
+      $this->releaseImportLock($result === FEEDS_BATCH_COMPLETE);
       if ($result === FEEDS_BATCH_COMPLETE) {
         module_invoke_all('feeds_after_import', $this);
         unset($this->fetcher_result);
@@ -309,10 +311,10 @@ class FeedsSource extends FeedsConfigurable {
       }
     }
     catch (Exception $e) {
+      $this->releaseImportLock();
       unset($this->fetcher_result);
       unset($this->state);
       $this->save();
-      $this->unlock();
       throw $e;
     }
     $this->save();
@@ -334,17 +336,20 @@ class FeedsSource extends FeedsConfigurable {
    *   Throws Exception if an error occurs when clearing.
    */
   public function clear() {
+    $this->acquireClearLock();
     try {
       $this->importer->fetcher->clear($this);
       $this->importer->parser->clear($this);
       $this->importer->processor->clear($this);
       $result = $this->progressClearing();
+      $this->releaseClearLock($result == FEEDS_BATCH_COMPLETE);
       if ($result == FEEDS_BATCH_COMPLETE) {
         unset($this->state);
         module_invoke_all('feeds_after_clear', $this);
       }
     }
     catch (Exception $e) {
+      $this->releaseClearLock();
       unset($this->state);
       $this->save();
       throw $e;
@@ -610,5 +615,74 @@ class FeedsSource extends FeedsConfigurable {
       'progress_message' => '',
     );
     batch_set($batch);
+  }
+
+  /**
+   * Acquires an import lock.
+   */
+  protected function acquireImportLock() {
+    $this->acquireLock('import');
+  }
+
+  /**
+   * Releases an import lock.
+   */
+  protected function releaseImportLock($finished = TRUE) {
+    $this->releaseLock('import', $finished);
+  }
+
+  /**
+   * Acquires a clear lock.
+   */
+  protected function acquireClearLock() {
+    $this->acquireLock('clear');
+  }
+
+  /**
+   * Releases a clear lock.
+   */
+  protected function releaseClearLock($finished = TRUE) {
+    $this->releaseLock('clear', $finished);
+  }
+
+  /**
+   * Acquires a lock for an active job.
+   */
+  protected function acquireLock($active_job) {
+    $or = db_or()
+      ->condition('active_job', $active_job)
+      ->condition('active_job', '');
+    $update = db_update('feeds_source')
+      ->fields(array(
+        'active_job' => $active_job,
+      ))
+      ->condition('id', $this->id)
+      ->condition('feed_nid', $this->feed_nid)
+      ->condition($or);
+
+    // If we are in import mode and
+    if ($update->execute()) {
+      if (lock_acquire("feeds_{$active_job}_{$source->id}_{$source->feed_nid}")) {
+        return;
+      }
+    }
+    throw new FeedsLockException(t('Cannot acquire @active_job lock.', array('@active_job' => $active_job)));
+  }
+
+  /**
+   * Releases a lock for an active job.
+   */
+  protected function releaseLock($active_job, $finished) {
+    lock_release("feeds_{$active_job}_{$source->id}_{$source->feed_nid}");
+    if ($finished) {
+      db_update('feeds_source')
+        ->fields(array(
+          'active_job' => '',
+        ))
+        ->condition('id', $this->id)
+        ->condition('feed_nid', $this->feed_nid)
+        ->condition('active_job', $active_job)
+        ->execute();
+    }
   }
 }
