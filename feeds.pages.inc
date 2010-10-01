@@ -50,8 +50,15 @@ function feeds_import_form($form, &$form_state, $importer_id) {
   $form['#importer_id'] = $importer_id;
   // @todo Move this into fetcher?
   $form['#attributes']['enctype'] = 'multipart/form-data';
+  $form['source_status'] = array(
+    '#type' => 'fieldset',
+    '#title' => t('Status'),
+    '#tree' => TRUE,
+    '#value' => feeds_source_status($source),
+  );
   $form['feeds'] = array(
     '#type' => 'fieldset',
+    '#title' => t('Import'),
     '#tree' => TRUE,
   );
   $form['feeds'] += $source->configForm($form_state);
@@ -101,8 +108,13 @@ function feeds_import_tab_form($form, &$form_state, $node) {
   $form['#feed_nid'] = $node->nid;
   $form['#importer_id'] = $importer_id;
   $form['#redirect'] = 'node/'. $node->nid;
-  $form['source_status']['#markup'] = feeds_source_status($source);
-  return confirm_form($form, t('Import all content from feed?'), 'node/'. $node->nid, '', t('Import'), t('Cancel'), 'confirm feeds update');
+  $form['source_status'] = array(
+    '#type' => 'fieldset',
+    '#title' => t('Status'),
+    '#tree' => TRUE,
+    '#value' => feeds_source_status($source),
+  );
+  return confirm_form($form, t('Import all content from source?'), 'node/'. $node->nid, '', t('Import'), t('Cancel'), 'confirm feeds update');
 }
 
 /**
@@ -132,8 +144,13 @@ function feeds_delete_tab_form($form, &$form_state, $importer_id, $node = NULL) 
   // Form cannot pass on source object.
   $form['#importer_id'] = $source->id;
   $form['#feed_nid'] = $source->feed_nid;
-  $form['source_status']['#markup'] = feeds_source_status($source);
-  return confirm_form($form, t('Delete all items from feed?'), $form['#redirect'], '', t('Delete'), t('Cancel'), 'confirm feeds update');
+  $form['source_status'] = array(
+    '#type' => 'fieldset',
+    '#title' => t('Status'),
+    '#tree' => TRUE,
+    '#value' => feeds_source_status($source),
+  );
+  return confirm_form($form, t('Delete all items from source?'), $form['#redirect'], '', t('Delete'), t('Cancel'), 'confirm feeds update');
 }
 
 /**
@@ -195,7 +212,7 @@ function theme_feeds_source_status($v) {
   $output = '<div class="info-box feeds-source-status">';
   $items = array();
   if ($v['imported']) {
-    $items[] = t('Last import: @ago ago', array('@ago' => format_interval(REQUEST_TIME - $v['imported'])));
+    $items[] = t('Last import: @ago ago.', array('@ago' => format_interval(REQUEST_TIME - $v['imported'])));
   }
   if ($v['count']) {
     $items[] = t('@count imported items total.', array('@count' => $v['count']));
