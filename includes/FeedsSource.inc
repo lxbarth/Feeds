@@ -651,7 +651,7 @@ class FeedsSource extends FeedsConfigurable {
   }
 
   /**
-   * Acquires a lock for a specific job.
+   * Acquires a lock for a specific job type.
    *
    * There are two different kinds of jobs that can be executed on a source
    * whose execution is *mutually exclusive*: 'import' jobs and 'clear' jobs.
@@ -659,38 +659,36 @@ class FeedsSource extends FeedsConfigurable {
    * This method makes sure that only one job type can be executed at a time and
    * is finished before a new job of a different type is started.
    *
-   * @param $active_job
+   * @param $job_type
    *   Either 'import' or 'clear'.
    *
    * @throws FeedsLockException
    *   If a lock for the requested job could not be acquired.
    */
-  protected function acquireLock($active_job) {
+  protected function acquireLock($job_type) {
     $or = db_or()
-      ->condition('active_job', $active_job)
+      ->condition('active_job', $job_type)
       ->condition('active_job', '');
     $update = db_update('feeds_source')
       ->fields(array(
-        'active_job' => $active_job,
+        'active_job' => $job_type,
       ))
       ->condition('id', $this->id)
       ->condition('feed_nid', $this->feed_nid)
       ->condition($or);
-
-    // If we are in import mode and
-    if ($update->execute()) {
-      if (lock_acquire("feeds_{$active_job}_{$source->id}_{$source->feed_nid}")) {
-        return;
-      }
+    // If job type lock could be acquired, acquire process lock.
+    if ($update->execute() &&
+        lock_acquire("feeds_{$job_type}_{$this->id}_{$this->feed_nid}")) {
+      return;
     }
-    throw new FeedsLockException(t('Cannot acquire @active_job lock.', array('@active_job' => $active_job)));
+    throw new FeedsLockException(t('Cannot acquire @active_job lock.', array('@active_job' => $job_type)));
   }
 
   /**
    * Releases a lock for an active job.
    */
-  protected function releaseLock($active_job, $finished) {
-    lock_release("feeds_{$active_job}_{$source->id}_{$source->feed_nid}");
+  protected function releaseLock($job_type, $finished) {
+    lock_release("feeds_{$job_type}_{$this->id}_{$this->feed_nid}");
     if ($finished) {
       db_update('feeds_source')
         ->fields(array(
@@ -698,7 +696,7 @@ class FeedsSource extends FeedsConfigurable {
         ))
         ->condition('id', $this->id)
         ->condition('feed_nid', $this->feed_nid)
-        ->condition('active_job', $active_job)
+        ->condition('active_job', $job_type)
         ->execute();
     }
   }
