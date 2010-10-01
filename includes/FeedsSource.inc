@@ -217,9 +217,14 @@ class FeedsSource extends FeedsConfigurable {
   /**
    * Start importing a source.
    *
-   * This method starts an import job and returns immediately. Depending on the
-   * configuration of the importer of this source, a Batch API job or a
-   * background job with Job Scheduler will be created.
+   * This method starts an import job. Depending on the configuration of the
+   * importer of this source, a Batch API job or a background job with Job
+   * Scheduler will be created.
+   *
+   * @throws Exception
+   *   If processing in background is enabled, the first batch chunk of the
+   *   import will be executed on the current page request. This means that this
+   *   method may throw the same exceptions as FeedsSource::import().
    */
   public function startImport() {
     $config = $this->importer->getConfig();
@@ -234,9 +239,14 @@ class FeedsSource extends FeedsConfigurable {
   /**
    * Start deleting all imported items of a source.
    *
-   * This method starts a clear job and returns immediately. Depending on the
-   * configuration of the importer of this source, a Batch API job or a
-   * background job with Job Scheduler will be created.
+   * This method starts a clear job. Depending on the configuration of the
+   * importer of this source, a Batch API job or a background job with Job
+   * Scheduler will be created.
+   *
+   * @throws Exception
+   *   If processing in background is enabled, the first batch chunk of the
+   *   clear task will be executed on the current page request. This means that
+   *   this method may throw the same exceptions as FeedsSource::clear().
    */
   public function startClear() {
     $config = $this->importer->getConfig();
@@ -605,20 +615,31 @@ class FeedsSource extends FeedsConfigurable {
   /**
    * Background job helper. Starts a background job using Job Scheduler.
    *
+   * Execute the first batch chunk of a background job on the current page load,
+   * moves the rest of the job processing to a cron powered background job.
+   *
+   * Executing the first batch chunk is important, otherwise, when a user
+   * submits a source for import or clearing, we will leave her without any
+   * visual indicators of an ongoing job.
+   *
    * @see FeedsSource::startImport().
    * @see FeedsSource::startClear().
    *
    * @param $method
    *   Method to execute on importer; one of 'import' or 'clear'.
+   *
+   * @throws Exception $e
    */
   protected function startBackgroundJob($method) {
-    $job = array(
-      'type' => $this->id,
-      'id' => $this->feed_nid,
-      'period' => 0,
-      'periodic' => FALSE,
-    );
-    JobScheduler::get("feeds_source_{$method}")->set($job);
+    if (FEEDS_BATCH_COMPLETE != $this->$method()) {
+      $job = array(
+        'type' => $this->id,
+        'id' => $this->feed_nid,
+        'period' => 0,
+        'periodic' => FALSE,
+      );
+      JobScheduler::get("feeds_source_{$method}")->set($job);
+    }
   }
 
   /**
