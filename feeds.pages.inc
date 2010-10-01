@@ -156,7 +156,7 @@ function feeds_delete_tab_form($form, &$form_state, $importer_id, $node = NULL) 
 function feeds_delete_tab_form_submit($form, &$form_state) {
   $form_state['redirect'] = $form['#redirect'];
   $feed_nid = empty($form['#feed_nid']) ? 0 : $form['#feed_nid'];
-  feeds_source($form['#importer_id'], $feed_nid)->clear();
+  feeds_source($form['#importer_id'], $feed_nid)->startClear();
 }
 
 /**
