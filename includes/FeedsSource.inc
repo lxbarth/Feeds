@@ -312,6 +312,7 @@ class FeedsSource extends FeedsConfigurable {
       unset($this->fetcher_result);
       unset($this->state);
       $this->save();
+      $this->unlock();
       throw $e;
     }
     $this->save();
