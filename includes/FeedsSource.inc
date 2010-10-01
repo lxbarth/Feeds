@@ -1,5 +1,5 @@
 <?php
-// $Id: FeedsSource.inc,v 1.26.2.5 2010/10/01 17:45:18 alexb Exp $
+// $Id: FeedsSource.inc,v 1.26.2.6 2010/10/01 22:15:41 alexb Exp $
 
 /**
  * @file
@@ -175,6 +175,9 @@ class FeedsSource extends FeedsConfigurable {
   // Fetcher result, used to cache fetcher result when batching.
   protected $fetcher_result;
 
+  // Timestamp when this source was imported the last time.
+  protected $imported;
+
   /**
    * Instantiate a unique object per class/id/feed_nid. Don't use
    * directly, use feeds_source() instead.
@@ -347,6 +350,7 @@ class FeedsSource extends FeedsConfigurable {
     $result = $this->progressImporting();
     if ($result == FEEDS_BATCH_COMPLETE || isset($e)) {
       module_invoke_all('feeds_after_import', $this);
+      $this->imported = REQUEST_TIME;
       unset($this->fetcher_result, $this->state);
     }
     $this->save();
@@ -449,6 +453,13 @@ class FeedsSource extends FeedsConfigurable {
   }
 
   /**
+   * Count items imported by this source.
+   */
+  public function itemCount() {
+    return $this->importer->processor->itemCount($this);
+  }
+
+  /**
    * Save configuration.
    */
   public function save() {
@@ -467,6 +478,7 @@ class FeedsSource extends FeedsConfigurable {
     $object = array(
       'id' => $this->id,
       'feed_nid' => $this->feed_nid,
+      'imported' => $this->imported,
       'config' => $config,
       'source' => $source,
       'state' => isset($this->state) ? $this->state : FALSE,
@@ -486,11 +498,12 @@ class FeedsSource extends FeedsConfigurable {
    * @todo Patch CTools to move constants from export.inc to ctools.module.
    */
   public function load() {
-    if ($record = db_query("SELECT config, state, fetcher_result FROM {feeds_source} WHERE id = :id AND feed_nid = :nid", array(':id' => $this->id, ':nid' => $this->feed_nid))->fetch()) {
+    if ($record = db_query("SELECT imported, config, state, fetcher_result FROM {feeds_source} WHERE id = :id AND feed_nid = :nid", array(':id' => $this->id, ':nid' => $this->feed_nid))->fetch()) {
       // While FeedsSource cannot be exported, we still use CTool's export.inc
       // export definitions.
       ctools_include('export');
       $this->export_type = EXPORT_IN_DATABASE;
+      $this->imported = $record->imported;
       $this->config = unserialize($record->config);
       if (!empty($record->state)) {
         $this->state = unserialize($record->state);

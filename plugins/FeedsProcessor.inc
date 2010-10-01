@@ -1,5 +1,5 @@
 <?php
-// $Id: FeedsProcessor.inc,v 1.20.2.1 2010/09/29 23:56:10 alexb Exp $
+// $Id: FeedsProcessor.inc,v 1.20.2.2 2010/10/01 22:15:41 alexb Exp $
 
 
 // Update mode for existing items.
@@ -74,6 +74,13 @@ abstract class FeedsProcessor extends FeedsPlugin {
    */
   public function expire($time = NULL) {
     return FEEDS_BATCH_COMPLETE;
+  }
+
+  /**
+   * Return the number of items imported by this processor.
+   */
+  public function itemCount(FeedsSource $source) {
+    return 0;
   }
 
   /**

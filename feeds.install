@@ -1,5 +1,5 @@
 <?php
-// $Id: feeds.install,v 1.16.2.2 2010/09/30 19:57:25 alexb Exp $
+// $Id: feeds.install,v 1.16.2.3 2010/10/01 22:15:41 alexb Exp $
 
 /**
  * @file
@@ -84,6 +84,13 @@ function feeds_schema() {
         'not null' => FALSE,
         'description' => 'Cache for fetcher result.',
         'serialize' => TRUE,
+      ),
+      'imported' => array(
+        'type' => 'int',
+        'not null' => TRUE,
+        'default' => 0,
+        'unsigned' => TRUE,
+        'description' => 'Timestamp when this source was imported last.',
       ),
     ),
     'primary key' => array('id', 'feed_nid'),
@@ -263,4 +270,18 @@ function feeds_update_7100(&$sandbox) {
     'serialize' => TRUE,
   );
   db_add_field('feeds_source', 'fetcher_result', $spec);
+}
+
+/**
+ * Add imported timestamp to feeds_source table.
+ */
+function feeds_update_7201(&$sandbox) {
+  $spec = array(
+    'type' => 'int',
+    'not null' => TRUE,
+    'default' => 0,
+    'unsigned' => TRUE,
+    'description' => 'Timestamp when this source was imported last.',
+  );
+  db_add_field('feeds_source', 'imported', $spec);
 }

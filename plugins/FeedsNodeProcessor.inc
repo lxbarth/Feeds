@@ -1,5 +1,5 @@
 <?php
-// $Id: FeedsNodeProcessor.inc,v 1.69.2.4 2010/10/01 17:45:18 alexb Exp $
+// $Id: FeedsNodeProcessor.inc,v 1.69.2.5 2010/10/01 22:15:41 alexb Exp $
 
 /**
  * @file
@@ -137,6 +137,13 @@ class FeedsNodeProcessor extends FeedsProcessor {
    */
   public function expiryTime() {
     return $this->config['expire'];
+  }
+
+  /**
+   * Return a count for the given items
+   */
+  public function itemCount(FeedsSource $source) {
+    return db_query("SELECT count(*) FROM {feeds_node_item} WHERE feed_nid = :feed_nid", array(':feed_nid' => $source->feed_nid))->fetchField();
   }
 
   /**

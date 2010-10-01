@@ -1,5 +1,5 @@
 <?php
-// $Id: feeds.pages.inc,v 1.34.2.1 2010/09/29 23:56:09 alexb Exp $
+// $Id: feeds.pages.inc,v 1.34.2.3 2010/10/01 22:15:41 alexb Exp $
 
 /**
  * @file
@@ -52,8 +52,15 @@ function feeds_import_form($form, &$form_state, $importer_id) {
   $form['#importer_id'] = $importer_id;
   // @todo Move this into fetcher?
   $form['#attributes']['enctype'] = 'multipart/form-data';
+  $form['source_status'] = array(
+    '#type' => 'fieldset',
+    '#title' => t('Status'),
+    '#tree' => TRUE,
+    '#value' => feeds_source_status($source),
+  );
   $form['feeds'] = array(
     '#type' => 'fieldset',
+    '#title' => t('Import'),
     '#tree' => TRUE,
   );
   $form['feeds'] += $source->configForm($form_state);
@@ -107,12 +114,13 @@ function feeds_import_tab_form($form, &$form_state, $node) {
   $form['#feed_nid'] = $node->nid;
   $form['#importer_id'] = $importer_id;
   $form['#redirect'] = 'node/'. $node->nid;
-  $form = confirm_form($form, t('Import all content from feed?'), 'node/'. $node->nid, '', t('Import'), t('Cancel'), 'confirm feeds update');
-  if ($source->progressImporting() !== FEEDS_BATCH_COMPLETE) {
-    $form['actions']['submit']['#disabled'] = TRUE;
-    $form['actions']['submit']['#value'] = t('Importing (!percent)', array('!percent' => feeds_format_percentage($source->progressImporting())));
-  }
-  return $form;
+  $form['source_status'] = array(
+    '#type' => 'fieldset',
+    '#title' => t('Status'),
+    '#tree' => TRUE,
+    '#value' => feeds_source_status($source),
+  );
+  return confirm_form($form, t('Import all content from source?'), 'node/'. $node->nid, '', t('Import'), t('Cancel'), 'confirm feeds update');
 }
 
 /**
@@ -130,24 +138,25 @@ function feeds_import_tab_form_submit($form, &$form_state) {
  * Therefore $node may be missing.
  */
 function feeds_delete_tab_form($form, &$form_state, $importer_id, $node = NULL) {
-  if ($node) {
-    $importer_id = feeds_get_importer_id($node->type);
-    $source = feeds_source($importer_id, $node->nid);
-    $form['#redirect'] = 'node/'. $node->nid;
+  if (empty($node)) {
+    $source = feeds_source($importer_id);
+    $form['#redirect'] = 'import/' . $source->id;
   }
   else {
-    $source = feeds_source($importer_id, 0);
-    $form['#redirect'] = 'import/'. $importer_id;
+    $importer_id = feeds_get_importer_id($node->type);
+    $source = feeds_source($importer_id, $node->nid);
+    $form['#redirect'] = 'node/' . $source->feed_nid;
   }
-  $form['#feed_nid'] = $source->feed_nid;
   // Form cannot pass on source object.
   $form['#importer_id'] = $source->id;
-  $form = confirm_form($form, t('Delete all items from feed?'), $form['#redirect'], '', t('Delete'), t('Cancel'), 'confirm feeds update');
-  if ($source->progressClearing() !== FEEDS_BATCH_COMPLETE) {
-    $form['actions']['submit']['#disabled'] = TRUE;
-    $form['actions']['submit']['#value'] = t('Deleting (!percent)', array('!percent' => feeds_format_percentage($source->progressClearing())));
-  }
-  return $form;
+  $form['#feed_nid'] = $source->feed_nid;
+  $form['source_status'] = array(
+    '#type' => 'fieldset',
+    '#title' => t('Status'),
+    '#tree' => TRUE,
+    '#value' => feeds_source_status($source),
+  );
+  return confirm_form($form, t('Delete all items from source?'), $form['#redirect'], '', t('Delete'), t('Cancel'), 'confirm feeds update');
 }
 
 /**
@@ -181,24 +190,53 @@ function feeds_importer_template($importer) {
 }
 
 /**
- * Report import/clear status of a source as drupal messages.
+ * Renders a status display for a source.
  */
-function feeds_set_status_message($source) {
-  if ($source->progressImporting() !== FEEDS_BATCH_COMPLETE) {
-    $percent = feeds_format_percentage($source->progressImporting());
-    drupal_set_message(t('Importing - !percent complete.', array('!percent' => $percent)));
+function feeds_source_status($source) {
+  $progress_importing = $source->progressImporting();
+  $v = array();
+  if ($progress_importing != FEEDS_BATCH_COMPLETE) {
+    $v['progress_importing'] = $progress_importing;
   }
-  if ($source->progressClearing() !== FEEDS_BATCH_COMPLETE) {
-    $percent = feeds_format_percentage($source->progressClearing());
-    drupal_set_message(t('Deleting items - !percent complete.', array('!percent' => $percent)));
+  $progress_clearing = $source->progressClearing();
+  if ($progress_clearing != FEEDS_BATCH_COMPLETE) {
+    $v['progress_clearing'] = $progress_clearing;
+  }
+  if (empty($v)) {
+    $v['imported'] = $source->imported;
+    $v['count'] = $source->itemCount();
+  }
+  if (!empty($v)) {
+    return theme('feeds_source_status', $v);
   }
 }
 
 /**
- * Format a percentage.
+ * Themes a status display for a source.
  */
-function feeds_format_percentage($float) {
-  return t('!percent %', array('!percent' => number_format(100 * $float, 0)));
+function theme_feeds_source_status($v) {
+  $output = '<div class="info-box feeds-source-status">';
+  $items = array();
+  if ($v['count']) {
+    if ($v['imported']) {
+      $items[] = t('Last import: @ago ago.', array('@ago' => format_interval(REQUEST_TIME - $v['imported'], 1)));
+    }
+    $items[] = t('@count imported items total.', array('@count' => $v['count']));
+  }
+  else {
+    $items[] = t('No imported items.');
+  }
+  if ($v['progress_importing']) {
+    $progress = number_format(100.0 * $v['progress_importing'], 0);
+    $items[] = t('Importing - @progress % complete.', array('@progress' => $progress));
+  }
+  if ($v['progress_clearing']) {
+    $progress = number_format(100.0 * $v['progress_clearing'], 0);
+    $items[] = t('Deleting items - @progress % complete.', array('@progress' => $progress));
+  }
+  $output .= theme('item_list', array('items' => $items));
+  $output .= '</div>';
+  return $output;
 }
 
 /**
