@@ -292,16 +292,47 @@ abstract class FeedsProcessor extends FeedsPlugin {
   }
 
   /**
-   * Build a new entity stub and return it.
+   * Adds Feeds specific information on $entity->feeds_item.
+   *
+   * @param $entity
+   *   The entity object to be populated with new item info.
+   * @param $feed_nid
+   *   The feed nid of the source that produces this entity.
+   * @param $hash
+   *   The fingerprint of the source item.
    */
-  protected function newEntity($feed_nid) {
-    $entity = new stdClass();
-    $entity->entity_type = $this->entity_type;
+  protected function newItemInfo($entity, $feed_nid, $hash) {
     $entity->feeds_item = new stdClass();
+    $entity->feeds_item->entity_id = 0;
+    $entity->feeds_item->entity_type = $this->entity_type;
     $entity->feeds_item->id = $this->id;
-    $entity->feeds_item->imported = REQUEST_TIME;
     $entity->feeds_item->feed_nid = $feed_nid;
+    $entity->feeds_item->imported = REQUEST_TIME;
+    $entity->feeds_item->hash = $hash;
     $entity->feeds_item->url = '';
     $entity->feeds_item->guid = '';
+  }
+
+  /**
+   * Loads existing entity information and places it on $entity->feeds_item.
+   *
+   * @param $entity
+   *   The entity object to load item info for.
+   * @param $entity_id
+   *   The id of the entity object to load item info for.
+   *
+   * @return
+   *   TRUE if item info could be loaded, false if not.
+   */
+  protected function loadItemInfo($entity, $entity_id) {
+    $query = db_select('feeds_item')
+      ->fields('feeds_item', array('*'))
+      ->condition('entity_type', $this->entity_type)
+      ->condition('entity_id', $entity_id);
+    if ($item_info = $query->execute()->fetch()) {
+      $entity->feeds_item = $item_info;
+      return TRUE;
+    }
+    return FALSE;
   }
 }

@@ -45,8 +45,7 @@ class FeedsNodeProcessor extends FeedsProcessor {
 
         // Assemble node, map item to it, save.
         try {
-          $node = $this->newEntity($nid, $source->feed_nid);
-          $node->feeds_node_item->hash = $hash;
+          $node = empty($nid) ? $this->newNode($sourc, $hash) : $this->loadNode($source, $hash, $nid);
           $this->map($source, $parser_result, $node);
           node_save($node);
           if (!empty($nid)) {
@@ -344,39 +343,42 @@ class FeedsNodeProcessor extends FeedsProcessor {
   }
 
   /**
-   * Creates a new node object in memory and returns it.
+   * Creates a new node in memory and returns it.
    */
-  protected function newEntity($feed_nid, $nid = NULL) {
-    $node = parent::newEntity($feed_nid);
+  protected function newNode($source, $hash) {
+    $node = new stdClass();
     $node->type = $this->config['content_type'];
     $node->changed = REQUEST_TIME;
     $node->format = ($this->config['input_format'] == FEEDS_NODE_DEFAULT_FORMAT) ? filter_fallback_format() : $this->config['input_format'];
+    $node->created = REQUEST_TIME;
+    $this->newItemInfo($node, $source->feed_nid, $hash);
+    node_object_prepare($node);
+    // Populate properties that are set by node_object_prepare().
+    $node->log = 'Created by FeedsNodeProcessor';
+    $node->uid = $this->config['author'];
+    return $node;
+  }
 
-    if (empty($nid)) {
-      $node->created = REQUEST_TIME;
-      $new = TRUE;
+  /**
+   * Loads an existing node.
+   *
+   * If the update existing method is not FEEDS_UPDATE_EXISTING, only the node
+   * table will be loaded, foregoing the node_load API for better performance.
+   */
+  protected function loadNode($source, $hash, $nid) {
+    if ($this->config['update_existing'] == FEEDS_UPDATE_EXISTING) {
+      $node = node_load($nid, NULL, TRUE);
     }
     else {
-      if ($this->config['update_existing'] == FEEDS_UPDATE_EXISTING) {
-        $node = node_load($nid, NULL, TRUE);
-      }
-      else { // We're replacing the existing node. Only salvage ids and created.
-        $existing_node = db_query("SELECT nid, vid, created FROM {node} WHERE nid = :nid", array(':nid' => $nid))->fetch();
-        foreach ($existing_node as $k => $v) {
-          $node->$k = $v;
-        }
-      }
+      // We're replacing the existing node. Only save the absolutely necessary.
+      $node = db_query("SELECT created, nid, vid, type FROM {node} WHERE nid = :nid", array(':nid' => $nid))->fetch();
     }
-
-    // Let other modules populate default values.
+    if ($this->loadItemInfo($node, $nid)) {
+      $this->newItemInfo($node, $source->feed_nid, $hash);
+    }
     node_object_prepare($node);
-
     // Populate properties that are set by node_object_prepare().
-    $node->log = 'Created/updated by FeedsNodeProcessor';
-    if ($new) {
-      $node->uid = $this->config['author'];
-    }
-    return $node;
+    $node->log = 'Updated by FeedsNodeProcessor';
   }
 
   /**
