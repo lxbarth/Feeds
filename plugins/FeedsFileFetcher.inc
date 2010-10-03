@@ -1,5 +1,5 @@
 <?php
-// $Id: FeedsFileFetcher.inc,v 1.22.2.3 2010/10/01 17:45:18 alexb Exp $
+// $Id: FeedsFileFetcher.inc,v 1.22.2.4 2010/10/03 15:49:34 alexb Exp $
 
 /**
  * @file
@@ -101,20 +101,28 @@ class FeedsFileFetcher extends FeedsFetcher {
       '#type' => 'value',
       '#value' => empty($source_config['fid']) ? 0 : $source_config['fid'],
     );
-    $form['source'] = array(
-      '#type' => empty($this->config['direct']) ? 'value' : 'textfield',
-      '#title' => t('File'),
-      '#description' => t('Specify a path to a file or a directory starting with @scheme://. Alternatively upload a file below.', array('@scheme' => file_default_scheme())),
-      '#default_value' => empty($source_config['source']) ? '' : $source_config['source'],
-    );
-    $form['upload'] = array(
-      '#type' => 'file',
-      '#title' => empty($this->config['direct']) ? t('File') : NULL,
-      '#description' => empty($source_config['source']) ? t('Select the file to be imported from your local system.') : t('Select a different file to be imported from your local system.'),
-      '#theme' => 'feeds_upload',
-      '#file_info' => empty($source_config['fid']) ? NULL : file_load($source_config['fid']),
-      '#size' => 10,
-    );
+    if (empty($this->config['direct'])) {
+      $form['source'] = array(
+        '#type' => 'value',
+        '#value' => empty($source_config['source']) ? '' : $source_config['source'],
+      );
+      $form['upload'] = array(
+        '#type' => 'file',
+        '#title' => empty($this->config['direct']) ? t('File') : NULL,
+        '#description' => empty($source_config['source']) ? t('Select a file from your local system.') : t('Select a different file from your local system.'),
+        '#theme' => 'feeds_upload',
+        '#file_info' => empty($source_config['fid']) ? NULL : file_load($source_config['fid']),
+        '#size' => 10,
+      );
+    }
+    else {
+      $form['source'] = array(
+        '#type' => 'textfield',
+        '#title' => t('File'),
+        '#description' => t('Specify a path to a file or a directory. Path must start with @scheme://', array('@scheme' => file_default_scheme())),
+        '#default_value' => empty($source_config['source']) ? '' : $source_config['source'],
+      );
+    }
     return $form;
   }
 
@@ -199,8 +207,10 @@ class FeedsFileFetcher extends FeedsFetcher {
     );
     $form['direct'] = array(
       '#type' =>'checkbox',
-      '#title' => t('Supply path to file directly'),
-      '#description' => t('For experts. Lets users specify a path to a file or a directory of files directly. This is useful when the files that need to be imported are already on the server.'),
+      '#title' => t('Supply path to file or directory directly'),
+      '#description' => t('For experts. Lets users specify a path to a file <em>or a directory of files</em> directly,
+        instead of a file upload through the browser. This is useful when the files that need to be imported
+        are already on the server.'),
       '#default_value' => $this->config['direct'],
     );
     return $form;
