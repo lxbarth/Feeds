@@ -15,6 +15,10 @@ define('FEEDS_PROCESS_LIMIT', 50);
  * Abstract class, defines interface for processors.
  */
 abstract class FeedsProcessor extends FeedsPlugin {
+  /**
+   * Entity type this processor operates on.
+   */
+  protected $entity_type;
 
   /**
    * Process the result of the parser or previous processors.
@@ -237,8 +241,31 @@ abstract class FeedsProcessor extends FeedsPlugin {
    *   A FeedsParserResult object.
    */
   protected function existingItemId(FeedsSource $source, FeedsParserResult $result) {
+    $query = db_select('feeds_item')
+      ->fields('feeds_item', array('content_id'))
+      ->condition('feed_nid', $source->feed_nid)
+      ->condition('processor', get_class($this))
+      ->condition('id', $source->id);
+
+    // Iterate through all unique targets and test whether they do already
+    // exist in the database.
+    foreach ($this->uniqueTargets($source, $result) as $target => $value) {
+      switch ($target) {
+        case 'url':
+          $content_id = $query->condition('url', $value)->execute()->fetch();
+          break;
+        case 'guid':
+          $content_id = $query->condition('url', $value)->execute()->fetch();
+          break;
+      }
+      if ($content_id) {
+        // Return with the content id found.
+        return $content_id;
+      }
+    }
     return 0;
   }
+
 
   /**
    * Utility function that iterates over a target array and retrieves all
@@ -262,5 +289,19 @@ abstract class FeedsProcessor extends FeedsPlugin {
       }
     }
     return $targets;
+  }
+
+  /**
+   * Build a new entity stub and return it.
+   */
+  protected function newEntity($feed_nid) {
+    $entity = new stdClass();
+    $entity->entity_type = $this->entity_type;
+    $entity->feeds_item = new stdClass();
+    $entity->feeds_item->id = $this->id;
+    $entity->feeds_item->imported = REQUEST_TIME;
+    $entity->feeds_item->feed_nid = $feed_nid;
+    $entity->feeds_item->url = '';
+    $entity->feeds_item->guid = '';
   }
 }

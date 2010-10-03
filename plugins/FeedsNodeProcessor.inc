@@ -20,6 +20,14 @@ define('FEEDS_NODE_DEFAULT_FORMAT', -1);
  */
 class FeedsNodeProcessor extends FeedsProcessor {
   /**
+   * Define entity type.
+   */
+  protected function __construct($id) {
+    parent::__construct($id);
+    $this->entity_type = 'node';
+  }
+
+  /**
    * Implements FeedsProcessor::process().
    */
   public function process(FeedsSource $source, FeedsParserResult $parser_result) {
@@ -37,7 +45,7 @@ class FeedsNodeProcessor extends FeedsProcessor {
 
         // Assemble node, map item to it, save.
         try {
-          $node = $this->buildNode($nid, $source->feed_nid);
+          $node = $this->newEntity($nid, $source->feed_nid);
           $node->feeds_node_item->hash = $hash;
           $this->map($source, $parser_result, $node);
           node_save($node);
@@ -315,6 +323,9 @@ class FeedsNodeProcessor extends FeedsProcessor {
    * Get nid of an existing feed item node if available.
    */
   protected function existingItemId(FeedsSource $source, FeedsParserResult $result) {
+    if ($nid = parent::existingItemId($source, $result)) {
+      return $nid;
+    }
 
     // Iterate through all unique targets and test whether they do already
     // exist in the database.
@@ -322,12 +333,6 @@ class FeedsNodeProcessor extends FeedsProcessor {
       switch ($target) {
         case 'nid':
           $nid = db_query("SELECT nid FROM {node} WHERE nid = :nid", array(':nid' => $value))->fetchField();
-          break;
-        case 'url':
-          $nid = db_query("SELECT nid FROM {feeds_node_item} WHERE feed_nid = :nid AND id = :id AND url = :url", array(':nid' => $source->feed_nid, ':id' => $source->id, ':url' => $value))->fetchField();
-          break;
-        case 'guid':
-          $nid = db_query("SELECT nid FROM {feeds_node_item} WHERE feed_nid = :nid AND id = :id AND guid = :guid", array(':nid' => $source->feed_nid, ':id' => $source->id, ':guid' => $value))->fetchField();
           break;
       }
       if ($nid) {
@@ -341,43 +346,34 @@ class FeedsNodeProcessor extends FeedsProcessor {
   /**
    * Creates a new node object in memory and returns it.
    */
-  protected function buildNode($nid, $feed_nid) {
-    $node = new stdClass();
-    $populate = FALSE;
+  protected function newEntity($feed_nid, $nid = NULL) {
+    $node = parent::newEntity($feed_nid);
+    $node->type = $this->config['content_type'];
+    $node->changed = REQUEST_TIME;
+    $node->format = ($this->config['input_format'] == FEEDS_NODE_DEFAULT_FORMAT) ? filter_fallback_format() : $this->config['input_format'];
+
     if (empty($nid)) {
       $node->created = REQUEST_TIME;
-      $populate = TRUE;
+      $new = TRUE;
     }
     else {
       if ($this->config['update_existing'] == FEEDS_UPDATE_EXISTING) {
         $node = node_load($nid, NULL, TRUE);
       }
-      else {
-        $node = db_query("SELECT nid, vid, created FROM {node} WHERE nid = :nid", array(':nid' => $nid))->fetch();
-        $populate = TRUE;
+      else { // We're replacing the existing node. Only salvage ids and created.
+        $existing_node = db_query("SELECT nid, vid, created FROM {node} WHERE nid = :nid", array(':nid' => $nid))->fetch();
+        foreach ($existing_node as $k => $v) {
+          $node->$k = $v;
+        }
       }
     }
-    if ($populate) {
-      $node->type = $this->config['content_type'];
-      $node->changed = REQUEST_TIME;
-      $node->format = ($this->config['input_format'] == FEEDS_NODE_DEFAULT_FORMAT) ? filter_fallback_format() : $this->config['input_format'];
-      $node->feeds_node_item = new stdClass();
-      $node->feeds_node_item->id = $this->id;
-      $node->feeds_node_item->imported = REQUEST_TIME;
-      $node->feeds_node_item->feed_nid = $feed_nid;
-      $node->feeds_node_item->url = '';
-      $node->feeds_node_item->guid = '';
-    }
-
-    // Give mappers a hint at what they're operating on.
-    $node->entity_type = 'node';
 
     // Let other modules populate default values.
     node_object_prepare($node);
 
     // Populate properties that are set by node_object_prepare().
     $node->log = 'Created/updated by FeedsNodeProcessor';
-    if ($populate) {
+    if ($new) {
       $node->uid = $this->config['author'];
     }
     return $node;

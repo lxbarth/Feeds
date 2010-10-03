@@ -10,6 +10,14 @@
  * Feeds processor plugin. Create users from feed items.
  */
 class FeedsUserProcessor extends FeedsProcessor {
+  /**
+   * Define entity type.
+   */
+  protected function __construct($id) {
+    parent::__construct($id);
+    $this->entity_type = 'user';
+  }
+
 
   /**
    * Implements FeedsProcessor::process().
@@ -98,7 +106,6 @@ class FeedsUserProcessor extends FeedsProcessor {
     // Prepare term object.
     $target_account = new stdClass();
     $target_account->uid = 0;
-    $target_account->entity_type = 'user';
     $target_account->roles = array_filter($this->config['roles']);
     $target_account->status = $this->config['status'];
 

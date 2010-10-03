@@ -10,6 +10,14 @@
  * Feeds processor plugin. Create taxonomy terms from feed items.
  */
 class FeedsTermProcessor extends FeedsProcessor {
+  /**
+   * Define entity type.
+   */
+  protected function __construct($id) {
+    parent::__construct($id);
+    $this->entity_type = 'taxonomy_term';
+  }
+
 
   /**
    * Implements FeedsProcessor::process().
@@ -32,7 +40,6 @@ class FeedsTermProcessor extends FeedsProcessor {
         if ($tid && $this->config['update_existing'] == FEEDS_UPDATE_EXISTING) {
           $term = taxonomy_term_load($tid);
         }
-        $term->entity_type = 'taxonomy_term';
         $term = $this->map($source, $parser_result, $term);
 
         // Check if term name is set, otherwise continue.
@@ -208,6 +215,9 @@ class FeedsTermProcessor extends FeedsProcessor {
    * Get id of an existing feed item term if available.
    */
   protected function existingItemId(FeedsSource $source, FeedsParserResult $result) {
+    if ($tid = parent::existingItemId($source, $result)) {
+      return $tid;
+    }
 
     // The only possible unique target is name.
     foreach ($this->uniqueTargets($source, $result) as $target => $value) {

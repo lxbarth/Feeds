@@ -11,6 +11,14 @@
  * that this plugin only creates nodes that are feed nodes themselves.
  */
 class FeedsFeedNodeProcessor extends FeedsProcessor {
+  /**
+   * Define entity type.
+   */
+  protected function __construct($id) {
+    parent::__construct($id);
+    $this->entity_type = 'node';
+  }
+
 
   /**
    * Implements FeedsProcessor::process().
@@ -203,6 +211,9 @@ class FeedsFeedNodeProcessor extends FeedsProcessor {
    * Get nid of an existing feed item node if available.
    */
   protected function existingItemId(FeedsSource $source, FeedsParserResult $result) {
+    if ($nid = parent::existingItemId($source, $result)) {
+      return $nid;
+    }
 
     // We only support one unique target: source
     foreach ($this->uniqueTargets($source, $result) as $target => $value) {
