@@ -249,6 +249,8 @@ class FeedsTermProcessor extends FeedsProcessor {
   protected function newTerm($source) {
     $term = new stdClass();
     $this->newItemInfo($term, $source->feed_nid);
+    $vocabulary = $this->vocabulary();
+    $term->vid = $vocabulary->vid;
     return $term;
   }
 
