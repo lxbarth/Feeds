@@ -301,7 +301,7 @@ abstract class FeedsProcessor extends FeedsPlugin {
    * @param $hash
    *   The fingerprint of the source item.
    */
-  protected function newItemInfo($entity, $feed_nid, $hash) {
+  protected function newItemInfo($entity, $feed_nid, $hash = '') {
     $entity->feeds_item = new stdClass();
     $entity->feeds_item->entity_id = 0;
     $entity->feeds_item->entity_type = $this->entity_type;
