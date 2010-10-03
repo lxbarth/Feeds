@@ -100,27 +100,34 @@ function feeds_schema() {
       'id_source' => array('id', array('source', 128)),
     ),
   );
-  $schema['feeds_node_item'] = array(
-    'description' => 'Stores additional information about feed item nodes. Used by FeedsNodeProcessor.',
+  $schema['feeds_item'] = array(
+    'description' => 'Tracks items such as nodes, terms, users.',
     'fields' => array(
-      'nid' => array(
+      'entity_type' => array(
+        'type' => 'varchar',
+        'length' => 64,
+        'not null' => TRUE,
+        'default' => '',
+        'description' => 'The entity type.',
+      ),
+      'entity_id' => array(
         'type' => 'int',
         'unsigned' => TRUE,
         'not null' => TRUE,
-        'description' => 'Primary Key: The feed item node\'s nid.',
+        'description' => 'The imported entity\'s serial id.',
       ),
       'id' => array(
         'type' => 'varchar',
         'length' => 128,
         'not null' => TRUE,
         'default' => '',
-        'description' => 'The id of the fields object that is the producer of this item.',
+        'description' => 'The id of the importer that created this item.',
       ),
       'feed_nid' => array(
         'type' => 'int',
         'unsigned' => TRUE,
         'not null' => TRUE,
-        'description' => 'Node id of the owner feed, if available.',
+        'description' => 'Node id of the source, if available.',
       ),
       'imported' => array(
         'type' => 'int',
@@ -143,46 +150,16 @@ function feeds_schema() {
         'length' => 32, // The length of an MD5 hash.
         'not null' => TRUE,
         'default' => '',
-        'description' => 'The hash of the item.',
+        'description' => 'The hash of the source item.',
       ),
     ),
-    'primary key' => array('nid'),
+    'primary key' => array('entity_type', 'entity_id'),
     'indexes' => array(
       'id' => array('id'),
       'feed_nid' => array('feed_nid'),
+      'lookup_url' => array('entity_type', 'id', 'feed_nid', array('url', 255)),
+      'lookup_guid' => array('entity_type', 'id', 'feed_nid', array('guid', 255)),
       'imported' => array('imported'),
-      'url' => array(array('url', 255)),
-      'guid' => array(array('guid', 255)),
-    ),
-  );
-  $schema['feeds_term_item'] = array(
-    'description' => 'Tracks imported terms.',
-    'fields' => array(
-      'tid' => array(
-        'type' => 'int',
-        'unsigned' => TRUE,
-        'not null' => TRUE,
-        'default' => 0,
-        'description' => 'Imported term id.',
-      ),
-      'id' => array(
-        'type' => 'varchar',
-        'length' => 128,
-        'not null' => TRUE,
-        'default' => '',
-        'description' => 'The id of the fields object that is the creator of this item.',
-      ),
-      'feed_nid' => array(
-        'type' => 'int',
-        'unsigned' => TRUE,
-        'not null' => TRUE,
-        'description' => 'Node id of the owner feed, if available.',
-      ),
-    ),
-    'primary key' => array('tid'),
-    'indexes' => array(
-      'id_feed_nid' => array('id', 'feed_nid'),
-      'feed_nid' => array('feed_nid'),
     ),
   );
   $schema['feeds_push_subscriptions'] = array(
@@ -284,4 +261,79 @@ function feeds_update_7201(&$sandbox) {
     'description' => 'Timestamp when this source was imported last.',
   );
   db_add_field('feeds_source', 'imported', $spec);
+}
+
+/**
+ * Create a single feeds_item table tracking all imports.
+ */
+function feeds_update_7202(&$sandbox) {
+  $spec = array(
+    'description' => 'Tracks items such as nodes, terms, users.',
+    'fields' => array(
+      'entity_type' => array(
+        'type' => 'varchar',
+        'length' => 64,
+        'not null' => TRUE,
+        'default' => '',
+        'description' => 'The entity type.',
+      ),
+      'entity_id' => array(
+        'type' => 'int',
+        'unsigned' => TRUE,
+        'not null' => TRUE,
+        'description' => 'The imported entity\'s serial id.',
+      ),
+      'id' => array(
+        'type' => 'varchar',
+        'length' => 128,
+        'not null' => TRUE,
+        'default' => '',
+        'description' => 'The id of the importer that created this item.',
+      ),
+      'feed_nid' => array(
+        'type' => 'int',
+        'unsigned' => TRUE,
+        'not null' => TRUE,
+        'description' => 'Node id of the source, if available.',
+      ),
+      'imported' => array(
+        'type' => 'int',
+        'not null' => TRUE,
+        'default' => 0,
+        'description' => 'Import date of the feed item, as a Unix timestamp.',
+      ),
+      'url' => array(
+        'type' => 'text',
+        'not null' => TRUE,
+        'description' => 'Link to the feed item.',
+      ),
+      'guid' => array(
+        'type' => 'text',
+        'not null' => TRUE,
+        'description' => 'Unique identifier for the feed item.'
+      ),
+      'hash' => array(
+        'type' => 'varchar',
+        'length' => 32, // The length of an MD5 hash.
+        'not null' => TRUE,
+        'default' => '',
+        'description' => 'The hash of the source item.',
+      ),
+    ),
+    'primary key' => array('entity_type', 'entity_id'),
+    'indexes' => array(
+      'id' => array('id'),
+      'feed_nid' => array('feed_nid'),
+      'lookup_url' => array('entity_type', 'id', 'feed_nid', array('url', 255)),
+      'lookup_guid' => array('entity_type', 'id', 'feed_nid', array('guid', 255)),
+      'imported' => array('imported'),
+    ),
+  );
+  db_create_table('feeds_item', $spec);
+  // Copy all existing values from old tables and drop them.
+  $insert = "INSERT INTO {feeds_item} (entity_type, entity_id, id, feed_nid, imported, url, guid, hash)";
+  db_query($insert . " SELECT 'node', nid, id, feed_nid, imported, url, guid, hash FROM {feeds_node_item}");
+  db_query($insert . " SELECT 'taxonomy_term', tid, id, feed_nid, 0, '', '', '' FROM {feeds_term_item}");
+  db_drop_table('feeds_node_item');
+  db_drop_table('feeds_term_item');
 }
