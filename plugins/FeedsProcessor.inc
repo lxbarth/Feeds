@@ -339,4 +339,34 @@ abstract class FeedsProcessor extends FeedsPlugin {
     }
     return FALSE;
   }
+
+  /**
+   * Create MD5 hash of item and mappings array.
+   *
+   * Include mappings as a change in mappings may have an affect on the item
+   * produced.
+   *
+   * @return Always returns a hash, even with empty, NULL, FALSE:
+   *  Empty arrays return 40cd750bba9870f18aada2478b24840a
+   *  Empty/NULL/FALSE strings return d41d8cd98f00b204e9800998ecf8427e
+   */
+  protected function hash($item) {
+    static $serialized_mappings;
+    if (!$serialized_mappings) {
+      $serialized_mappings = serialize($this->config['mappings']);
+    }
+    return hash('md5', serialize($item) . $serialized_mappings);
+  }
+
+  /**
+   * Retrieve MD5 hash of $nid from DB.
+   * @return Empty string if no item is found, hash otherwise.
+   */
+  protected function getHash($entity_id) {
+    if ($hash = db_query("SELECT hash FROM {feeds_item} WHERE entity_type = :type AND entity_id = :id", array(':type' => $this->entity_type, ':id' => $entity_id))->fetchField()) {
+      // Return with the hash.
+      return $hash;
+    }
+    return '';
+  }
 }
