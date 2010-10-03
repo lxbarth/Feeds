@@ -83,17 +83,17 @@ class FeedsNodeProcessor extends FeedsProcessor {
   public function clear(FeedsSource $source) {
     $state = $source->state(FEEDS_PROCESS_CLEAR);
     if (empty($state->total)) {
-      $state->total = db_query("SELECT COUNT(n.nid) FROM {node} n JOIN {feeds_node_item} fn ON n.nid = fn.nid WHERE fn.id = :id AND fn.feed_nid = :nid", array(':id' => $source->id, ':nid' => $source->feed_nid))->fetchField();
+      $state->total = db_query("SELECT COUNT(n.nid) FROM {node} n JOIN {feeds_item} fi ON fi.entity_type = 'node' AND n.nid = fi.entity_id WHERE fi.id = :id AND fi.feed_nid = :nid", array(':id' => $source->id, ':nid' => $source->feed_nid))->fetchField();
     }
     $count = $this->getLimit();
     $nids = array();
-    $nodes = db_query_range("SELECT n.nid FROM {node} n JOIN {feeds_node_item} fn ON n.nid = fn.nid WHERE fn.id = :id AND fn.feed_nid = :nid", 0, $count, array(':id' => $source->id, ':nid' => $source->feed_nid));
+    $nodes = db_query_range("SELECT n.nid FROM {node} n JOIN {feeds_item} fi ON fi.entity_type = 'node' AND n.nid = fi.entity_id WHERE fi.id = :id AND fi.feed_nid = :nid", 0, $count, array(':id' => $source->id, ':nid' => $source->feed_nid));
     foreach ($nodes as $node) {
       $nids[$node->nid] = $node->nid;
       $state->deleted++;
     }
     node_delete_multiple($nids);
-    if (db_query_range("SELECT 1 FROM {node} n JOIN {feeds_node_item} fn ON n.nid = fn.nid WHERE fn.id = :id AND fn.feed_nid = :nid", 0, 1, array(':id' => $source->id, ':nid' => $source->feed_nid))->fetchField()) {
+    if (db_query_range("SELECT 1 FROM {node} n JOIN {feeds_item} fi ON fi.entity_type = 'node' AND n.nid = fi.entity_id WHERE fi.id = :id AND fi.feed_nid = :nid", 0, 1, array(':id' => $source->id, ':nid' => $source->feed_nid))->fetchField()) {
       $state->progress($state->total, $state->deleted);
       return;
     }
@@ -129,11 +129,11 @@ class FeedsNodeProcessor extends FeedsProcessor {
       return;
     }
     $count = $this->getLimit();
-    $nodes = db_query_range("SELECT n.nid FROM {node} n JOIN {feeds_node_item} fni ON n.nid = fni.nid WHERE fni.id = :id AND n.created < :created", 0, $count, array(':id' => $this->id, ':created' => REQUEST_TIME - $time));
+    $nodes = db_query_range("SELECT n.nid FROM {node} n JOIN {feeds_item} fi ON fi.entity_type = 'node' AND n.nid = fi.entity_id WHERE fi.id = :id AND n.created < :created", 0, $count, array(':id' => $this->id, ':created' => REQUEST_TIME - $time));
     foreach ($nodes as $node) {
       _feeds_node_delete($node->nid);
     }
-    if (db_query_range("SELECT 1 FROM {node} n JOIN {feeds_node_item} fni ON n.nid = fni.nid WHERE fni.id = :id AND n.created < :created", 0, 1, array(':id' => $this->id, ':created' => REQUEST_TIME - $time))->fetchField()) {
+    if (db_query_range("SELECT 1 FROM {node} n JOIN {feeds_item} fi ON fi.entity_type = 'node' AND n.nid = fi.entity_id WHERE fi.id = :id AND n.created < :created", 0, 1, array(':id' => $this->id, ':created' => REQUEST_TIME - $time))->fetchField()) {
       return FEEDS_BATCH_ACTIVE;
     }
     return FEEDS_BATCH_COMPLETE;
@@ -150,7 +150,7 @@ class FeedsNodeProcessor extends FeedsProcessor {
    * Return a count for the given items
    */
   public function itemCount(FeedsSource $source) {
-    return db_query("SELECT count(*) FROM {feeds_node_item} WHERE feed_nid = :feed_nid", array(':feed_nid' => $source->feed_nid))->fetchField();
+    return db_query("SELECT count(*) FROM {feeds_item} WHERE entity_type = 'node' AND feed_nid = :feed_nid", array(':feed_nid' => $source->feed_nid))->fetchField();
   }
 
   /**
@@ -253,16 +253,6 @@ class FeedsNodeProcessor extends FeedsProcessor {
    */
   public function setTargetElement($target_node, $target_element, $value) {
     switch ($target_element) {
-      case 'url':
-      case 'guid':
-        $target_node->feeds_node_item->$target_element = $value;
-        break;
-      case 'title':
-      case 'status':
-      case 'nid':
-      case 'uid':
-        $target_node->$target_element = $value;
-        break;
       case 'created':
         $target_node->created = REQUEST_TIME;
         if (is_numeric($value)) {
@@ -275,6 +265,9 @@ class FeedsNodeProcessor extends FeedsProcessor {
         elseif ($value instanceof FeedsDateTimeElement) {
           $target_node->created = $value->getValue();
         }
+        break;
+      case 'default':
+        parent::setTargetElement($target_item, $target_element, $value);
         break;
     }
   }
@@ -405,7 +398,7 @@ class FeedsNodeProcessor extends FeedsProcessor {
    * @return Empty string if no item is found, hash otherwise.
    */
   protected function getHash($nid) {
-    if ($hash = db_query("SELECT hash FROM {feeds_node_item} WHERE nid = :nid", array(':nid' => $nid))->fetchField()) {
+    if ($hash = db_query("SELECT hash FROM {feeds_item} WHERE entity_type = 'node' AND entity_id = :nid", array(':nid' => $nid))->fetchField()) {
       // Return with the hash.
       return $hash;
     }

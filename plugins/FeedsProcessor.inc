@@ -227,7 +227,15 @@ abstract class FeedsProcessor extends FeedsPlugin {
    * @ingroup mappingapi
    */
   public function setTargetElement($target_item, $target_element, $value) {
-    $target_item->$target_element = $value;
+    switch ($target_element) {
+      case 'url':
+      case 'guid':
+        $target_node->feeds_item->$target_element = $value;
+        break;
+      default:
+        $target_item->$target_element = $value;
+        break;
+    }
   }
 
   /**
@@ -325,11 +333,7 @@ abstract class FeedsProcessor extends FeedsPlugin {
   protected function loadItemInfo($entity) {
     $entity_info = entity_get_info($this->entity_type);
     $key = $entity_info['entity keys']['id'];
-    $query = db_select('feeds_item')
-      ->fields('feeds_item', array('*'))
-      ->condition('entity_type', $this->entity_type)
-      ->condition('entity_id', $entity->$key);
-    if ($item_info = $query->execute()->fetch()) {
+    if ($item_info = feeds_item_info_load($this->entity_type, $entity->$key)) {
       $entity->feeds_item = $item_info;
       return TRUE;
     }

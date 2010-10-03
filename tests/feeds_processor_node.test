@@ -97,7 +97,7 @@ class FeedsRSStoNodesTest extends FeedsWebTestCase {
     $this->assertDevseedFeedContent();
 
     // Assert DB status.
-    $count = db_query("SELECT COUNT(*) FROM {node} n INNER JOIN {feeds_node_item} fn ON n.nid = fn.nid")->fetchField();
+    $count = db_query("SELECT COUNT(*) FROM {node} n INNER JOIN {feeds_item} fi ON fi.entity_type = 'node' AND n.nid = fi.entity_id")->fetchField();
     $this->assertEqual($count, 10, 'Accurate number of items in database.');
 
     // Assert default input format on first imported feed node.
@@ -112,12 +112,12 @@ class FeedsRSStoNodesTest extends FeedsWebTestCase {
     $this->assertText('There is no new content.');
 
     // Assert DB status, there still shouldn't be more than 10 items.
-    $count = db_query("SELECT COUNT(*) FROM {node} n INNER JOIN {feeds_node_item} fn ON n.nid = fn.nid")->fetchField();
+    $count = db_query("SELECT COUNT(*) FROM {node} n INNER JOIN {feeds_item} fi ON fi.entity_type = 'node' AND n.nid = fi.entity_id")->fetchField();
     $this->assertEqual($count, 10, 'Accurate number of items in database.');
 
     // All of the above tests should have produced published nodes, set default
     // to unpublished, import again.
-    $count = db_query("SELECT COUNT(*) FROM {node} n INNER JOIN {feeds_node_item} fn ON n.nid = fn.nid WHERE n.status = 1")->fetchField();
+    $count = db_query("SELECT COUNT(*) FROM {node} n INNER JOIN {feeds_item} fi ON fi.entity_type = 'node' AND n.nid = fi.entity_id WHERE n.status = 1")->fetchField();
     $this->assertEqual($count, 10, 'All items are published.');
     $edit = array(
       'node_options[status]' => FALSE,
@@ -125,7 +125,7 @@ class FeedsRSStoNodesTest extends FeedsWebTestCase {
     $this->drupalPost('admin/structure/types/manage/article', $edit, t('Save content type'));
     $this->drupalPost('node/'. $nid .'/delete-items', array(), 'Delete');
     $this->drupalPost('node/'. $nid .'/import', array(), 'Import');
-    $count = db_query("SELECT COUNT(*) FROM {node} n INNER JOIN {feeds_node_item} fn ON n.nid = fn.nid WHERE n.status = 0")->fetchField();
+    $count = db_query("SELECT COUNT(*) FROM {node} n INNER JOIN {feeds_item} fi ON fi.entity_type = 'node' AND n.nid = fi.entity_id WHERE n.status = 0")->fetchField();
     $this->assertEqual($count, 10, 'No items are published.');
     $edit = array(
       'node_options[status]' => TRUE,
@@ -171,7 +171,7 @@ class FeedsRSStoNodesTest extends FeedsWebTestCase {
     // Assert author.
     $this->drupalGet('node');
     $this->assertPattern('/<span class="username">' . check_plain($this->auth_user->name) . '<\/span>/');
-    $count = db_query("SELECT COUNT(*) FROM {feeds_node_item} fi JOIN {node} n ON fi.nid = n.nid WHERE n.uid = :uid", array(':uid' => $this->auth_user->uid))->fetchField();
+    $count = db_query("SELECT COUNT(*) FROM {feeds_item} fi JOIN {node} n ON fi.entity_type = 'node' AND fi.entity_id = n.nid WHERE n.uid = :uid", array(':uid' => $this->auth_user->uid))->fetchField();
     $this->assertEqual($count, 10, 'Accurate number of items in database.');
 
     // Assert input format.
@@ -183,11 +183,11 @@ class FeedsRSStoNodesTest extends FeedsWebTestCase {
 
     // Set to update existing, remove authorship of above nodes and import again.
     $this->setSettings('syndication', 'FeedsNodeProcessor', array('update_existing' => 2));
-    db_query("UPDATE {node} n JOIN {feeds_node_item} fi ON n.nid = fi.nid SET n.uid = 0, fi.hash=''");
+    db_query("UPDATE {node} n JOIN {feeds_item} fi ON fi.entity_type = 'node' AND n.nid = fi.entity_id SET n.uid = 0, fi.hash=''");
     $this->drupalPost('node/'. $nid .'/import', array(), 'Import');
     $this->drupalGet('node');
     $this->assertNoPattern('/<span class="username">' . check_plain($this->auth_user->name) . '<\/span>/');
-    $count = db_query("SELECT COUNT(*) FROM {feeds_node_item} fi JOIN {node} n ON fi.nid = n.nid WHERE n.uid = :uid", array(':uid' => $this->auth_user->uid))->fetchField();
+    $count = db_query("SELECT COUNT(*) FROM {feeds_item} fi JOIN {node} n ON fi.entity_type = 'node' AND fi.entity_id = n.nid WHERE n.uid = :uid", array(':uid' => $this->auth_user->uid))->fetchField();
     $this->assertEqual($count, 0, 'Accurate number of items in database.');
 
     // Map feed node's author to feed item author, update - feed node's items
@@ -327,11 +327,11 @@ class FeedsRSStoNodesTest extends FeedsWebTestCase {
   }
 
   /**
-   * Check that the total number of entries in the feeds_node_item table is correct.
+   * Check that the total number of entries in the feeds_item table is correct.
    */
   function assertFeedItemCount($num) {
     // Assert DB status, there should be 10 again.
-    $count = db_query("SELECT COUNT(*) FROM {feeds_node_item}")->fetchField();
+    $count = db_query("SELECT COUNT(*) FROM {feeds_item} WHERE entity_type = 'node'")->fetchField();
     $this->assertEqual($count, $num, 'Accurate number of items in database.');
   }
 

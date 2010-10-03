@@ -702,6 +702,22 @@ function feeds_dbg($msg) {
 }
 
 /**
+ * Loads an item info object.
+ *
+ * Example usage:
+ *
+ * $info = feeds_item_info_load('node', $node->nid);
+ */
+function feeds_item_info_load($entity_type, $entity_id) {
+  return db_select('feeds_item')
+    ->fields('feeds_item', array('*'))
+    ->condition('entity_type', $entity_type)
+    ->condition('entity_id', $entity_id)
+    ->execute()
+    ->fetch();
+}
+
+/**
  * Inserts an item info object into the feeds_item table.
  */
 function feeds_item_info_insert($entity, $entity_id) {

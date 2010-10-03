@@ -50,8 +50,8 @@ class FeedsExamplesFeedTestCase extends FeedsWebTestCase {
     $count = db_result(db_query("SELECT COUNT(*) FROM {node} WHERE type = 'feed_item'"));
     $this->assertEqual($count, 10, 'Found the correct number of feed item nodes in database.');
 
-    $count = db_result(db_query("SELECT COUNT(*) FROM {feeds_node_item}"));
-    $this->assertEqual($count, 10, 'Found the correct number of records in feeds_node_item.');
+    $count = db_result(db_query("SELECT COUNT(*) FROM {feeds_item} WHERE entity_type = 'node'"));
+    $this->assertEqual($count, 10, 'Found the correct number of records in feeds_item.');
 
     $count = db_result(db_query("SELECT COUNT(*) FROM {node} WHERE title = 'Open Atrium Translation Workflow: Two Way Translation Updates'"));
     $this->assertEqual($count, 1, 'Found title.');
@@ -62,13 +62,13 @@ class FeedsExamplesFeedTestCase extends FeedsWebTestCase {
     $count = db_result(db_query("SELECT COUNT(*) FROM {node} WHERE title = 'Scaling the Open Atrium UI'"));
     $this->assertEqual($count, 1, 'Found title.');
 
-    $count = db_result(db_query("SELECT COUNT(*) FROM {feeds_node_item} WHERE url = 'http://developmentseed.org/blog/2009/oct/06/open-atrium-translation-workflow-two-way-updating'"));
+    $count = db_result(db_query("SELECT COUNT(*) FROM {feeds_item} WHERE entity_type = 'node' AND url = 'http://developmentseed.org/blog/2009/oct/06/open-atrium-translation-workflow-two-way-updating'"));
     $this->assertEqual($count, 1, 'Found feed_node_item record.');
-    $count = db_result(db_query("SELECT COUNT(*) FROM {feeds_node_item} WHERE url = 'http://developmentseed.org/blog/2009/oct/05/week-dc-tech-october-5th-edition'"));
+    $count = db_result(db_query("SELECT COUNT(*) FROM {feeds_item} WHERE entity_type = 'node' AND url = 'http://developmentseed.org/blog/2009/oct/05/week-dc-tech-october-5th-edition'"));
     $this->assertEqual($count, 1, 'Found feed_node_item record.');
-    $count = db_result(db_query("SELECT COUNT(*) FROM {feeds_node_item} WHERE guid = '974 at http://developmentseed.org'"));
+    $count = db_result(db_query("SELECT COUNT(*) FROM {feeds_item} WHERE entity_type = 'node' AND guid = '974 at http://developmentseed.org'"));
     $this->assertEqual($count, 1, 'Found feed_node_item record.');
-    $count = db_result(db_query("SELECT COUNT(*) FROM {feeds_node_item} WHERE guid = '970 at http://developmentseed.org'"));
+    $count = db_result(db_query("SELECT COUNT(*) FROM {feeds_item} WHERE entity_type = 'node' AND guid = '970 at http://developmentseed.org'"));
     $this->assertEqual($count, 1, 'Found feed_node_item record.');
 
     // Remove all items
@@ -85,15 +85,15 @@ class FeedsExamplesFeedTestCase extends FeedsWebTestCase {
     $count = db_result(db_query("SELECT COUNT(*) FROM {node} WHERE type = 'feed_item'"));
     $this->assertEqual($count, 0, 'Found the correct number of feed item nodes in database.');
 
-    $count = db_result(db_query("SELECT COUNT(*) FROM {feeds_node_item}"));
-    $this->assertEqual($count, 0, 'Found the correct number of records in feeds_node_item.');
+    $count = db_result(db_query("SELECT COUNT(*) FROM {feeds_item} WHERE entity_type = 'node'"));
+    $this->assertEqual($count, 0, 'Found the correct number of records in feeds_item.');
 
     // Create a batch of nodes.
     $this->createFeedNodes('feed', 10, 'feed');
     $count = db_result(db_query("SELECT COUNT(*) FROM {node} WHERE type = 'feed_item'"));
     $this->assertEqual($count, 100, 'Imported 100 nodes.');
-    $count = db_result(db_query("SELECT COUNT(*) FROM {feeds_node_item}"));
-    $this->assertEqual($count, 100, 'Found 100 records in feeds_node_item.');
+    $count = db_result(db_query("SELECT COUNT(*) FROM {feeds_item} WHERE entity_type = 'node'"));
+    $this->assertEqual($count, 100, 'Found 100 records in feeds_item.');
   }
 }
 
