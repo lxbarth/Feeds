@@ -100,10 +100,12 @@ class FeedsTermProcessor extends FeedsProcessor {
     $vocabulary = $this->vocabulary();
     $terms = db_query("SELECT td.tid
                         FROM {taxonomy_term_data} td
-                        JOIN {feeds_term_item} ft ON td.tid = ft.tid
+                        JOIN {feeds_item} fi
+                        ON fi.entity_type = 'taxonomy_term'
+                        AND td.tid = fi.tid
                         WHERE td.vid = :vid
-                        AND ft.id = :id
-                        AND ft.feed_nid = :feed_nid",
+                        AND fi.id = :id
+                        AND fi.feed_nid = :feed_nid",
                         array(
                           ':vid' => $vocabulary->vid,
                           ':id' => $this->id,
