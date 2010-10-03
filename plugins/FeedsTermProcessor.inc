@@ -218,26 +218,6 @@ class FeedsTermProcessor extends FeedsProcessor {
   }
 
   /**
-   * Creates a new term in memory and returns it.
-   */
-  protected function newTerm($source) {
-    $term = new stdClass();
-    $this->newItemInfo($term, $source->feed_nid);
-    return $term;
-  }
-
-  /**
-   * Loads an existing term.
-   */
-  protected function loadTerm($source, $tid) {
-    $term = taxonomy_term_load($tid);
-    if ($this->loadItemInfo($term, $tid)) {
-      $this->newItemInfo($term, $source->feed_nid);
-    }
-    return $term;
-  }
-
-  /**
    * Return vocabulary to map to.
    */
   public function vocabulary() {
@@ -259,5 +239,25 @@ class FeedsTermProcessor extends FeedsProcessor {
         }
       }
     }
+  }
+
+  /**
+   * Creates a new term in memory and returns it.
+   */
+  protected function newTerm($source) {
+    $term = new stdClass();
+    $this->newItemInfo($term, $source->feed_nid);
+    return $term;
+  }
+
+  /**
+   * Loads an existing term.
+   */
+  protected function loadTerm($source, $tid) {
+    $term = taxonomy_term_load($tid);
+    if ($this->loadItemInfo($term, $tid)) {
+      $this->newItemInfo($term, $source->feed_nid);
+    }
+    return $term;
   }
 }
