@@ -397,13 +397,6 @@ function feeds_feeds_plugins() {
 }
 
 /**
- * Implements hook_node_load().
- */
-function feeds_node_load($nodes) {
-  _feeds_node_processor_node_load($nodes);
-}
-
-/**
  * Implements hook_node_validate().
  */
 function feeds_node_validate($node, $form, &$form_state) {
