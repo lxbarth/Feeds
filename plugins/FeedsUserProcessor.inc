@@ -101,29 +101,6 @@ class FeedsUserProcessor extends FeedsProcessor {
   }
 
   /**
-   * Creates a new user account in memory and returns it.
-   */
-  protected function newUser($source) {
-    $account = new stdClass();
-    $account->uid = 0;
-    $account->roles = array_filter($this->config['roles']);
-    $account->status = $this->config['status'];
-    $this->newItemInfo($account, $source->feed_nid);
-    return $account;
-  }
-
-  /**
-   * Loads an existing user.
-   */
-  protected function loadUser($source, $uid) {
-    $account = user_load($uid);
-    if (!$this->loadItemInfo($account, $uid)) {
-      $this->newItemInfo($account, $source->feed_nid);
-    }
-    return $account;
-  }
-
-  /**
    * Override parent::configDefaults().
    */
   public function configDefaults() {
@@ -238,5 +215,28 @@ class FeedsUserProcessor extends FeedsProcessor {
       }
     }
     return 0;
+  }
+
+  /**
+   * Creates a new user account in memory and returns it.
+   */
+  protected function newUser($source) {
+    $account = new stdClass();
+    $account->uid = 0;
+    $account->roles = array_filter($this->config['roles']);
+    $account->status = $this->config['status'];
+    $this->newItemInfo($account, $source->feed_nid);
+    return $account;
+  }
+
+  /**
+   * Loads an existing user.
+   */
+  protected function loadUser($source, $uid) {
+    $account = user_load($uid);
+    if (!$this->loadItemInfo($account, $uid)) {
+      $this->newItemInfo($account, $source->feed_nid);
+    }
+    return $account;
   }
 }
