@@ -269,7 +269,7 @@ abstract class FeedsProcessor extends FeedsPlugin {
           $entity_id = $query->condition('guid', $value)->execute()->fetch();
           break;
       }
-      if ($entity_id) {
+      if (isset($entity_id)) {
         // Return with the content id found.
         return $entity_id;
       }

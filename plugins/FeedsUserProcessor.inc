@@ -194,6 +194,9 @@ class FeedsUserProcessor extends FeedsProcessor {
    * Get id of an existing feed item term if available.
    */
   protected function existingItemId(FeedsSource $source, FeedsParserResult $result) {
+    if ($uid = parent::existingItemId($source, $result)) {
+      return $uid;
+    }
 
     // Iterate through all unique targets and try to find a user for the
     // target's value.

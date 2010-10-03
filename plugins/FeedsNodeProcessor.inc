@@ -45,7 +45,7 @@ class FeedsNodeProcessor extends FeedsProcessor {
 
         // Assemble node, map item to it, save.
         try {
-          $node = empty($nid) ? $this->newNode($sourc, $hash) : $this->loadNode($source, $hash, $nid);
+          $node = empty($nid) ? $this->newNode($source, $hash) : $this->loadNode($source, $hash, $nid);
           $this->map($source, $parser_result, $node);
           node_save($node);
           if (!empty($nid)) {
