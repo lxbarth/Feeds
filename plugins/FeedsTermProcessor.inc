@@ -255,7 +255,7 @@ class FeedsTermProcessor extends FeedsProcessor {
    */
   protected function loadTerm($source, $tid) {
     $term = taxonomy_term_load($tid);
-    if ($this->loadItemInfo($term, $tid)) {
+    if ($this->loadItemInfo($term)) {
       $this->newItemInfo($term, $source->feed_nid);
     }
     return $term;

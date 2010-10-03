@@ -317,18 +317,18 @@ abstract class FeedsProcessor extends FeedsPlugin {
    * Loads existing entity information and places it on $entity->feeds_item.
    *
    * @param $entity
-   *   The entity object to load item info for.
-   * @param $entity_id
-   *   The id of the entity object to load item info for.
+   *   The entity object to load item info for. Id key must be present.
    *
    * @return
    *   TRUE if item info could be loaded, false if not.
    */
-  protected function loadItemInfo($entity, $entity_id) {
+  protected function loadItemInfo($entity) {
+    $entity_info = entity_get_info($this->entity_type);
+    $key = $entity_info['entity keys']['id'];
     $query = db_select('feeds_item')
       ->fields('feeds_item', array('*'))
       ->condition('entity_type', $this->entity_type)
-      ->condition('entity_id', $entity_id);
+      ->condition('entity_id', $entity->$key);
     if ($item_info = $query->execute()->fetch()) {
       $entity->feeds_item = $item_info;
       return TRUE;

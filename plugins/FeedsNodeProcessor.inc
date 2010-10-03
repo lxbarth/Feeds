@@ -373,7 +373,7 @@ class FeedsNodeProcessor extends FeedsProcessor {
       // We're replacing the existing node. Only save the absolutely necessary.
       $node = db_query("SELECT created, nid, vid, type FROM {node} WHERE nid = :nid", array(':nid' => $nid))->fetch();
     }
-    if ($this->loadItemInfo($node, $nid)) {
+    if ($this->loadItemInfo($node)) {
       $this->newItemInfo($node, $source->feed_nid, $hash);
     }
     node_object_prepare($node);

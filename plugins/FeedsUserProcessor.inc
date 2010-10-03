@@ -234,7 +234,7 @@ class FeedsUserProcessor extends FeedsProcessor {
    */
   protected function loadUser($source, $uid) {
     $account = user_load($uid);
-    if (!$this->loadItemInfo($account, $uid)) {
+    if (!$this->loadItemInfo($account)) {
       $this->newItemInfo($account, $source->feed_nid);
     }
     return $account;
