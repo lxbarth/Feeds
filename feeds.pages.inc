@@ -120,7 +120,14 @@ function feeds_import_tab_form($form, &$form_state, $node) {
     '#tree' => TRUE,
     '#value' => feeds_source_status($source),
   );
-  return confirm_form($form, t('Import all content from source?'), 'node/'. $node->nid, '', t('Import'), t('Cancel'), 'confirm feeds update');
+  $form = confirm_form($form, t('Import all content from source?'), 'node/'. $node->nid, '', t('Import'), t('Cancel'), 'confirm feeds update');
+  $progress = $source->progressImporting();
+  if ($progress !== FEEDS_BATCH_COMPLETE) {
+    $form['actions']['submit']['#disabled'] = TRUE;
+    $form['actions']['submit']['#value'] =
+      t('Importing (@progress %)', array('@progress' => number_format(100 * $progress, 0)));
+  }
+  return $form;
 }
 
 /**
@@ -156,7 +163,14 @@ function feeds_delete_tab_form($form, &$form_state, $importer_id, $node = NULL) 
     '#tree' => TRUE,
     '#value' => feeds_source_status($source),
   );
-  return confirm_form($form, t('Delete all items from source?'), $form['#redirect'], '', t('Delete'), t('Cancel'), 'confirm feeds update');
+  $form = confirm_form($form, t('Delete all items from source?'), $form['#redirect'], '', t('Delete'), t('Cancel'), 'confirm feeds update');
+  $progress = $source->progressClearing();
+  if ($progress !== FEEDS_BATCH_COMPLETE) {
+    $form['actions']['submit']['#disabled'] = TRUE;
+    $form['actions']['submit']['#value'] =
+      t('Deleting (@progress %)', array('@progress' => number_format(100 * $progress, 0)));
+  }
+  return $form;
 }
 
 /**
