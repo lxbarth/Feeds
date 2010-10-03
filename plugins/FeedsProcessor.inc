@@ -247,10 +247,13 @@ abstract class FeedsProcessor extends FeedsPlugin {
    *   The source information about this import.
    * @param $result
    *   A FeedsParserResult object.
+   *
+   * @return
+   *   The serial id of an entity if found, 0 otherwise.
    */
   protected function existingItemId(FeedsSource $source, FeedsParserResult $result) {
     $query = db_select('feeds_item')
-      ->fields('feeds_item', array('content_id'))
+      ->fields('feeds_item', array('entity_id'))
       ->condition('feed_nid', $source->feed_nid)
       ->condition('entity_type', $this->entity_type)
       ->condition('id', $source->id);
@@ -260,15 +263,15 @@ abstract class FeedsProcessor extends FeedsPlugin {
     foreach ($this->uniqueTargets($source, $result) as $target => $value) {
       switch ($target) {
         case 'url':
-          $content_id = $query->condition('url', $value)->execute()->fetch();
+          $entity_id = $query->condition('url', $value)->execute()->fetch();
           break;
         case 'guid':
-          $content_id = $query->condition('guid', $value)->execute()->fetch();
+          $entity_id = $query->condition('guid', $value)->execute()->fetch();
           break;
       }
-      if ($content_id) {
+      if ($entity_id) {
         // Return with the content id found.
-        return $content_id;
+        return $entity_id;
       }
     }
     return 0;
