@@ -244,7 +244,7 @@ abstract class FeedsProcessor extends FeedsPlugin {
     $query = db_select('feeds_item')
       ->fields('feeds_item', array('content_id'))
       ->condition('feed_nid', $source->feed_nid)
-      ->condition('processor', get_class($this))
+      ->condition('entity_type', $this->entity_type)
       ->condition('id', $source->id);
 
     // Iterate through all unique targets and test whether they do already
