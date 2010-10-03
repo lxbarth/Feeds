@@ -379,6 +379,7 @@ class FeedsNodeProcessor extends FeedsProcessor {
     node_object_prepare($node);
     // Populate properties that are set by node_object_prepare().
     $node->log = 'Updated by FeedsNodeProcessor';
+    return $node;
   }
 
   /**
