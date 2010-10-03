@@ -184,7 +184,8 @@ class FeedsTermProcessor extends FeedsProcessor {
    * Return available mapping targets.
    */
   public function getMappingTargets() {
-    $targets = array(
+    $targets = parent::getMappingTargets();
+    $targets += array(
       'name' => array(
         'name' => t('Term name'),
         'description' => t('Name of the taxonomy term.'),

@@ -172,7 +172,8 @@ class FeedsFeedNodeProcessor extends FeedsProcessor {
    * Return available mapping targets.
    */
   public function getMappingTargets() {
-    $targets = array(
+    $targets = parent::getMappingTargets();
+    $targets += array(
       'title' => array(
         'name' => t('Title'),
         'description' => t('The title of the feed node.'),

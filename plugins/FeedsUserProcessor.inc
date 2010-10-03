@@ -164,7 +164,8 @@ class FeedsUserProcessor extends FeedsProcessor {
    * Return available mapping targets.
    */
   public function getMappingTargets() {
-    $targets = array(
+    $targets = parent::getMappingTargets();
+    $targets += array(
       'name' => array(
         'name' => t('User name'),
         'description' => t('Name of the user.'),

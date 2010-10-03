@@ -203,7 +203,18 @@ abstract class FeedsProcessor extends FeedsPlugin {
    *   FALSE otherwise.
    */
   public function getMappingTargets() {
-    return array();
+    return array(
+      'url' => array(
+        'name' => t('URL'),
+        'description' => t('The external URL of the item. E. g. the feed item URL in the case of a syndication feed. May be unique.'),
+        'optional_unique' => TRUE,
+      ),
+      'guid' => array(
+        'name' => t('GUID'),
+        'description' => t('The globally unique identifier of the item. E. g. the feed item GUID in the case of a syndication feed. May be unique.'),
+        'optional_unique' => TRUE,
+      ),
+    );
   }
 
   /**

@@ -277,7 +277,7 @@ class FeedsNodeProcessor extends FeedsProcessor {
    */
   public function getMappingTargets() {
     $type = node_type_get_type($this->config['content_type']);
-    $targets = array();
+    $targets = parent::getMappingTargets();
     if ($type->has_title) {
       $targets['title'] = array(
         'name' => t('Title'),
@@ -301,16 +301,6 @@ class FeedsNodeProcessor extends FeedsProcessor {
       'created' => array(
         'name' => t('Published date'),
         'description' => t('The UNIX time when a node has been published.'),
-      ),
-      'url' => array(
-        'name' => t('URL'),
-        'description' => t('The external URL of the node. E. g. the feed item URL in the case of a syndication feed. May be unique.'),
-        'optional_unique' => TRUE,
-      ),
-      'guid' => array(
-        'name' => t('GUID'),
-        'description' => t('The external GUID of the node. E. g. the feed item GUID in the case of a syndication feed. May be unique.'),
-        'optional_unique' => TRUE,
       ),
     );
 
