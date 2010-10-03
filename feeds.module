@@ -463,7 +463,10 @@ function feeds_node_presave($node) {
  * Implements hook_node_insert().
  */
 function feeds_node_insert($node) {
-  _feeds_node_processor_node_insert($node);
+  // Node produced by source.
+  feeds_item_info_insert($node);
+
+  // Source attached to node.
   feeds_node_update($node);
   if ($importer_id = feeds_get_importer_id($node->type)) {
     $source = feeds_source($importer_id, $node->nid);
@@ -481,64 +484,29 @@ function feeds_node_insert($node) {
  * Implements hook_node_update().
  */
 function feeds_node_update($node) {
-  _feeds_node_processor_node_update($node);
-  if (!$importer_id = feeds_get_importer_id($node->type)) {
-    return;
+  // Node produced by source.
+  feeds_item_info_update($node);
+
+  // Source attached to node.
+  if ($importer_id = feeds_get_importer_id($node->type)) {
+    $source = feeds_source($importer_id, $node->nid);
+    $source->addConfig($node->feeds);
+    $source->save();
   }
-  // Add configuration to feed source and save.
-  $source = feeds_source($importer_id, $node->nid);
-  $source->addConfig($node->feeds);
-  $source->save();
 }
 
 /**
  * Implements hook_node_delete().
  */
 function feeds_node_delete($node) {
-  _feeds_node_processor_node_delete($node);
+  // Node produced by source.
+  db_delete('feeds_item')
+    ->condition('nid', $node->nid)
+    ->execute();
+  // Source attached to node.
   if ($importer_id = feeds_get_importer_id($node->type)) {
     feeds_source($importer_id, $node->nid)->delete();
   }
-}
-
-/**
- * FeedsNodeProcessor's hook_node_load().
- */
-function _feeds_node_processor_node_load($nodes) {
-  if ($items = db_query("SELECT nid, imported, guid, url, feed_nid FROM {feeds_node_item} WHERE nid IN (:nids)", array(':nids' => array_keys($nodes)))) {
-    foreach ($items as $item) {
-      $nodes[$item->nid]->feeds_node_item = $item;
-    }
-  }
-}
-
-/**
- * FeedsNodeProcessor's hook_node_insert().
- */
-function _feeds_node_processor_node_insert($node) {
-  if (isset($node->feeds_node_item)) {
-    $node->feeds_node_item->nid = $node->nid;
-    drupal_write_record('feeds_node_item', $node->feeds_node_item);
-  }
-}
-
-/**
- * FeedsNodeProcessor's hook_node_update().
- */
-function _feeds_node_processor_node_update($node) {
-  if (isset($node->feeds_node_item)) {
-    $node->feeds_node_item->nid = $node->nid;
-    drupal_write_record('feeds_node_item', $node->feeds_node_item, 'nid');
-  }
-}
-
-/**
- * FeedsNodeProcessor's hook_node_delete().
- */
-function _feeds_node_processor_node_delete($node) {
-  db_delete('feeds_node_item')
-    ->condition('nid', $node->nid)
-    ->execute();
 }
 
 /**
@@ -716,6 +684,24 @@ function feeds_dbg($msg) {
     $handle = fopen(file_directory_temp() ."/feeds_$filename.log", 'a');
     fwrite($handle, date('c') ."\t$msg\n");
     fclose($handle);
+  }
+}
+
+/**
+ * Inserts an item info object into the feeds_item table.
+ */
+function feeds_item_info_insert($entity) {
+  if (isset($entity->feeds_item)) {
+    drupal_write_record('feeds_item', $entity->feeds_item);
+  }
+}
+
+/**
+ * Updates an item info object in he feeds_item table.
+ */
+function feeds_item_info_update($entity) {
+  if (isset($entity->feeds_item)) {
+    drupal_write_record('feeds_item', $entity->feeds_item, array('entity_type', 'entity_id'));
   }
 }
 
