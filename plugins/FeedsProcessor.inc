@@ -255,7 +255,7 @@ abstract class FeedsProcessor extends FeedsPlugin {
           $content_id = $query->condition('url', $value)->execute()->fetch();
           break;
         case 'guid':
-          $content_id = $query->condition('url', $value)->execute()->fetch();
+          $content_id = $query->condition('guid', $value)->execute()->fetch();
           break;
       }
       if ($content_id) {
