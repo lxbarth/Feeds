@@ -549,6 +549,15 @@ function feeds_user_update(&$edit, $account, $category) {
 }
 
 /**
+ * Implements hook_user_delete().
+ */
+function feeds_user_delete($account) {
+  db_delete('feeds_item')
+    ->condition('entity_type', 'user')
+    ->condition('entity_id', $account->uid)
+    ->execute();
+}
+/**
  * Implements hook_form_alter().
  */
 function feeds_form_alter(&$form, $form_state, $form_id) {
