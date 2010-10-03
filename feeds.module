@@ -464,7 +464,7 @@ function feeds_node_presave($node) {
  */
 function feeds_node_insert($node) {
   // Node produced by source.
-  feeds_item_info_insert($node);
+  feeds_item_info_insert($node, $node->nid);
 
   // Source attached to node.
   feeds_node_update($node);
@@ -501,7 +501,8 @@ function feeds_node_update($node) {
 function feeds_node_delete($node) {
   // Node produced by source.
   db_delete('feeds_item')
-    ->condition('nid', $node->nid)
+    ->condition('entity_type', 'node')
+    ->condition('entity_id', $node->nid)
     ->execute();
   // Source attached to node.
   if ($importer_id = feeds_get_importer_id($node->type)) {
@@ -510,37 +511,41 @@ function feeds_node_delete($node) {
 }
 
 /**
- * Implements hook_taxonomy_term_update().
- */
-function feeds_taxonomy_term_update($term) {
-  if (isset($term->feeds_importer_id)) {
-    db_delete('feeds_term_item')
-      ->condition('tid', $term->tid)
-      ->execute();
-  }
-}
-
-/**
  * Implements hook_taxonomy_term_insert().
  */
 function feeds_taxonomy_term_insert($term) {
-  if (isset($term->feeds_importer_id)) {
-    $record = array(
-      'id' => $term->feeds_importer_id,
-      'tid' => $term->tid,
-      'feed_nid' => $term->feed_nid,
-    );
-    drupal_write_record('feeds_term_item', $record);
-  }
+  feeds_item_info_insert($term, $term->tid);
+}
+
+/**
+ * Implements hook_taxonomy_term_update().
+ */
+function feeds_taxonomy_term_update($term) {
+  feeds_item_info_update($term);
 }
 
 /**
  * Implements hook_taxonomy_delete().
  */
 function feeds_taxonomy_term_delete($term) {
-  db_delete('feeds_term_item')
-    ->condition('tid', $term->tid)
+  db_delete('feeds_item')
+    ->condition('entity_type', 'taxonomy_term')
+    ->condition('entity_id', $term->tid)
     ->execute();
+}
+
+/**
+ * Implements hook_user_insert().
+ */
+function feeds_user_insert(&$edit, $account, $category) {
+  feeds_item_info_insert($account, $account->uid);
+}
+
+/**
+ * Implements hook_user_update().
+ */
+function feeds_user_update(&$edit, $account, $category) {
+  feeds_item_info_update($account);
 }
 
 /**
@@ -690,8 +695,9 @@ function feeds_dbg($msg) {
 /**
  * Inserts an item info object into the feeds_item table.
  */
-function feeds_item_info_insert($entity) {
+function feeds_item_info_insert($entity, $entity_id) {
   if (isset($entity->feeds_item)) {
+    $entity->feeds_item->entity_id = $entity_id;
     drupal_write_record('feeds_item', $entity->feeds_item);
   }
 }
