@@ -31,18 +31,19 @@ class FeedsUserProcessor extends FeedsProcessor {
 
       if (!($uid = $this->existingItemId($source, $parser_result)) || $this->config['update_existing']) {
 
-        // Map item to a term.
-        $account = $this->map($source, $parser_result);
+        // Load / create new user and execute mapping.
+        if (empty($uid)) {
+          $account = $this->newUser($source);
+        }
+        else {
+          $account = $this->loadUser($source, $uid);
+        }
+        $account = $this->map($source, $parser_result, $account);
 
         // Check if user name and mail are set, otherwise continue.
         if (empty($account->name) || empty($account->mail) || !valid_email_address($account->mail)) {
           $failed++;
           continue;
-        }
-
-        // Add term id if available.
-        if (!empty($uid)) {
-          $account->uid = $uid;
         }
 
         // Save the user.
@@ -100,17 +101,26 @@ class FeedsUserProcessor extends FeedsProcessor {
   }
 
   /**
-   * Execute mapping on an item.
+   * Creates a new user account in memory and returns it.
    */
-  protected function map(FeedsSource $source, FeedsParserResult $result) {
-    // Prepare term object.
-    $target_account = new stdClass();
-    $target_account->uid = 0;
-    $target_account->roles = array_filter($this->config['roles']);
-    $target_account->status = $this->config['status'];
+  protected function newUser($source) {
+    $account = new stdClass();
+    $account->uid = 0;
+    $account->roles = array_filter($this->config['roles']);
+    $account->status = $this->config['status'];
+    $this->newItemInfo($account, $source->feed_nid);
+    return $account;
+  }
 
-    // Have parent class do the iterating.
-    return parent::map($source, $result, $target_account);
+  /**
+   * Loads an existing user.
+   */
+  protected function loadUser($source, $uid) {
+    $account = user_load($uid);
+    if (!$this->loadItemInfo($account, $uid)) {
+      $this->newItemInfo($account, $source->feed_nid);
+    }
+    return $account;
   }
 
   /**
