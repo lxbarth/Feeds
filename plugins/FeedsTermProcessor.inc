@@ -36,9 +36,11 @@ class FeedsTermProcessor extends FeedsProcessor {
       if (!($tid = $this->existingItemId($source, $parser_result)) || $this->config['update_existing'] != FEEDS_SKIP_EXISTING) {
 
         // Map item to a term.
-        $term = new stdClass();
         if ($tid && $this->config['update_existing'] == FEEDS_UPDATE_EXISTING) {
-          $term = taxonomy_term_load($tid);
+          $term = $this->loadTerm($source, $tid);
+        }
+        else {
+          $term = $this->newTerm($source);
         }
         $term = $this->map($source, $parser_result, $term);
 
@@ -119,22 +121,6 @@ class FeedsTermProcessor extends FeedsProcessor {
     else {
       drupal_set_message(t('No terms to be deleted.'));
     }
-  }
-
-  /**
-   * Execute mapping on an item.
-   */
-  protected function map(FeedsSource $source, FeedsParserResult $result, $target_term = NULL) {
-    // Prepare term object, have parent class do the iterating.
-    if (!$target_term) {
-      $target_term = new stdClass();
-    }
-    if (!$vocabulary = $this->vocabulary()) {
-      throw new Exception(t('No vocabulary specified for term processor'));
-    }
-    $target_term->vid = $vocabulary->vid;
-    $target_term = parent::map($source, $result, $target_term);
-    return $target_term;
   }
 
   /**
@@ -229,6 +215,26 @@ class FeedsTermProcessor extends FeedsProcessor {
       }
     }
     return 0;
+  }
+
+  /**
+   * Creates a new term in memory and returns it.
+   */
+  protected function newTerm($source) {
+    $term = new stdClass();
+    $this->newItemInfo($term, $source->feed_nid);
+    return $term;
+  }
+
+  /**
+   * Loads an existing term.
+   */
+  protected function loadTerm($source, $tid) {
+    $term = taxonomy_term_load($tid);
+    if ($this->loadItemInfo($term, $tid)) {
+      $this->newItemInfo($term, $source->feed_nid);
+    }
+    return $term;
   }
 
   /**
