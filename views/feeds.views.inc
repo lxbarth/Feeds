@@ -67,17 +67,10 @@ function feeds_views_data() {
   /**
    * Expose feeds_node_item table to views.
    */
-  $data['feeds_node_item']['table'] = array(
+  $data['feeds_item']['table'] = array(
     'group' => 'Feeds Item',
-    'join' => array(
-      'node' => array(
-        'left_field' => 'nid',
-        'field' => 'nid',
-        'type' => 'LEFT',
-      ),
-    ),
   );
-  $data['feeds_node_item']['feed_nid'] = array(
+  $data['feeds_item']['feed_nid'] = array(
     'title' => t('Owner feed nid'),
     'help' => t('The node id of the owner feed if available.'),
     'field' => array(
@@ -106,7 +99,7 @@ function feeds_views_data() {
       'base field' => 'nid',
     ),
   );
-  $data['feeds_node_item']['url'] = array(
+  $data['feeds_item']['url'] = array(
     'title' => t('Item URL'),
     'help' => t('Contains the URL of the feed item.'),
     'field' => array(
@@ -128,7 +121,7 @@ function feeds_views_data() {
       'help' => t('Sort on a Feeds Item\'s URL field.'),
     ),
   );
-  $data['feeds_node_item']['guid'] = array(
+  $data['feeds_item']['guid'] = array(
     'title' => t('Item GUID'),
     'help' => t('Contains the GUID of the feed item.'),
     'field' => array(
@@ -149,7 +142,7 @@ function feeds_views_data() {
       'help' => t('Sort on a Feeds Item\'s GUID field.'),
     ),
   );
-  $data['feeds_node_item']['imported'] = array(
+  $data['feeds_item']['imported'] = array(
     'title' => t('Import date'),
     'help' => t('Contains the import date of the feed item.'),
     'field' => array(
@@ -171,6 +164,23 @@ function feeds_views_data() {
       'help' => t('Argument on a Feeds Item\'s import date field.'),
     ),
   );
+
+  foreach (array('node', 'taxonomy_term', 'user') as $entity_type) {
+    $info = entity_get_info($entity_type);
+    $data['feeds_item']['table']['join'][$info['base table']] = array(
+      'left_field' => $info['entity keys']['id'],
+      'field' => 'entity_id',
+      'type' => 'LEFT',
+      'extra' => array(
+        array(
+          'table' => 'feeds_item',
+          'field' => 'entity_type',
+          'value' => $entity_type,
+          'operator' => '=',
+        ),
+      ),
+    );
+  }
   return $data;
 }
 
