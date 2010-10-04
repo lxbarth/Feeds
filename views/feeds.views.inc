@@ -68,7 +68,7 @@ function feeds_views_data() {
    * Expose feeds_node_item table to views.
    */
   $data['feeds_item']['table'] = array(
-    'group' => 'Feeds Item',
+    'group' => 'Feeds item',
   );
   $data['feeds_item']['feed_nid'] = array(
     'title' => t('Owner feed nid'),
