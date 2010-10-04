@@ -1,5 +1,5 @@
 <?php
-// $Id: FeedsProcessor.inc,v 1.20.2.2 2010/10/01 22:15:41 alexb Exp $
+// $Id: FeedsProcessor.inc,v 1.20.2.3 2010/10/04 01:33:43 alexb Exp $
 
 
 // Update mode for existing items.

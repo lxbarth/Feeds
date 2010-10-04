@@ -1,8 +1,10 @@
-// $Id: CHANGELOG.txt,v 1.176.2.10 2010/10/03 15:49:34 alexb Exp $
+// $Id: CHANGELOG.txt,v 1.176.2.11 2010/10/04 01:33:43 alexb Exp $
 
 Feeds 7.x 2.0 XXXXXXXXXXXXXXXXXXX
 ---------------------------------
 
+- #929066 alex_b: Track all imported items. Note: All views that use 'Feeds
+  Item' fields or relationships need updating.
 - #930018 alex_b: Don't show file upload when 'Supply path directly' is
   selected.
 - #927892 alex_b: Add "Process in background" feature. Allows one-off imports to

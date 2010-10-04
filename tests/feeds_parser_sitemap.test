@@ -1,5 +1,5 @@
 <?php
-// $Id: feeds_parser_sitemap.test,v 1.4 2010/09/18 01:44:47 alexb Exp $
+// $Id: feeds_parser_sitemap.test,v 1.4.2.1 2010/10/04 01:33:44 alexb Exp $
 
 /**
  * @file
