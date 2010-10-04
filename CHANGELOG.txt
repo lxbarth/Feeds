@@ -1,8 +1,10 @@
-// $Id: CHANGELOG.txt,v 1.176.2.12 2010/10/04 20:49:28 alexb Exp $
+// $Id: CHANGELOG.txt,v 1.176.2.13 2010/10/04 21:20:56 alexb Exp $
 
 Feeds 7.x 2.0 XXXXXXXXXXXXXXXXXXX
 ---------------------------------
 
+- Fix Feeds News tests, add a 'description' field to the  Feeds Item content
+  type.
 - #728534 alex_b: Remove FeedsFeedNodeProcessor. If you have used
   FeedsFeedNodeProcessor in the past, use FeedsNodeProcessor (Node Processor)
   instead now. It supports all of FeedsFeedNodeProcessor's functionality and
