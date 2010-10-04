@@ -72,7 +72,7 @@ function feeds_views_data() {
   );
   $data['feeds_item']['feed_nid'] = array(
     'title' => t('Owner feed nid'),
-    'help' => t('The node id of the owner feed if available.'),
+    'help' => t('The node id of the owner feed node if available.'),
     'field' => array(
       'handler' => 'views_handler_field_numeric',
       'click sortable' => TRUE,
@@ -93,7 +93,7 @@ function feeds_views_data() {
     ),
     'relationship' => array(
       'title' => t('Owner feed'),
-      'help' => t('Relate a node to its owner feed node if available.'),
+      'help' => t('Relate a feed item to its owner feed node if available.'),
       'label' => t('Owner feed'),
       'base' => 'node',
       'base field' => 'nid',
