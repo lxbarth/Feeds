@@ -703,7 +703,7 @@ function feeds_dbg($msg) {
  */
 function feeds_item_info_load($entity_type, $entity_id) {
   return db_select('feeds_item')
-    ->fields('feeds_item', array('*'))
+    ->fields('feeds_item')
     ->condition('entity_type', $entity_type)
     ->condition('entity_id', $entity_id)
     ->execute()
