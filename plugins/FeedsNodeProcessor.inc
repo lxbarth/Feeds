@@ -360,13 +360,19 @@ class FeedsNodeProcessor extends FeedsProcessor {
     else {
       // We're replacing the existing node. Only save the absolutely necessary.
       $node = db_query("SELECT created, nid, vid, type FROM {node} WHERE nid = :nid", array(':nid' => $nid))->fetch();
+      $node->uid = $this->config['author'];
     }
     if ($this->loadItemInfo($node)) {
       $this->newItemInfo($node, $source->feed_nid, $hash);
     }
     node_object_prepare($node);
     // Populate properties that are set by node_object_prepare().
-    $node->log = 'Updated by FeedsNodeProcessor';
+    if ($this->config['update_existing'] == FEEDS_UPDATE_EXISTING) {
+      $node->log = 'Updated by FeedsNodeProcessor';
+    }
+    else {
+      $node->log = 'Replaced by FeedsNodeProcessor';
+    }
     return $node;
   }
 }

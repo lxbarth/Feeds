@@ -89,7 +89,7 @@ class FeedsRSStoNodesTest extends FeedsWebTestCase {
     $this->drupalGet('node/'. $article_nid);
     $this->assertNoRaw('node/'. $article_nid .'/import');
     $this->assertNoRaw('node/'. $article_nid .'/delete-items');
-    $this->assertEqual("Created/updated by FeedsNodeProcessor", db_query("SELECT nr.log FROM {node} n JOIN {node_revision} nr ON n.vid = nr.vid WHERE n.nid = :nid", array(':nid' => $article_nid))->fetchField());
+    $this->assertEqual("Created by FeedsNodeProcessor", db_query("SELECT nr.log FROM {node} n JOIN {node_revision} nr ON n.vid = nr.vid WHERE n.nid = :nid", array(':nid' => $article_nid))->fetchField());
 
     // Assert accuracy of aggregated information.
     $this->drupalGet('node');
