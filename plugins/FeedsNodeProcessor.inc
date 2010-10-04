@@ -268,8 +268,8 @@ class FeedsNodeProcessor extends FeedsProcessor {
           $target_node->created = $value->getValue();
         }
         break;
-      case 'default':
-        parent::setTargetElement($target_item, $target_element, $value);
+      default:
+        parent::setTargetElement($target_node, $target_element, $value);
         break;
     }
   }

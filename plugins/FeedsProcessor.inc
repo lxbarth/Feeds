@@ -230,7 +230,7 @@ abstract class FeedsProcessor extends FeedsPlugin {
     switch ($target_element) {
       case 'url':
       case 'guid':
-        $target_node->feeds_item->$target_element = $value;
+        $target_item->feeds_item->$target_element = $value;
         break;
       default:
         $target_item->$target_element = $value;
@@ -263,10 +263,10 @@ abstract class FeedsProcessor extends FeedsPlugin {
     foreach ($this->uniqueTargets($source, $result) as $target => $value) {
       switch ($target) {
         case 'url':
-          $entity_id = $query->condition('url', $value)->execute()->fetch();
+          $entity_id = $query->condition('url', $value)->execute()->fetchField();
           break;
         case 'guid':
-          $entity_id = $query->condition('guid', $value)->execute()->fetch();
+          $entity_id = $query->condition('guid', $value)->execute()->fetchField();
           break;
       }
       if (isset($entity_id)) {
