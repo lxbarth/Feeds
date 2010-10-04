@@ -149,13 +149,6 @@ class FeedsNodeProcessor extends FeedsProcessor {
   }
 
   /**
-   * Return a count for the given items
-   */
-  public function itemCount(FeedsSource $source) {
-    return db_query("SELECT count(*) FROM {feeds_item} WHERE entity_type = 'node' AND feed_nid = :feed_nid", array(':feed_nid' => $source->feed_nid))->fetchField();
-  }
-
-  /**
    * Override parent::configDefaults().
    */
   public function configDefaults() {
