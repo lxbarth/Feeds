@@ -87,10 +87,11 @@ function feeds_news_feeds_importer_default() {
       'config' => array(),
     ),
     'processor' => array(
-      'plugin_key' => 'FeedsFeedNodeProcessor',
+      'plugin_key' => 'FeedsNodeProcessor',
       'config' => array(
         'content_type' => 'feed',
         'update_existing' => 0,
+        'expire' => '-1',
         'mappings' => array(
           0 => array(
             'source' => 'title',
@@ -99,7 +100,7 @@ function feeds_news_feeds_importer_default() {
           ),
           1 => array(
             'source' => 'xmlurl',
-            'target' => 'source',
+            'target' => 'feeds_source',
             'unique' => 1,
           ),
         ),

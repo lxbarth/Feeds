@@ -1,5 +1,5 @@
 <?php
-// $Id: feeds_mapper_date.test,v 1.5.4.1 2010/09/29 23:56:10 alexb Exp $
+// $Id: feeds_mapper_date.test,v 1.5.4.2 2010/10/04 19:50:36 jmiccolis Exp $
 
 /**
  * @file
@@ -36,7 +36,7 @@ class FeedsMapperDateTestCase extends FeedsMapperTestCase {
    */
   public function test() {
     $this->drupalGet('admin/config/regional/settings');
-    return;
+
     // Create content type.
     $typename = $this->createContentType(NULL, array(
       'date' => 'date',
@@ -71,7 +71,6 @@ class FeedsMapperDateTestCase extends FeedsMapperTestCase {
 
     $edit = array(
       'allowed_extensions' => 'rss2',
-      'direct' => 1,
     );
     $this->drupalPost('admin/structure/feeds/edit/daterss/settings/FeedsFileFetcher', $edit, 'Save');
 

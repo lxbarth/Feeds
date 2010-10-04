@@ -1,5 +1,5 @@
 <?php
-// $Id: FeedsProcessor.inc,v 1.20.2.3 2010/10/04 01:33:43 alexb Exp $
+// $Id: FeedsProcessor.inc,v 1.20.2.4 2010/10/04 02:07:31 alexb Exp $
 
 
 // Update mode for existing items.
@@ -84,7 +84,7 @@ abstract class FeedsProcessor extends FeedsPlugin {
    * Counts the number of items imported by this processor.
    */
   public function itemCount(FeedsSource $source) {
-    return db_query("SELECT count(*) FROM {feeds_item} WHERE entity_type = :entity_type AND feed_nid = :feed_nid", array(':entity_type' => $this->entity_type, ':feed_nid' => $source->feed_nid))->fetchField();
+    return db_query("SELECT count(*) FROM {feeds_item} WHERE id = :id AND entity_type = :entity_type AND feed_nid = :feed_nid", array(':id' => $this->id, ':entity_type' => $this->entity_type, ':feed_nid' => $source->feed_nid))->fetchField();
   }
 
   /**

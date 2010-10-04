@@ -1,5 +1,5 @@
 <?php
-// $Id: feeds_processor_term.test,v 1.5.2.1 2010/09/29 23:56:10 alexb Exp $
+// $Id: feeds_processor_term.test,v 1.5.2.2 2010/10/04 20:40:46 jmiccolis Exp $
 
 /**
  * @file
@@ -26,7 +26,7 @@ class FeedsCSVtoTermsTest extends FeedsWebTestCase {
    * Set up test.
    */
   public function setUp() {
-    parent::setUp(array('taxonomy'));
+    parent::setUp();
 
     $this->drupalLogin($this->drupalCreateUser(array(
       'access content',

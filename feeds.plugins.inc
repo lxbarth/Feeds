@@ -1,5 +1,5 @@
 <?php
-// $Id: feeds.plugins.inc,v 1.7 2010/09/16 22:30:18 alexb Exp $
+// $Id: feeds.plugins.inc,v 1.7.2.1 2010/10/04 20:49:28 alexb Exp $
 
 /**
  * @file
@@ -138,17 +138,6 @@ function _feeds_feeds_plugins() {
       'parent' => 'FeedsProcessor',
       'class' => 'FeedsNodeProcessor',
       'file' => 'FeedsNodeProcessor.inc',
-      'path' => $path,
-    ),
-  );
-  $info['FeedsFeedNodeProcessor'] = array(
-    'name' => 'Feed Node processor',
-    'description' => 'Create <em>Feed nodes</em>.',
-    'help' => 'Create <em>Feed nodes</em> from parsed content. Feed nodes are nodes that can import feeds themselves. This can be useful for instance when importing OPML feeds.',
-    'handler' => array(
-      'parent' => 'FeedsProcessor',
-      'class' => 'FeedsFeedNodeProcessor',
-      'file' => 'FeedsFeedNodeProcessor.inc',
       'path' => $path,
     ),
   );

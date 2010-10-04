@@ -1,8 +1,12 @@
-// $Id: CHANGELOG.txt,v 1.176.2.11 2010/10/04 01:33:43 alexb Exp $
+// $Id: CHANGELOG.txt,v 1.176.2.12 2010/10/04 20:49:28 alexb Exp $
 
 Feeds 7.x 2.0 XXXXXXXXXXXXXXXXXXX
 ---------------------------------
 
+- #728534 alex_b: Remove FeedsFeedNodeProcessor. If you have used
+  FeedsFeedNodeProcessor in the past, use FeedsNodeProcessor (Node Processor)
+  instead now. It supports all of FeedsFeedNodeProcessor's functionality and
+  more.
 - #929066 alex_b: Track all imported items. Note: All views that use 'Feeds
   Item' fields or relationships need updating.
 - #930018 alex_b: Don't show file upload when 'Supply path directly' is

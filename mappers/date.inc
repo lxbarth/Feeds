@@ -1,5 +1,5 @@
 <?php
-// $Id: date.inc,v 1.4.2.1 2010/09/29 23:56:10 alexb Exp $
+// $Id: date.inc,v 1.4.2.2 2010/10/04 19:50:36 jmiccolis Exp $
 
 /**
  * @file
@@ -48,7 +48,7 @@ function date_feeds_processor_targets_alter(&$targets, $entity_type, $bundle_nam
  * @todo Support array of values for dates.
  */
 function date_feeds_set_target($entity, $target, $feed_element) {
-  list($field_name, $sub_field) = split(':', $target);
+  list($field_name, $sub_field) = explode(':', $target, 2);
   if (!($feed_element instanceof FeedsDateTimeElement)) {
     if (is_array($feed_element)) {
       $feed_element = $feed_element[0];

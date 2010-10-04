@@ -1,5 +1,5 @@
 <?php
-// $Id: feeds.test.inc,v 1.19.2.1 2010/09/29 23:56:10 alexb Exp $
+// $Id: feeds.test.inc,v 1.19.2.3 2010/10/04 20:40:46 jmiccolis Exp $
 
 /**
  * @file
@@ -17,13 +17,14 @@ class FeedsWebTestCase extends DrupalWebTestCase {
    * please don't pass duplicates of what is defined below!
    */
   function setUp($add_modules = array()) {
-    parent::setUp();
+    // We ensure the taxonomy module is enabled first to prevent issues later
+    // on where plugins aren't available.
+    parent::setUp(array('taxonomy'));
     $modules = array(
       'image',
       'file',
       'field',
       'field_ui',
-      'taxonomy',
       'ctools',
       'job_scheduler',
       'feeds',
@@ -320,7 +321,7 @@ class FeedsWebTestCase extends DrupalWebTestCase {
     }
     $edit = array(
       'feeds[FeedsHTTPFetcher][source]' => $feed_url,
-      );
+    );
     $nid = $this->drupalPost('import/'. $id, $edit, 'Import');
 
     // Check whether feed got recorded in feeds_source table.
