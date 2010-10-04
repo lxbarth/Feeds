@@ -148,13 +148,6 @@ class FeedsUserProcessor extends FeedsProcessor {
   }
 
   /**
-   * Set target element.
-   */
-  public function setTargetElement(&$target_item, $target_element, $value) {
-    $target_item->$target_element = $value;
-  }
-
-  /**
    * Return available mapping targets.
    */
   public function getMappingTargets() {
