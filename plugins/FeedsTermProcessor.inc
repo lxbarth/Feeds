@@ -102,7 +102,7 @@ class FeedsTermProcessor extends FeedsProcessor {
                         FROM {taxonomy_term_data} td
                         JOIN {feeds_item} fi
                         ON fi.entity_type = 'taxonomy_term'
-                        AND td.tid = fi.tid
+                        AND td.tid = fi.entity_id
                         WHERE td.vid = :vid
                         AND fi.id = :id
                         AND fi.feed_nid = :feed_nid",
