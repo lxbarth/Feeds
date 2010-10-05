@@ -1,5 +1,5 @@
 <?php
-// $Id: FeedsTermProcessor.inc,v 1.25.2.2 2010/10/04 01:33:43 alexb Exp $
+// $Id: FeedsTermProcessor.inc,v 1.25.2.4 2010/10/05 20:38:09 alexb Exp $
 
 /**
  * @file
@@ -18,21 +18,14 @@ class FeedsTermProcessor extends FeedsProcessor {
     $this->entity_type = 'taxonomy_term';
   }
 
-
   /**
    * Implements FeedsProcessor::process().
    */
   public function process(FeedsSource $source, FeedsParserResult $parser_result) {
-
-    if (empty($this->config['vocabulary'])) {
-      throw new Exception(t('You must define a vocabulary for Taxonomy term processor before importing.'));
-    }
-
     // Count number of created and updated nodes.
     $created  = $updated = $no_name = 0;
 
     while ($item = $parser_result->shiftItem()) {
-
       if (!($tid = $this->existingItemId($source, $parser_result)) || $this->config['update_existing'] != FEEDS_SKIP_EXISTING) {
 
         // Map item to a term.
@@ -223,24 +216,12 @@ class FeedsTermProcessor extends FeedsProcessor {
    * Return vocabulary to map to.
    */
   public function vocabulary() {
-    // Legacy handling for old feeds importers.
-    if (is_numeric($this->config['vocabulary'])) {
-      $vocabularies = taxonomy_get_vocabularies();
-      return isset($vocabularies[$this->config['vocabulary']]) ? $vocabularies[$this->config['vocabulary']] : NULL;
-    }
-    else {
+    if (isset($this->config['vocabulary'])) {
       if ($vocabulary = taxonomy_vocabulary_machine_name_load($this->config['vocabulary'])) {
         return $vocabulary;
       }
-      else {
-        $vocabularies = taxonomy_get_vocabularies();
-        foreach ($vocabularies as $vocabulary) {
-          if ($vocabulary->module == $this->config['vocabulary']) {
-            return $vocabulary;
-          }
-        }
-      }
     }
+    throw new Exception(t('No vocabulary defined for Taxonomy Term processor.'));
   }
 
   /**
